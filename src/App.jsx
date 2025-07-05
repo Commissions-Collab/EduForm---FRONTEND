@@ -1,10 +1,32 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import AuthLayout from "./pages/auth/authLayout";
+
+import SignIn from "./pages/auth/signIn";
+import SignUp from "./pages/auth/signUp";
+import NotFound from "./pages/NotFound";
+import SuperAdminRoutes from "./routes/superAdminRoutes";
+import AdminRoutes from "./routes/adminRoutes";
+import UserRoutes from "./routes/userRoutes";
+
 function App() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <h1 className="text-3xl font-bold underline text-center">
-        EduForm - A Form Builder for Education
-      </h1>
-    </div>
+    <main className="flex h-screen">
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AuthLayout />}>
+            <Route index element={<SignIn />} />
+            <Route path="/sign-up" element={<SignUp />} />
+          </Route>
+
+          {SuperAdminRoutes}
+          {AdminRoutes}
+          {UserRoutes}
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </main>
   );
 }
 
