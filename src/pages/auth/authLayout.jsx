@@ -1,10 +1,11 @@
+import SchoolImage from "../../assets/images/CandaBg2.svg";
 import { Outlet } from "react-router-dom";
 
 const AuthLayout = () => {
   return (
     <>
       <img
-        src="/assets/sample.jpg"
+        src={SchoolImage}
         alt="sample img"
         className="hidden xl:block h-screen w-1/2 object-cover bg-no-repeat"
       />
