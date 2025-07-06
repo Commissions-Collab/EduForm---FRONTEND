@@ -1,11 +1,12 @@
 import React from "react";
+import StatCards from "./components/StatsCard";
 
-const SuperAdminDashboard = () => {
+const Dashboard = () => {
   return (
     <main>
-      <div className="text-3xl  font-semibold"> SuperAdminDashboard</div>
+      <StatCards />
     </main>
   );
 };
 
-export default SuperAdminDashboard;
+export default Dashboard;

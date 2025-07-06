@@ -12,6 +12,8 @@ import {
   LuCalendarCheck,
   LuBookText,
   LuSignalHigh,
+  LuActivity,
+  LuClock,
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -36,9 +38,9 @@ export const superAdminNav = [
     url: "/records",
   },
   {
-    name: "Settings",
-    icon: LuSettings,
-    url: "/settings",
+    name: "Calendar",
+    icon: LuCalendarDays,
+    url: "/calendar",
   },
 ];
 
@@ -122,5 +124,41 @@ export const studentNav = [
     name: "Achievements",
     icon: LuAward,
     url: "/achievements",
+  },
+];
+
+
+//superAdmin Constants
+export const dashboardStats = [
+  {
+    label: "Active Users",
+    value: "247",
+    change: "+12%",
+    changeColor: "text-green-500",
+    icon: LuUsers,
+    iconColor: "text-blue-500",
+  },
+  {
+    label: "Forms Processed",
+    value: "1,234",
+    change: "+5%",
+    changeColor: "text-green-500",
+    icon: LuFileText,
+    iconColor: "text-green-500",
+  },
+  {
+    label: "System Health",
+    value: "98%",
+    change: "Optimal",
+    changeColor: "text-gray-500",
+    icon: LuActivity,
+    iconColor: "text-purple-500",
+  },
+  {
+    label: "Pending Actions",
+    value: "23",
+    link: { text: "View All", href: "#" },
+    icon: LuClock,
+    iconColor: "text-orange-500",
   },
 ];
