@@ -42,13 +42,15 @@ const SignIn = () => {
             Forgot password?
           </Link>
         </div>
-
-        <button
-          type="submit"
-          className="w-full bg-[#3730A3] hover:bg-[#2C268C] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5" // Increased padding, bolder font, shadow, slight lift on hover
-        >
-          Login
-        </button>
+        
+        <Link to="/student/dashboard">
+          <button
+            type="button"
+            className="w-full bg-[#3730A3] hover:bg-[#2C268C] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+          >
+            Login
+          </button>
+        </Link>
 
         <div className="flex justify-center mt-5"> 
           <span className="text-gray-600 text-sm">Don't have an account?</span> 
