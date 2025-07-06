@@ -4,8 +4,8 @@ import UserDashboard from "../pages/user/Dashboard";
 
 const UserRoutes = [
   <>
-    <Route path="/student" element={<UserLayout />}>
-      <Route path="dashboard" element={<UserDashboard />} />
+    <Route element={<UserLayout />}>
+      <Route path="/student/dashboard" element={<UserDashboard />} />
     </Route>
   </>,
 ];

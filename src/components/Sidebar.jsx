@@ -16,23 +16,23 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar">
-      <h2 className="text-lg font-bold mb-6">Logo</h2>
-      <ul className="flex flex-col mt-10 gap-1">
+      <h2 className="text-3xl font-bold mb-6">EDUFORM</h2>
+      <ul className="flex flex-col mt-10 gap-1.5">
         {navItems.map(({ name, url, icon: Icon }) => (
           <li key={name}>
             <Link
               to={url}
-              className={`flex items-center gap-3 p-2 rounded-lg  transition ${
+              className={`flex items-center gap-3 p-3 rounded-lg  transition ${
                 pathname === url
-                  ? "bg-gray-200 font-medium text-gray-900"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-blue-500 font-semibold text-white"
+                  : "text-gray-700 font-medium transition-all duration-200 hover:bg-gray-100"
               }`}
             >
               {Icon && (
                 <Icon
-                  size={20}
+                  size={21}
                   className={`${
-                    pathname === url ? "text-gray-800" : "text-gray-500"
+                    pathname === url ? "text-white" : "text-gray-700"
                   }`}
                 />
               )}

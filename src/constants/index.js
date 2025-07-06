@@ -1,5 +1,18 @@
-import { MdOutlineSpaceDashboard } from "react-icons/md";
-import { LuUsers } from "react-icons/lu";
+import { MdOutlineSpaceDashboard, MdOutlineWorkOutline } from "react-icons/md";
+import {
+  LuUsers,
+  LuFileText,
+  LuClipboardList,
+  LuSettings,
+  LuGraduationCap,
+  LuCalendarDays,
+  LuHeart,
+  LuBookOpen,
+  LuAward,
+  LuCalendarCheck,
+  LuBookText,
+  LuSignalHigh,
+} from "react-icons/lu";
 
 export const superAdminNav = [
   {
@@ -14,17 +27,17 @@ export const superAdminNav = [
   },
   {
     name: "Forms",
-    icon: "",
+    icon: LuFileText,
     url: "/forms",
   },
   {
     name: "Records",
-    icon: "",
+    icon: LuClipboardList,
     url: "/records",
   },
   {
     name: "Settings",
-    icon: "",
+    icon: LuSettings,
     url: "/settings",
   },
 ];
@@ -32,48 +45,48 @@ export const superAdminNav = [
 export const adminNav = [
   {
     name: "Dashboard",
-    icon: "",
+    icon: MdOutlineSpaceDashboard,
     url: "/admin/dashboard",
   },
   {
     name: "Daily Attendance (SF2)",
-    icon: "",
+    icon: LuCalendarCheck,
     url: "/attendance",
   },
   {
     name: "Monthly Summary (SF4)",
-    icon: "",
+    icon: LuCalendarDays,
     url: "/summary",
   },
   {
     name: "Academic Records (SF9)",
-    icon: "",
+    icon: LuClipboardList,
     url: "/records",
   },
   {
     name: "Promotion Reports (SF5)",
-    icon: "",
-    url: "/reports",
+    icon: LuSignalHigh,
+    url: "/promotionReports",
   },
   {
     name: "Certificates",
-    icon: "",
+    icon: LuAward,
     url: "/certificates",
   },
   {
     name: "Parent Conference",
-    icon: "",
-    url: "/conference",
+    icon: LuUsers,
+    url: "/parentConference",
   },
   {
     name: "Textbooks (SF3)",
-    icon: "",
-    url: "/textbooks",
+    icon: LuBookText,
+    url: "/textbook",
   },
 
   {
     name: "Workload (SF7)",
-    icon: "",
+    icon: MdOutlineWorkOutline,
     url: "/workload",
   },
 ];
@@ -81,33 +94,33 @@ export const adminNav = [
 export const studentNav = [
   {
     name: "Dashboard",
-    icon: "",
+    icon: MdOutlineSpaceDashboard,
     url: "/student/dashboard",
   },
   {
     name: "Grades",
-    icon: "",
+    icon: LuGraduationCap,
     url: "/grades",
   },
   {
     name: "Attendance",
-    icon: "",
+    icon: LuCalendarDays,
     url: "/attendance",
   },
   {
     name: "Health Profile",
-    icon: "",
+    icon: LuHeart,
     url: "/healthProfile",
   },
   {
     name: "Resources",
-    icon: "",
+    icon: LuBookOpen,
     url: "/resources",
   },
 
   {
     name: "Achievements",
-    icon: "",
+    icon: LuAward,
     url: "/achievements",
   },
 ];

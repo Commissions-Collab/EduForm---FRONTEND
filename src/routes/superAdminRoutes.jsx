@@ -4,8 +4,8 @@ import SuperAdminDashboard from "../pages/superadmin/Dashboard";
 
 const SuperAdminRoutes = [
   <>
-    <Route path="/superadmin" element={<SuperAdminLayout />}>
-      <Route path="dashboard" element={<SuperAdminDashboard />} />
+    <Route element={<SuperAdminLayout />}>
+      <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
     </Route>
   </>,
 ];

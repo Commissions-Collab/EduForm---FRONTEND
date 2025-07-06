@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+
+
+
+.page-title {
+    @apply text-3xl font-bold text-gray-800;
+}
+
+.dashboard-card {
+    @apply bg-white rounded-lg border border-gray-200 shadow-xs p-6 transition duration-300;
+}
+
+.card-title {
+    @apply text-2xl font-semibold text-gray-800;
+}
+
+
 .sidebar {
     display: flex;
     flex-direction: column;
@@ -14,13 +30,13 @@
 
 @media (min-width: 640px) {
     .sidebar {
-        width: 220px;
+        width: 240px;
     }
 }
 
 @media (min-width: 1280px) {
     .sidebar {
-        width: 260px;
+        width: 290px;
     }
 }
 
@@ -38,12 +54,8 @@
 
 
 .main-content {
-    flex: 1;
-    overflow: auto;
+    background-color: #F3F4F6;
     padding: 2rem;
-    background-color: #FAFAF9;
-    height: calc(100vh - 80px);
-
 }
 
 
