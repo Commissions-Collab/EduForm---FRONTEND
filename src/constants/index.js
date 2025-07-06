@@ -1,12 +1,15 @@
+import { MdOutlineSpaceDashboard } from "react-icons/md";
+import { LuUsers } from "react-icons/lu";
+
 export const superAdminNav = [
   {
     name: "Dashboard",
-    icon: "",
-    url: "/dashboard",
+    icon: MdOutlineSpaceDashboard,
+    url: "/superadmin/dashboard",
   },
   {
     name: "Users",
-    icon: "",
+    icon: LuUsers,
     url: "/users",
   },
   {
@@ -30,7 +33,7 @@ export const adminNav = [
   {
     name: "Dashboard",
     icon: "",
-    url: "/dashboard",
+    url: "/admin/dashboard",
   },
   {
     name: "Daily Attendance (SF2)",
@@ -79,7 +82,7 @@ export const studentNav = [
   {
     name: "Dashboard",
     icon: "",
-    url: "/dashboard",
+    url: "/student/dashboard",
   },
   {
     name: "Grades",

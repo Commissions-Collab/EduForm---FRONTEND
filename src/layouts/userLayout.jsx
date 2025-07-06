@@ -3,11 +3,15 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 const UserLayout = () => {
   return (
-    <div className="w-full">
-      <Header />
+    <main className="flex min-h-screen w-full">
       <Sidebar />
-      <Outlet />
-    </div>
+      <section className="flex flex-col flex-1 w-full">
+        <Header />
+        <div className="main-content flex-1">
+          <Outlet />
+        </div>
+      </section>
+    </main>
   );
 };
 
