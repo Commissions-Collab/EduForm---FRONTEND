@@ -14,6 +14,10 @@ import {
   LuSignalHigh,
   LuActivity,
   LuClock,
+  LuTriangleAlert,
+  LuCircleCheck,
+  LuHourglass, 
+  LuUser, 
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -160,5 +164,47 @@ export const dashboardStats = [
     link: { text: "View All", href: "#" },
     icon: LuClock,
     iconColor: "text-orange-500",
+  },
+];
+
+export const systemAlerts = [
+  {
+    message: "SF5 discrepancies detected in Grade 10-A",
+    time: "10 minutes ago",
+    icon: LuTriangleAlert,
+    iconColor: "text-red-500",
+  },
+  {
+    message: "Daily backup completed successfully",
+    time: "1 hour ago",
+    icon: LuCircleCheck,
+    iconColor: "text-green-500",
+  },
+  {
+    message: "Pending grade submissions for Grade 8",
+    time: "2 hours ago",
+    icon: LuHourglass,
+    iconColor: "text-orange-500",
+  },
+];
+
+export const recentActivity = [
+  {
+    user: "Maria Santos",
+    action: "uploaded SF2 attendance records",
+    time: "Just now",
+    icon: LuUser, // Generic user icon, replace if specific user icons are available
+  },
+  {
+    user: "John Cruz",
+    action: "modified Grade 9 class list",
+    time: "30 minutes ago",
+    icon: LuUser,
+  },
+  {
+    user: "Sarah Garcia",
+    action: "generated quarterly report",
+    time: "1 hour ago",
+    icon: LuUser,
   },
 ];
