@@ -5,9 +5,9 @@ const SuperAdminLayout = () => {
   return (
     <main className="flex min-h-screen w-full">
       <Sidebar />
-      <section className="flex flex-col flex-1 w-full">
+      <section className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <div className="main-content flex-1">
+        <div className="flex-1 overflow-y-auto p-6 ">
           <Outlet />
         </div>
       </section>
