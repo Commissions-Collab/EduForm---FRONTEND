@@ -6,7 +6,7 @@ const AlertAndActivity = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-5 mt-3">
       {/* System Alerts Container */}
-      <div className="bg-white shadow rounded-md p-6 pb-90">
+      <div className="bg-white shadow rounded-md p-6 sm:pb-5 md:pb-10 lg:pb-20">
         <h2 className="text-lg font-semibold mb-4">System Alerts</h2>
         {systemAlerts.map((alert, index) => {
           const Icon = alert.icon;
