@@ -16,7 +16,7 @@ const SignIn = () => {
       <div className="w-full max-w-lg p-4 sm:p-6 md:p-8 overflow-y-auto max-h-screen">
         <form className="w-full bg-white p-6 sm:p-8 md:p-10 rounded-xl shadow-lg space-y-6 relative overflow-hidden">
           <h1 className="text-4xl font-extrabold text-[#3730A3] text-center mb-2 animate-fadeInDown">
-            EduForm
+            AcadFlow
           </h1>
 
           <p className="text-gray-600 text-center mb-6 text-md">

@@ -6,7 +6,7 @@ const SignUp = () => {
     <div className="w-full max-w-md bg-white p-6 sm:p-8 md:p-10 relative overflow-hidden max-h-[calc(100vh-80px)] overflow-y-auto">
 
       <h1 className="text-4xl font-extrabold text-[#3730A3] text-center mb-2">
-        EduForm
+        AcadFlow
       </h1>
 
       <p className="text-gray-600 text-center mb-6 text-md">

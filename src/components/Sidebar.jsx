@@ -16,7 +16,7 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar">
-      <h2 className="text-3xl font-bold mb-6">EDUFORM</h2>
+      <h2 className="text-3xl font-bold mb-6 text-[#3730A3]">AcadFlow</h2>
       <ul className="flex flex-col mt-10 gap-1.5">
         {navItems.map(({ name, url, icon: Icon }) => (
           <li key={name}>
@@ -24,7 +24,7 @@ const Sidebar = () => {
               to={url}
               className={`flex items-center gap-3 p-3 rounded-lg  transition ${
                 pathname === url
-                  ? "bg-blue-500 font-semibold text-white"
+                  ? "bg-[#3730A3] font-semibold text-white"
                   : "text-gray-700 font-medium transition-all duration-200 hover:bg-gray-100"
               }`}
             >
