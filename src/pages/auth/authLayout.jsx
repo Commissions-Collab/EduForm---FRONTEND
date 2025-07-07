@@ -1,4 +1,4 @@
-import SchoolImage from "../../assets/images/CandaBg2.svg";
+import SchoolImage from "../../assets/images/CastanasBg.svg";
 import { Outlet } from "react-router-dom";
 
 const AuthLayout = () => {
