@@ -7,7 +7,7 @@ const UserLayout = () => {
       <Sidebar />
       <section className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <div className="flex-1 overflow-y-auto p-6 ">
+        <div className="main-content flex-1 overflow-y-auto p-6 ">
           <Outlet />
         </div>
       </section>

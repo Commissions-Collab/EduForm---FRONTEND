@@ -1,19 +1,33 @@
 @import "tailwindcss";
 
-
-
-
 .page-title {
     @apply text-3xl font-bold text-gray-800;
 }
 
+
 .dashboard-card {
-    @apply bg-white rounded-lg border border-gray-200 shadow-xs p-6 transition duration-300;
+    @apply bg-white shadow rounded-md p-6 sm:p-8 lg:p-10 transition duration-300;
 }
 
 .card-title {
-    @apply text-2xl font-semibold text-gray-800;
+    @apply text-2xl font-semibold text-gray-800 mb-5;
 }
+
+
+.attendance-status {
+    @apply text-gray-600 text-lg font-semibold mt-2;
+}
+
+
+.count {
+    @apply text-2xl font-bold text-gray-800;
+}
+
+.percent {
+    @apply text-lg text-gray-500;
+}
+
+
 
 
 .sidebar {
@@ -55,7 +69,7 @@
 
 .main-content {
     background-color: #F3F4F6;
-    padding: 2rem;
+
 }
 
 

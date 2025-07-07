@@ -16,8 +16,8 @@ import {
   LuClock,
   LuTriangleAlert,
   LuCircleCheck,
-  LuHourglass, 
-  LuUser, 
+  LuHourglass,
+  LuUser,
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -131,7 +131,6 @@ export const studentNav = [
   },
 ];
 
-
 //superAdmin Constants
 export const dashboardStats = [
   {
@@ -206,5 +205,38 @@ export const recentActivity = [
     action: "generated quarterly report",
     time: "1 hour ago",
     icon: LuUser,
+  },
+];
+
+//Admin Constants
+export const adminCards = [
+  {
+    id: 1,
+    title: "Today's Attendance",
+    type: "attendance",
+    data: {
+      present: { count: 87, percent: 75 },
+      absent: { count: 5, percent: 15 },
+      late: { count: 8, percent: 10 },
+    },
+  },
+  {
+    id: 2,
+    title: "Academic Status",
+    type: "academic",
+    data: {
+      reportsIssued: 135,
+      honorEligible: 23,
+    },
+  },
+  {
+    id: 3,
+    title: "Resources & Calendar",
+    type: "resources",
+    data: {
+      textbookOverdues: 12,
+      pendingReturns: 7,
+      upcomingEvents: ["Sports Meet", "Parents’ Assembly", "Exam Week"],
+    },
   },
 ];
