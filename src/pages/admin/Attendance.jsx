@@ -2,14 +2,12 @@ import React from "react";
 
 const Attendance = () => {
   return (
-    <main>
-      <div className="flex justify-between">
+    <main className="p-4">
+      <div className="between">
         <div className="page-title">Daily Attendance (SF2): Grade 10-A</div>
-        <div className="items-center">
-          <p>DATE:</p>
-        </div>
+        <div className="items-center">Date:</div>
       </div>
-      <div className="mt-10 dashboard-card flex justify-between items-center">
+      <div className="mt-10 shad-container p-5 flex justify-between items-center">
         <div>
           <h2 className="card-title">Attendance Summary</h2>
         </div>

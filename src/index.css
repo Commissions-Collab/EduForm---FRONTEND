@@ -11,44 +11,71 @@
 }
 
 .page-title {
-    @apply text-3xl font-bold text-gray-800;
+    @apply text-2xl font-bold text-gray-800;
 }
 
+.between {
+    @apply flex justify-between
+}
 
 .dashboard-card {
     @apply bg-white shadow rounded-md p-6 sm:p-8 lg:p-10 transition duration-300;
 }
 
 .card-title {
-    @apply text-2xl font-semibold text-gray-800 mb-5;
+    @apply md:text-lg lg:text-xl font-semibold items-center text-gray-800 mb-3;
 }
 
-.attendance-status {
+.card-status {
     @apply w-12 h-12 text-lg flex items-center justify-center rounded-full;
 }
 
-.attendance-text {
-    @apply text-gray-600 text-lg font-semibold mt-2;
+.card-text {
+    @apply text-gray-600 text-[14px] font-semibold mt-2;
 }
 
-
 .count {
-    @apply text-2xl font-bold text-gray-800;
+    @apply text-xl font-bold text-gray-800;
 }
 
 .percent {
-    @apply text-lg text-gray-500;
+    @apply text-[14px] text-gray-500;
 }
 
+.book {
+    @apply text-lg gap-3 flex items-center;
+}
+
+.card-layout {
+    @apply flex flex-col items-center p-3 rounded-lg flex-1;
+}
+
+.resources-layout {
+    @apply flex items-center justify-between;
+}
+
+
 .dashboard-p-button {
-    @apply w-full bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] text-lg font-semibold py-3 px-4 rounded-lg transition-all duration-200;
+    @apply w-full bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] text-[14px] font-semibold py-3 px-4 rounded-lg transition-all duration-200;
 }
 
 .dashboard-s-button {
-    @apply w-full border border-[#E0E7FF] hover:bg-[#C7D2FE]/20 text-[#3730A3] text-lg font-semibold py-3 px-4 rounded-lg transition-all duration-200;
+    @apply w-full border border-[#E0E7FF] hover:bg-[#C7D2FE]/20 text-[#3730A3] text-[14px] font-semibold py-3 px-4 rounded-lg transition-all duration-200;
 }
 
 
+.monthly-summary-button {
+    @apply flex items-center px-4 py-2 font-medium border border-gray-300 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200;
+}
+
+
+.shad-container {
+    @apply shadow rounded-md;
+}
+
+.dropdown {
+    @apply ml-3 px-6 py-2 border font-medium border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent;
+}
 
 
 
@@ -59,8 +86,6 @@
         display: none;
     }
 }
-
-
 
 
 
