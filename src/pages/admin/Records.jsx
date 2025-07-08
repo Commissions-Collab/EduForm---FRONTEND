@@ -28,7 +28,7 @@ const Records = () => {
             <option value="4th Quarter">4th Quarter</option>
           </select>
 
-          <div className="inline-flex items-center px-2 py-1 text-md rounded-lg bg-yellow-50 text-yellow-600">
+          <div className="inline-flex items-center px-2 py-1 text-sm rounded-lg bg-yellow-50 text-yellow-600">
             <LuDownload size={14} />
             <span className="ml-2">Locks in : 5 days</span>
           </div>
