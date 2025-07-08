@@ -244,3 +244,46 @@ export const adminCards = [
     },
   },
 ];
+
+export const sampleUsers = [
+  {
+    id: 1,
+    name: "Maria Santos",
+    email: "msantos@eduform.edu",
+    role: "Teacher",
+    department: "Mathematics",
+    status: "Active",
+    permissions: ["SF2", "SF9"],
+    lastActive: "2 hours ago",
+  },
+  {
+    id: 2,
+    name: "John Cruz",
+    email: "jcruz@eduform.edu",
+    role: "Principal",
+    department: "Administration",
+    status: "Active",
+    permissions: ["SF1", "SF2", "SF9", "SF10"],
+    lastActive: "5 minutes ago",
+  },
+  {
+    id: 3,
+    name: "Sarah Garcia",
+    email: "sgarcia@eduform.edu",
+    role: "Health Officer",
+    department: "Health Services",
+    status: "Active",
+    permissions: ["SF8"],
+    lastActive: "1 day ago",
+  },
+  {
+    id: 4,
+    name: "Robert Lim",
+    email: "rlim@eduform.edu",
+    role: "Records Officer",
+    department: "Administration",
+    status: "Inactive",
+    permissions: ["SF3", "SF5", "SF6"],
+    lastActive: "1 week ago",
+  },
+];
