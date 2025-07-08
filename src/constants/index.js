@@ -236,7 +236,11 @@ export const adminCards = [
     data: {
       textbookOverdues: 12,
       pendingReturns: 7,
-      upcomingEvents: ["Sports Meet", "Parents’ Assembly", "Exam Week"],
+      upcomingEvents: [
+        { name: "Sports Meet", date: "2025-07-10" },
+        { name: "Parents’ Assembly", date: "2025-07-15" },
+        { name: "Exam Week", date: "2025-07-20" },
+      ],
     },
   },
 ];

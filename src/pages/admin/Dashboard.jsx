@@ -4,8 +4,9 @@ import DashboardCard from "../../components/admin/DashboardCard";
 
 const AdminDashboard = () => {
   return (
-    <main>
-      <div className="dashboard-grid">
+    <main className="p-4">
+      <div className="page-title">Dashboard</div>
+      <div className="mt-10 dashboard-grid">
         {adminCards.map((card) => (
           <DashboardCard
             key={card.id}
