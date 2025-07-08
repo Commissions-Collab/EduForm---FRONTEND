@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+
+
+.sidebar {
+    @apply hidden lg:flex flex-col h-screen overflow-y-auto p-6 w-[290px] bg-white border-r border-gray-200 shadow-md;
+}
+
+.dashboard-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3
+}
+
 .page-title {
     @apply text-3xl font-bold text-gray-800;
 }
@@ -13,8 +23,11 @@
     @apply text-2xl font-semibold text-gray-800 mb-5;
 }
 
-
 .attendance-status {
+    @apply w-12 h-12 text-lg flex items-center justify-center rounded-full;
+}
+
+.attendance-text {
     @apply text-gray-600 text-lg font-semibold mt-2;
 }
 
@@ -27,32 +40,29 @@
     @apply text-lg text-gray-500;
 }
 
-
-
-
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow-y: auto;
-    padding: 1.5rem 1rem;
-    width: 72px;
-    background-color: #ffffff;
-    border-right: 2px solid #e5e7eb;
-    box-shadow: 6px 0 8px rgba(0, 0, 0, 0.04);
+.dashboard-p-button {
+    @apply w-full bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] text-lg font-semibold py-3 px-4 rounded-lg transition-all duration-200;
 }
 
-@media (min-width: 640px) {
+.dashboard-s-button {
+    @apply w-full border border-[#E0E7FF] hover:bg-[#C7D2FE]/20 text-[#3730A3] text-lg font-semibold py-3 px-4 rounded-lg transition-all duration-200;
+}
+
+
+
+
+
+
+/* Hide sidebar completely on screens smaller than 1024px (lg breakpoint) */
+@media (max-width: 1023px) {
     .sidebar {
-        width: 240px;
+        display: none;
     }
 }
 
-@media (min-width: 1280px) {
-    .sidebar {
-        width: 290px;
-    }
-}
+
+
+
 
 .header {
     display: flex;
@@ -67,10 +77,27 @@
 }
 
 
+.mobile-header {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    justify-content: space-between;
+    padding: 0 1rem;
+}
+
+@media (min-width: 1024px) {
+    .mobile-header {
+        display: none;
+    }
+}
+
+
 .main-content {
     background-color: #F3F4F6;
 
 }
+
+
 
 
 body,

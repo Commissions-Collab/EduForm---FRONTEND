@@ -18,47 +18,41 @@ const DashboardCard = ({ title, type, data }) => {
           <div className="flex justify-between gap-3">
             {/* Present */}
             <div className="flex flex-col items-center p-3 rounded-lg flex-1">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full bg-green-100 text-green-600 text-lg">
+              <div className="attendance-status bg-green-100 text-green-600">
                 <FaCheckCircle className="w-6 h-6" />
               </div>
-              <span className="attendance-status">Present</span>
+              <span className="attendance-text">Present</span>
               <span className="count">{data.present.count}</span>
               <span className="percent">{data.present.percent}%</span>
             </div>
 
             {/* Absent */}
             <div className="flex flex-col items-center p-3 rounded-lg flex-1">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full bg-red-100 text-red-500 text-lg">
+              <div className="attendance-status bg-red-100 text-red-500 ">
                 <FaTimesCircle className="w-6 h-6" />
               </div>
-              <span className="attendance-status">Absent</span>
+              <span className="attendance-text">Absent</span>
               <span className="count">{data.absent.count}</span>
               <span className="percent">{data.absent.percent}%</span>
             </div>
 
             {/* Late */}
-            <div className="flex flex-col items-center  p-3 rounded-lg flex-1">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-500 text-lg">
+            <div className="flex flex-col items-center p-3 rounded-lg flex-1">
+              <div className="attendance-status bg-yellow-100 text-yellow-500">
                 <FaClock className="w-6 h-6" />
               </div>
-              <span className="attendance-status">Late</span>
+              <span className="attendance-text">Late</span>
               <span className="count">{data.late.count}</span>
               <span className="percent">{data.late.percent}%</span>
             </div>
           </div>
           <div className="mt-5">
-            <button
-              type="button"
-              className="w-full bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] text-lg font-semibold py-3 px-4 rounded-lg transition-all duration-200 "
-            >
+            <button type="button" className="dashboard-p-button">
               Update Attendance (SF2)
             </button>
           </div>
           <div className="mt-3">
-            <button
-              type="button"
-              className="w-full border border-[#E0E7FF] hover:bg-[#C7D2FE]/20 text-[#3730A3] text-lg font-semibold py-3 px-4 rounded-lg transition-all duration-200 "
-            >
+            <button type="button" className="dashboard-s-button">
               View Monthly Summary (SF4)
             </button>
           </div>

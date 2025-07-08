@@ -62,12 +62,12 @@ export const adminNav = [
   {
     name: "Monthly Summary (SF4)",
     icon: LuCalendarDays,
-    url: "/summary",
+    url: "/monthlySummary",
   },
   {
     name: "Academic Records (SF9)",
     icon: LuClipboardList,
-    url: "/records",
+    url: "/academicRecords",
   },
   {
     name: "Promotion Reports (SF5)",

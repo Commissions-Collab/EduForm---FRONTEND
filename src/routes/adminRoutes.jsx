@@ -15,8 +15,8 @@ const AdminRoutes = [
     <Route element={<AdminLayout />}>
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/attendance" element={<Attendance />} />
-      <Route path="/summary" element={<MonthlySummary />} />
-      <Route path="/records" element={<Records />} />
+      <Route path="/monthlySummary" element={<MonthlySummary />} />
+      <Route path="/academicRecords" element={<Records />} />
       <Route path="/promotionReports" element={<PromotionReports />} />
       <Route path="/certificates" element={<Certificates />} />
       <Route path="/parentConference" element={<ParentConference />} />
