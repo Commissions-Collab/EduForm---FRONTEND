@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 
 const DashboardCard = ({ title, type, data }) => {
   return (
-    <div className="dashboard-card">
+    <div className="card">
       <h2 className="card-title">{title}</h2>
 
       {/* Attendance Card */}

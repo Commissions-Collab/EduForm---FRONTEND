@@ -18,6 +18,7 @@ import {
   LuCircleCheck,
   LuHourglass,
   LuUser,
+  LuStar,
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -324,5 +325,36 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+  },
+];
+
+export const promotionCards = [
+  {
+    label: "Total Students",
+    value: "8",
+    icon: LuUser,
+    iconColor: "text-gray-700",
+    change: "",
+  },
+  {
+    label: "Passing",
+    value: "7",
+    icon: LuCircleCheck,
+    iconColor: "text-green-600",
+    change: "88% of class",
+  },
+  {
+    label: "With Honors",
+    value: "3",
+    icon: LuStar,
+    iconColor: "text-blue-600",
+    change: "38% of class",
+  },
+  {
+    label: "Discrepancies",
+    value: "1",
+    icon: LuTriangleAlert,
+    iconColor: "text-yellow-600",
+    change: "Require review",
   },
 ];

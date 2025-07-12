@@ -28,7 +28,7 @@ input[type="number"] {
     @apply flex justify-between
 }
 
-.dashboard-card {
+.card {
     @apply bg-white shadow rounded-md p-6 sm:p-8 lg:p-10 transition duration-300;
 }
 
@@ -78,16 +78,23 @@ input[type="number"] {
     @apply flex items-center px-4 py-2 text-[12.5px] border border-gray-300 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200;
 }
 
-
-.shad-container {
-    @apply shadow rounded-md;
+.blue-card {
+    @apply shadow rounded-md bg-[#EEF2FF] border border-[#E0E7FF] p-7 flex justify-between items-center;
 }
+
+.blue-card-icon {
+    @apply w-10 h-10 text-[#3730A3] pb-4;
+}
+
+
 
 .dropdown {
     @apply px-4 py-2 border text-[12.5px] border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent;
 }
 
-
+.promoGrid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-3 md:py-4;
+}
 
 
 /* Hide sidebar completely on screens smaller than 1024px (lg breakpoint) */

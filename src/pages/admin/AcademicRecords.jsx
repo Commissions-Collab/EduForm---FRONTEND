@@ -42,9 +42,9 @@ const Records = () => {
         </div>
       </div>
 
-      <div className="mt-10 shad-container bg-[#EEF2FF] border border-[#E0E7FF] p-7 flex justify-between items-center">
+      <div className="mt-10  blue-card">
         <div className="flex items-center gap-5">
-          <LuCalendar className="w-10 h-10 text-[#3730A3] pb-4" />
+          <LuCalendar className=" blue-card-icon" />
           <div className="flex flex-col">
             <span className="text-md text-[#3730A3] font-semibold">
               Honor Roll Eligibility
