@@ -86,7 +86,9 @@ input[type="number"] {
     @apply w-10 h-10 text-[#3730A3] pb-4;
 }
 
-
+.shad-container {
+    @apply bg-white shadow rounded-md;
+}
 
 .dropdown {
     @apply px-4 py-2 border text-[12.5px] border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent;

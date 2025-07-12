@@ -92,7 +92,7 @@ const GradesTable = ({
                           onChange={(e) =>
                             onInputChange(student.id, subject, e.target.value)
                           }
-                          className="w-16 p-1 border border-gray-300 rounded text-center"
+                          className="w-16 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700"
                         />
                       </td>
                     )
