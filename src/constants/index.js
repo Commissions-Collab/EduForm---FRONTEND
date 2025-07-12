@@ -208,43 +208,6 @@ export const recentActivity = [
   },
 ];
 
-//Admin Constants
-export const adminCards = [
-  {
-    id: 1,
-    title: "Today's Attendance",
-    type: "attendance",
-    data: {
-      present: { count: 87, percent: 75 },
-      absent: { count: 5, percent: 15 },
-      late: { count: 8, percent: 10 },
-    },
-  },
-  {
-    id: 2,
-    title: "Academic Status",
-    type: "academic",
-    data: {
-      reportsIssued: 135,
-      honorEligible: 23,
-    },
-  },
-  {
-    id: 3,
-    title: "Resources & Calendar",
-    type: "resources",
-    data: {
-      textbookOverdues: 12,
-      pendingReturns: 7,
-      upcomingEvents: [
-        { name: "Sports Meet", date: "2025-07-10" },
-        { name: "Parents’ Assembly", date: "2025-07-15" },
-        { name: "Exam Week", date: "2025-07-20" },
-      ],
-    },
-  },
-];
-
 export const sampleUsers = [
   {
     id: 1,
@@ -285,5 +248,81 @@ export const sampleUsers = [
     status: "Inactive",
     permissions: ["SF3", "SF5", "SF6"],
     lastActive: "1 week ago",
+  },
+];
+
+//Admin Constants
+export const adminCards = [
+  {
+    id: 1,
+    title: "Today's Attendance",
+    type: "attendance",
+    data: {
+      present: { count: 87, percent: 75 },
+      absent: { count: 5, percent: 15 },
+      late: { count: 8, percent: 10 },
+    },
+  },
+  {
+    id: 2,
+    title: "Academic Status",
+    type: "academic",
+    data: {
+      reportsIssued: 135,
+      honorEligible: 23,
+    },
+  },
+  {
+    id: 3,
+    title: "Resources & Calendar",
+    type: "resources",
+    data: {
+      textbookOverdues: 12,
+      pendingReturns: 7,
+      upcomingEvents: [
+        { name: "Sports Meet", date: "2025-07-10" },
+        { name: "Parents’ Assembly", date: "2025-07-15" },
+        { name: "Exam Week", date: "2025-07-20" },
+      ],
+    },
+  },
+];
+
+export const studentList = [
+  {
+    id: 1,
+    name: "Robert Lim",
+    math: "",
+    science: "",
+    english: "",
+    filipino: "",
+    history: "",
+  },
+  {
+    id: 2,
+    name: "Jane Cruz",
+    math: "",
+    science: "",
+    english: "",
+    filipino: "",
+    history: "",
+  },
+  {
+    id: 3,
+    name: "Mark Tan",
+    math: "",
+    science: "",
+    english: "",
+    filipino: "",
+    history: "",
+  },
+  {
+    id: 4,
+    name: "Anna Reyes",
+    math: "",
+    science: "",
+    english: "",
+    filipino: "",
+    history: "",
   },
 ];

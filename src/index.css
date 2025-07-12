@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
 
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove number input spinners in Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
 
 .sidebar {
     @apply hidden lg:flex flex-col h-screen overflow-y-auto p-6 w-[290px] bg-white border-r border-gray-200 shadow-md;
