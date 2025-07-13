@@ -1,23 +1,17 @@
 import React, { useState } from "react";
 import PromotionCards from "../../components/admin/PromotionCards";
 import { LuCircleCheckBig } from "react-icons/lu";
-import { studentsData } from "../../constants";
 import PromotionTable from "../../components/admin/PromotionTable";
+import { useStudentsRecords } from "../../hooks/useStudentRecords";
 
 const PromotionReports = () => {
-  const localStudents = localStorage.getItem("students");
-
-  const [students] = useState(
-    localStudents ? JSON.parse(localStudents) : studentsData
-  );
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const STUDENTS_PER_PAGE = 10;
-  const totalPages = Math.ceil(students.length / STUDENTS_PER_PAGE);
-
-  const indexOfLast = currentPage * STUDENTS_PER_PAGE;
-  const indexOfFirst = indexOfLast - STUDENTS_PER_PAGE;
-  const currentStudents = students.slice(indexOfFirst, indexOfLast);
+  const {
+    students,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    currentRecords: currentStudents,
+  } = useStudentsRecords("students");
 
   return (
     <main className="p-4">

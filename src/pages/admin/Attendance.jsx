@@ -1,31 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { adminCards, studentsData } from "../../constants";
+import { adminCards } from "../../constants";
 import AttendanceTable from "../../components/admin/AttendanceTable";
+import { useStudentsRecords } from "../../hooks/useStudentRecords";
 
 const Attendance = () => {
+  const {
+    students: attendanceRecords,
+    setStudents: setAttendanceRecords,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    currentRecords,
+  } = useStudentsRecords("students");
+
+  const attendanceSummary = adminCards[0].data;
   const statusColors = {
     present: "bg-green-500",
     absent: "bg-red-500",
     late: "bg-yellow-400",
   };
-
-  const attendanceSummary = adminCards[0].data;
-  const localStudents = localStorage.getItem("students");
-
-  const [attendanceRecords, setAttendanceRecords] = useState(
-    localStudents ? JSON.parse(localStudents) : studentsData
-  );
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const RECORDS_PER_PAGE = 10;
-  const totalPages = Math.ceil(attendanceRecords.length / RECORDS_PER_PAGE);
-
-  const indexOfLastRecord = currentPage * RECORDS_PER_PAGE;
-  const indexOfFirstRecord = indexOfLastRecord - RECORDS_PER_PAGE;
-  const currentRecords = attendanceRecords.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
 
   const handleStatusClick = (id, value) => {
     const updatedRecords = attendanceRecords.map((student) =>
@@ -46,10 +39,6 @@ const Attendance = () => {
     );
     setAttendanceRecords(updatedRecords);
   };
-
-  useEffect(() => {
-    localStorage.setItem("students", JSON.stringify(attendanceRecords));
-  }, [attendanceRecords]);
 
   return (
     <main className="p-4">

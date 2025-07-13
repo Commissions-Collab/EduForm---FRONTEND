@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { LuCalendar, LuDownload } from "react-icons/lu";
 import GradesTable from "../../components/admin/GradesTable";
-import { studentsData } from "../../constants";
+import { useStudentsRecords } from "../../hooks/useStudentRecords";
 
 const Records = () => {
+  const {
+    students,
+    setStudents,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    currentRecords: currentStudents,
+  } = useStudentsRecords("students");
+
   const [selectedQuarter, setSelectedQuarter] = useState("All Quarters");
-  const localGrades = localStorage.getItem("students");
-  const [students, setStudents] = useState(
-    localGrades ? JSON.parse(localGrades) : studentsData
-  );
 
   const handleQuarterChange = (e) => setSelectedQuarter(e.target.value);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const STUDENTS_PER_PAGE = 10;
-  const totalPages = Math.ceil(students.length / STUDENTS_PER_PAGE);
-
-  const indexOfLast = currentPage * STUDENTS_PER_PAGE;
-  const indexOfFirst = indexOfLast - STUDENTS_PER_PAGE;
-  const currentStudents = students.slice(indexOfFirst, indexOfLast);
 
   const handleInputChange = (id, field, value) => {
     const updatedStudents = students.map((student) =>
@@ -32,10 +29,6 @@ const Records = () => {
     );
     setStudents(updatedStudents);
   };
-
-  useEffect(() => {
-    localStorage.setItem("students", JSON.stringify(students));
-  }, [students]);
 
   return (
     <main className="p-4">
