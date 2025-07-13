@@ -1,26 +1,19 @@
 import React from "react";
 import { reasons } from "../../constants";
 import { LuCircleCheck, LuCircleX, LuClock } from "react-icons/lu";
+import { getStatusButtonStyle } from "./common/ButtonStatus";
+import PaginationControls from "./common/Pagination";
 
-const AttendanceTable = ({ records, onStatusClick, onReasonChange }) => {
-  const getStatusButtonStyle = (currentStatus, buttonStatus) => {
-    if (currentStatus === buttonStatus) {
-      switch (buttonStatus) {
-        case "Present":
-          return "bg-green-100 text-green-800";
-        case "Absent":
-          return "bg-red-100 text-red-800";
-        case "Late":
-          return "bg-yellow-100 text-yellow-800";
-        default:
-          return "bg-gray-100 text-gray-600";
-      }
-    } else {
-      return "bg-gray-100 text-gray-600 hover:opacity-80";
-    }
-  };
-
-  return (
+const AttendanceTable = ({
+  records,
+  onStatusClick,
+  onReasonChange,
+  currentPage,
+  totalPages,
+  onPreviousPage,
+  onNextPage,
+}) => (
+  <>
     <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
@@ -28,13 +21,13 @@ const AttendanceTable = ({ records, onStatusClick, onReasonChange }) => {
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Student Name
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">
               Reason
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+            <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">
               Actions
             </th>
           </tr>
@@ -45,43 +38,26 @@ const AttendanceTable = ({ records, onStatusClick, onReasonChange }) => {
               <td className="px-4 py-4 text-sm text-gray-900">
                 {student.name}
               </td>
-
-              <td className="px-4 py-4 text-sm flex space-x-2">
-                <button
-                  onClick={() => onStatusClick(student.id, "Present")}
-                  className={`p-1 rounded-full ${getStatusButtonStyle(
-                    student.status,
-                    "Present"
-                  )}`}
-                  title="Present"
-                >
-                  <LuCircleCheck className="w-9 h-9" />
-                </button>
-
-                <button
-                  onClick={() => onStatusClick(student.id, "Absent")}
-                  className={`p-1 rounded-full ${getStatusButtonStyle(
-                    student.status,
-                    "Absent"
-                  )}`}
-                  title="Absent"
-                >
-                  <LuCircleX className="w-9 h-9" />
-                </button>
-
-                <button
-                  onClick={() => onStatusClick(student.id, "Late")}
-                  className={`p-1 rounded-full ${getStatusButtonStyle(
-                    student.status,
-                    "Late"
-                  )}`}
-                  title="Late"
-                >
-                  <LuClock className="w-9 h-9" />
-                </button>
+              <td className="px-4 py-4 text-sm flex justify-center space-x-2">
+                {["Present", "Absent", "Late"].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => onStatusClick(student.id, status)}
+                    className={`p-1 rounded-full ${getStatusButtonStyle(
+                      student.status,
+                      status
+                    )}`}
+                    title={status}
+                  >
+                    {status === "Present" && (
+                      <LuCircleCheck className="w-9 h-9" />
+                    )}
+                    {status === "Absent" && <LuCircleX className="w-9 h-9" />}
+                    {status === "Late" && <LuClock className="w-9 h-9" />}
+                  </button>
+                ))}
               </td>
-
-              <td className="px-4 py-4 text-sm">
+              <td className="px-4 py-4 text-sm text-center">
                 {student.status === "Absent" ? (
                   <select
                     value={student.reason}
@@ -99,8 +75,7 @@ const AttendanceTable = ({ records, onStatusClick, onReasonChange }) => {
                   "-"
                 )}
               </td>
-
-              <td className="px-4 py-4 text-sm text-blue-600 hover:underline cursor-pointer">
+              <td className="px-4 py-4 text-sm text-center text-blue-600 hover:underline cursor-pointer">
                 View History
               </td>
             </tr>
@@ -108,7 +83,13 @@ const AttendanceTable = ({ records, onStatusClick, onReasonChange }) => {
         </tbody>
       </table>
     </div>
-  );
-};
+    <PaginationControls
+      currentPage={currentPage}
+      totalPages={totalPages}
+      onPrevious={onPreviousPage}
+      onNext={onNextPage}
+    />
+  </>
+);
 
 export default AttendanceTable;

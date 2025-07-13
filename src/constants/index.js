@@ -289,14 +289,6 @@ export const adminCards = [
   },
 ];
 
-export const attendanceList = [
-  { id: 1, name: "Robert Lim", status: "", reason: "" },
-  { id: 2, name: "Jane Cruz", status: "", reason: "" },
-  { id: 3, name: "Mark Tan", status: "", reason: "" },
-  { id: 4, name: "Anna Reyes", status: "", reason: "" },
-  { id: 5, name: "Elijah Dela Cruz", status: "", reason: "" },
-];
-
 export const reasons = [
   "Sick",
   "Family Emergency",
@@ -305,7 +297,7 @@ export const reasons = [
   "Other",
 ];
 
-export const studentList = [
+export const studentsData = [
   {
     id: 1,
     name: "Robert Lim",
@@ -314,6 +306,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 2,
@@ -323,6 +317,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 3,
@@ -332,6 +328,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 4,
@@ -341,6 +339,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 5,
@@ -350,6 +350,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 6,
@@ -359,6 +361,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 7,
@@ -368,6 +372,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 8,
@@ -377,6 +383,8 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
   },
   {
     id: 9,
@@ -386,6 +394,19 @@ export const studentList = [
     english: "",
     filipino: "",
     history: "",
+    status: "",
+    reason: "",
+  },
+  {
+    id: 10,
+    name: "Renz Eryll",
+    math: "",
+    science: "",
+    english: "",
+    filipino: "",
+    history: "",
+    status: "",
+    reason: "",
   },
 ];
 

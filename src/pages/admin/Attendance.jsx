@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { adminCards, attendanceList } from "../../constants";
-import { FaCircle } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { adminCards, studentsData } from "../../constants";
 import AttendanceTable from "../../components/admin/AttendanceTable";
 
 const Attendance = () => {
@@ -10,12 +9,13 @@ const Attendance = () => {
     late: "bg-yellow-400",
   };
 
-  const attendanceData = adminCards[0].data;
+  const attendanceSummary = adminCards[0].data;
+  const localStudents = localStorage.getItem("students");
 
-  // full attendance records state here
-  const [attendanceRecords, setAttendanceRecords] = useState(attendanceList);
+  const [attendanceRecords, setAttendanceRecords] = useState(
+    localStudents ? JSON.parse(localStudents) : studentsData
+  );
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const RECORDS_PER_PAGE = 10;
   const totalPages = Math.ceil(attendanceRecords.length / RECORDS_PER_PAGE);
@@ -27,7 +27,6 @@ const Attendance = () => {
     indexOfLastRecord
   );
 
-  // Status handler
   const handleStatusClick = (id, value) => {
     const updatedRecords = attendanceRecords.map((student) =>
       student.id === id
@@ -41,13 +40,16 @@ const Attendance = () => {
     setAttendanceRecords(updatedRecords);
   };
 
-  // Reason handler
   const handleReasonChange = (id, value) => {
     const updatedRecords = attendanceRecords.map((student) =>
       student.id === id ? { ...student, reason: value } : student
     );
     setAttendanceRecords(updatedRecords);
   };
+
+  useEffect(() => {
+    localStorage.setItem("students", JSON.stringify(attendanceRecords));
+  }, [attendanceRecords]);
 
   return (
     <main className="p-4">
@@ -66,9 +68,8 @@ const Attendance = () => {
         <div>
           <h2 className="text-lg font-medium">Attendance Summary</h2>
         </div>
-
         <div className="text-sm flex justify-between gap-4">
-          {Object.entries(attendanceData).map(([key, value]) => (
+          {Object.entries(attendanceSummary).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${statusColors[key]}`} />
               <p className="capitalize">{key}</p>
@@ -79,36 +80,17 @@ const Attendance = () => {
         </div>
       </div>
 
-      <div>
-        <AttendanceTable
-          records={currentRecords}
-          onStatusClick={handleStatusClick}
-          onReasonChange={handleReasonChange}
-        />
-      </div>
-
-      {/* Pagination Controls */}
-      <div className="mt-4 flex justify-between items-center">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span className="text-sm text-gray-700">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      <AttendanceTable
+        records={currentRecords}
+        onStatusClick={handleStatusClick}
+        onReasonChange={handleReasonChange}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPreviousPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        onNextPage={() =>
+          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+        }
+      />
     </main>
   );
 };

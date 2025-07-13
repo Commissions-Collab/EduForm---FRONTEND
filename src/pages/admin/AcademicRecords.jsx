@@ -1,21 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LuCalendar, LuDownload } from "react-icons/lu";
 import GradesTable from "../../components/admin/GradesTable";
-import { studentList } from "../../constants";
+import { studentsData } from "../../constants";
 
 const Records = () => {
   const [selectedQuarter, setSelectedQuarter] = useState("All Quarters");
-  const [students, setStudents] = useState(studentList);
+  const localGrades = localStorage.getItem("students");
+  const [students, setStudents] = useState(
+    localGrades ? JSON.parse(localGrades) : studentsData
+  );
 
   const handleQuarterChange = (e) => setSelectedQuarter(e.target.value);
 
   const [currentPage, setCurrentPage] = useState(1);
   const STUDENTS_PER_PAGE = 10;
+  const totalPages = Math.ceil(students.length / STUDENTS_PER_PAGE);
 
   const indexOfLast = currentPage * STUDENTS_PER_PAGE;
   const indexOfFirst = indexOfLast - STUDENTS_PER_PAGE;
   const currentStudents = students.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(students.length / STUDENTS_PER_PAGE);
 
   const handleInputChange = (id, field, value) => {
     const updatedStudents = students.map((student) =>
@@ -30,6 +33,10 @@ const Records = () => {
     setStudents(updatedStudents);
   };
 
+  useEffect(() => {
+    localStorage.setItem("students", JSON.stringify(students));
+  }, [students]);
+
   return (
     <main className="p-4">
       <div className="between">
@@ -42,9 +49,9 @@ const Records = () => {
         </div>
       </div>
 
-      <div className="mt-10  blue-card">
+      <div className="mt-10 blue-card">
         <div className="flex items-center gap-5">
-          <LuCalendar className=" blue-card-icon" />
+          <LuCalendar className="blue-card-icon" />
           <div className="flex flex-col">
             <span className="text-md text-[#3730A3] font-semibold">
               Honor Roll Eligibility

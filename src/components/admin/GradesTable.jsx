@@ -1,4 +1,6 @@
 import React from "react";
+import StatusBadge from "./common/StatusBadge";
+import PaginationControls from "./common/Pagination";
 
 const GradesTable = ({
   students,
@@ -22,8 +24,6 @@ const GradesTable = ({
               Enter grades — system computes average and status.
             </p>
           </div>
-
-          {/* Dropdown aligned to the table header */}
           <select
             value={selectedQuarter}
             onChange={onQuarterChange}
@@ -80,7 +80,6 @@ const GradesTable = ({
                   <td className="px-4 py-4 text-sm text-gray-900 font-medium">
                     {student.name}
                   </td>
-
                   {["math", "science", "english", "filipino", "history"].map(
                     (subject) => (
                       <td key={subject} className="px-4 py-4 text-sm">
@@ -97,21 +96,11 @@ const GradesTable = ({
                       </td>
                     )
                   )}
-
                   <td className="px-4 py-4 text-sm font-medium text-gray-900">
                     {average}
                   </td>
-
                   <td className="px-4 py-4">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        status === "Pass"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {status}
-                    </span>
+                    <StatusBadge status={status} />
                   </td>
                 </tr>
               );
@@ -120,26 +109,12 @@ const GradesTable = ({
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="mt-4 flex justify-between items-center">
-        <button
-          onClick={onPreviousPage}
-          disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span className="text-sm text-gray-700">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={onNextPage}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPrevious={onPreviousPage}
+        onNext={onNextPage}
+      />
     </>
   );
 };

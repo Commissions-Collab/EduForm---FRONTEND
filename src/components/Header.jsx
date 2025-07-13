@@ -25,6 +25,19 @@ const Header = () => {
             Welcome, {user?.name}
           </h1>
 
+          <div>
+            <button
+              onClick={() => {
+                localStorage.removeItem("attendanceRecords");
+                localStorage.removeItem("students");
+                window.location.reload();
+              }}
+              className="px-3 py-2 bg-red-500 text-white rounded"
+            >
+              Reset Data
+            </button>
+          </div>
+
           <div className="flex items-center gap-5">
             <div className="flex items-center  gap-2 lg:gap-5">
               <p className="font-medium bg-[#3730A3] p-3 rounded-full text-xl text-white">
