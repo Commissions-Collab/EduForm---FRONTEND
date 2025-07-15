@@ -1,26 +1,20 @@
 import React, { useState } from "react";
-
-import UserTable from "../../components/superadmin//UserTable";
+import SearchFilter from "../../components/SearchFilter";
+import UserTable from "../../components/superadmin/UserTable";
 import { sampleUsers } from "../../constants";
 import useIsMobile from "../../hooks/useIsMobile";
 import { LuUserRoundPlus } from "react-icons/lu";
-import SearchFilter from "../../components/common/SearchFilter";
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const isMobile = useIsMobile();
 
-  // Determine how many rows per page based on screen size
   const USERS_PER_PAGE = isMobile ? 5 : 10;
 
   const handleSearch = (value) => {
     setSearchTerm(value);
     setCurrentPage(1);
-  };
-
-  const handleFilterButtonClick = () => {
-    console.log("Filter button clicked!");
   };
 
   const handleAddNewUserClick = () => {
@@ -38,7 +32,10 @@ const Users = () => {
   const indexOfLastUser = currentPage * USERS_PER_PAGE;
   const indexOfFirstUser = indexOfLastUser - USERS_PER_PAGE;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredUsers.length / USERS_PER_PAGE)
+  );
 
   return (
     <div className="p-4">
@@ -56,18 +53,34 @@ const Users = () => {
       <SearchFilter
         placeholder="Search users by name or email..."
         onSearch={handleSearch}
-        onFilterClick={handleFilterButtonClick}
       />
 
-      <UserTable
-        users={currentUsers}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPreviousPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        onNextPage={() =>
-          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-        }
-      />
+      <UserTable users={currentUsers} loading={false} />
+
+      {/* Pagination */}
+      {filteredUsers.length > 0 && (
+        <div className="mt-4 flex justify-between items-center">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-700">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
