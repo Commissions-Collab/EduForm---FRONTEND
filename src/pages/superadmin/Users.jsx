@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import SearchFilter from "../../components/SearchFilter";
+
 import UserTable from "../../components/superadmin/UserTable";
 import { sampleUsers } from "../../constants";
 import useIsMobile from "../../hooks/useIsMobile";
 import { LuUserRoundPlus } from "react-icons/lu";
+import SearchFilter from "../../components/common/SearchFilter";
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
