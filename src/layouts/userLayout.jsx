@@ -1,6 +1,7 @@
-import Header from "../components/Header";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/common/Sidebar";
+import Header from "../components/common/Header";
+
 const UserLayout = () => {
   return (
     <main className="flex min-h-screen w-full">

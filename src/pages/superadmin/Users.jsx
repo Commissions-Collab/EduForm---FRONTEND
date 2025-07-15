@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import SearchFilter from "../../components/SearchFilter";
+
 import UserTable from "../../components/superadmin//UserTable";
 import { sampleUsers } from "../../constants";
 import useIsMobile from "../../hooks/useIsMobile";
 import { LuUserRoundPlus } from "react-icons/lu";
-
+import SearchFilter from "../../components/common/SearchFilter";
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +48,7 @@ const Users = () => {
           onClick={handleAddNewUserClick}
           className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
         >
-        <LuUserRoundPlus className="mr-2 w-5 h-5"/>
+          <LuUserRoundPlus className="mr-2 w-5 h-5" />
           Add New User
         </button>
       </div>
@@ -64,7 +64,9 @@ const Users = () => {
         currentPage={currentPage}
         totalPages={totalPages}
         onPreviousPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        onNextPage={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        onNextPage={() =>
+          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+        }
       />
     </div>
   );

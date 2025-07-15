@@ -1,5 +1,5 @@
-import { useAuth } from "../context/AuthContext";
 import { LuUser } from "react-icons/lu";
+import { useAuth } from "../../context/AuthContext";
 
 const SidebarFooter = () => {
   const { user } = useAuth();

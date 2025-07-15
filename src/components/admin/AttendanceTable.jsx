@@ -1,8 +1,8 @@
 import React from "react";
 import { reasons } from "../../constants";
 import { LuCircleCheck, LuCircleX, LuClock } from "react-icons/lu";
-import { getStatusButtonStyle } from "./common/ButtonStatus";
-import PaginationControls from "./common/Pagination";
+import { getStatusButtonStyle } from "./ButtonStatus";
+import PaginationControls from "./Pagination";
 
 const AttendanceTable = ({
   records,

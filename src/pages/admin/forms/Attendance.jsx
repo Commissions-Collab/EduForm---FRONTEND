@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { adminCards } from "../../constants";
-import AttendanceTable from "../../components/admin/AttendanceTable";
-import { useStudentsRecords } from "../../hooks/useStudentRecords";
+import { adminCards } from "../../../constants";
+import AttendanceTable from "../../../components/admin/AttendanceTable";
+import { useStudentsRecords } from "../../../hooks/useStudentRecords";
 
 const Attendance = () => {
   const {

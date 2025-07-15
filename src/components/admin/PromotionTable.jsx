@@ -1,6 +1,6 @@
 import React from "react";
-import StatusBadge from "./common/StatusBadge";
-import PaginationControls from "./common/Pagination";
+import StatusBadge from "./StatusBadge";
+import PaginationControls from "./Pagination";
 
 const PromotionTable = ({
   students,

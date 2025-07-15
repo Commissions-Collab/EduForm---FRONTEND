@@ -1,7 +1,6 @@
-import Header from "../components/Header";
-import MobileNavigation from "../components/MobileNavigation";
-import Sidebar from "../components/Sidebar";
 import { Outlet } from "react-router-dom";
+import Sidebar from "../components/common/Sidebar";
+import Header from "../components/common/Header";
 const AdminLayout = () => {
   return (
     <main className="flex min-h-screen w-full">

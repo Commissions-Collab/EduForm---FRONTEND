@@ -1,14 +1,14 @@
 import { Route } from "react-router-dom";
 import AdminLayout from "../layouts/adminLayout";
 import AdminDashboard from "../pages/admin/Dashboard";
-import Attendance from "../pages/admin/Attendance";
-import MonthlySummary from "../pages/admin/MonthlySummary";
-import PromotionReports from "../pages/admin/PromotionReports";
-import Certificates from "../pages/admin/Certificates";
 import ParentConference from "../pages/admin/ParentConference";
-import Textbook from "../pages/admin/Textbook";
-import Workload from "../pages/admin/Workload";
-import Records from "../pages/admin/AcademicRecords";
+import Attendance from "../pages/admin/forms/Attendance";
+import MonthlySummary from "../pages/admin/forms/MonthlySummary";
+import Records from "../pages/admin/forms/AcademicRecords";
+import PromotionReports from "../pages/admin/forms/PromotionReports";
+import Certificates from "../pages/admin/Certificates";
+import Textbook from "../pages/admin/forms/Textbook";
+import Workload from "../pages/admin/forms/Workload";
 
 const AdminRoutes = [
   <>

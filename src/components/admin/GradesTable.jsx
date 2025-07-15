@@ -1,6 +1,7 @@
 import React from "react";
-import StatusBadge from "./common/StatusBadge";
-import PaginationControls from "./common/Pagination";
+
+import PaginationControls from "./Pagination";
+import StatusBadge from "./StatusBadge";
 
 const GradesTable = ({
   students,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { LuCalendar, LuDownload } from "react-icons/lu";
-import GradesTable from "../../components/admin/GradesTable";
-import { useStudentsRecords } from "../../hooks/useStudentRecords";
+import GradesTable from "../../../components/admin/GradesTable";
+import { useStudentsRecords } from "../../../hooks/useStudentRecords";
 
 const Records = () => {
   const {

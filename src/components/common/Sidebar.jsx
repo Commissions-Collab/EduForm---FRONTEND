@@ -1,5 +1,5 @@
-import { adminNav, studentNav, superAdminNav } from "../constants";
-import { useAuth } from "../context/AuthContext";
+import { adminNav, studentNav, superAdminNav } from "../../constants";
+import { useAuth } from "../../context/AuthContext";
 import { Link, useLocation } from "react-router-dom";
 import SidebarFooter from "./SidebarFooter";
 

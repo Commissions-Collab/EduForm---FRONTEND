@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { adminNav, studentNav, superAdminNav } from "../constants";
-import { useAuth } from "../context/AuthContext";
+
 import { LuBell, LuSettings } from "react-icons/lu";
+import { adminNav, studentNav, superAdminNav } from "../../constants";
+import { useAuth } from "../../context/AuthContext";
 
 const MobileNavigation = ({ onClose }) => {
   const { user } = useAuth();

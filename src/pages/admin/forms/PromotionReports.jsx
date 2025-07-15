@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import PromotionCards from "../../components/admin/PromotionCards";
+import PromotionCards from "../../../components/admin/PromotionCards";
 import { LuCircleCheckBig } from "react-icons/lu";
-import PromotionTable from "../../components/admin/PromotionTable";
-import { useStudentsRecords } from "../../hooks/useStudentRecords";
+import PromotionTable from "../../../components/admin/PromotionTable";
+import { useStudentsRecords } from "../../../hooks/useStudentRecords";
 
 const PromotionReports = () => {
   const {

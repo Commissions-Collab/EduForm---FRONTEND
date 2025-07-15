@@ -8,7 +8,7 @@ export const useStudentsRecords = (storageKey = "students") => {
   );
 
   const [currentPage, setCurrentPage] = useState(1);
-  const RECORDS_PER_PAGE = 10;
+  const RECORDS_PER_PAGE = 5;
   const totalPages = Math.ceil(students.length / RECORDS_PER_PAGE);
 
   const indexOfLast = currentPage * RECORDS_PER_PAGE;

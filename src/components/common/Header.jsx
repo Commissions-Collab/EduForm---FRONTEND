@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import MobileNavigation from "./MobileNavigation";
+import { useAuth } from "../../context/AuthContext";
 import { useLocation } from "react-router-dom";
 import { LuUsers, LuMenu, LuSettings, LuBell } from "react-icons/lu";
-
-import MobileNavigation from "./MobileNavigation";
 
 const Header = () => {
   const { user } = useAuth();
