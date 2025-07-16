@@ -41,39 +41,40 @@ const PromotionTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {students.map((student) => {
-              const average = (
-                (Number(student.math) +
-                  Number(student.science) +
-                  Number(student.english) +
-                  Number(student.filipino) +
-                  Number(student.history)) /
-                5
-              ).toFixed(2);
+            {Array.isArray(students) &&
+              students.map((student) => {
+                const average = (
+                  (Number(student.math) +
+                    Number(student.science) +
+                    Number(student.english) +
+                    Number(student.filipino) +
+                    Number(student.history)) /
+                  5
+                ).toFixed(2);
 
-              const attendancePercent = getAttendancePercentage(student);
-              const promotionStatus = getPromotionStatus(average);
+                const attendancePercent = getAttendancePercentage(student);
+                const promotionStatus = getPromotionStatus(average);
 
-              return (
-                <tr key={student.id}>
-                  <td className="px-4 py-4 text-sm text-gray-900">
-                    {student.name}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                    {average}
-                  </td>
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                    {attendancePercent}%
-                  </td>
-                  <td className="px-4 py-4">
-                    <StatusBadge status={promotionStatus} />
-                  </td>
-                  <td className="px-4 py-4 text-sm text-blue-600 hover:underline cursor-pointer">
-                    View Record
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={student.id}>
+                    <td className="px-4 py-4 text-sm text-gray-900">
+                      {student.name}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                      {average}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                      {attendancePercent}%
+                    </td>
+                    <td className="px-4 py-4">
+                      <StatusBadge status={promotionStatus} />
+                    </td>
+                    <td className="px-4 py-4 text-sm text-blue-600 hover:underline cursor-pointer">
+                      View Record
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>

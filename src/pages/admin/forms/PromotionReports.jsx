@@ -1,17 +1,18 @@
-import React, { useState } from "react";
 import PromotionCards from "../../../components/admin/PromotionCards";
-import { LuCircleCheckBig } from "react-icons/lu";
 import PromotionTable from "../../../components/admin/PromotionTable";
-import { useStudentsRecords } from "../../../hooks/useStudentRecords";
+import { LuCircleCheckBig } from "react-icons/lu";
+import { usePromotionStore } from "../../../stores/usePromotionStore";
 
-const PromotionReports = () => {
+const PromotionReport = () => {
   const {
     students,
     currentPage,
     setCurrentPage,
     totalPages,
-    currentRecords: currentStudents,
-  } = useStudentsRecords("students");
+    paginatedRecords,
+  } = usePromotionStore();
+  const currentRecords = paginatedRecords();
+  const totalPagesValue = totalPages();
 
   return (
     <main className="p-4">
@@ -46,16 +47,16 @@ const PromotionReports = () => {
       </div>
 
       <PromotionTable
-        students={currentStudents}
+        students={currentRecords}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPreviousPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        totalPages={totalPagesValue}
+        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
         onNextPage={() =>
-          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
         }
       />
     </main>
   );
 };
 
-export default PromotionReports;
+export default PromotionReport;

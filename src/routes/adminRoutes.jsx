@@ -2,13 +2,13 @@ import { Route } from "react-router-dom";
 import AdminLayout from "../layouts/adminLayout";
 import AdminDashboard from "../pages/admin/Dashboard";
 import ParentConference from "../pages/admin/ParentConference";
-import Attendance from "../pages/admin/forms/Attendance";
 import MonthlySummary from "../pages/admin/forms/MonthlySummary";
 import Records from "../pages/admin/forms/AcademicRecords";
 import PromotionReports from "../pages/admin/forms/PromotionReports";
 import Certificates from "../pages/admin/Certificates";
 import Textbook from "../pages/admin/forms/Textbook";
 import Workload from "../pages/admin/forms/Workload";
+import Attendance from "../pages/admin/forms/Attendance";
 
 const AdminRoutes = [
   <>

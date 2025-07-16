@@ -1,34 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { LuCalendar, LuDownload } from "react-icons/lu";
 import GradesTable from "../../../components/admin/GradesTable";
-import { useStudentsRecords } from "../../../hooks/useStudentRecords";
+import { LuCalendar, LuDownload } from "react-icons/lu";
+import { useGradesStore } from "../../../stores/useGradesStore";
 
 const Records = () => {
   const {
-    students,
-    setStudents,
+    updateGrade,
+    selectedQuarter,
+    setSelectedQuarter,
     currentPage,
     setCurrentPage,
     totalPages,
-    currentRecords: currentStudents,
-  } = useStudentsRecords("students");
+    paginatedRecords,
+  } = useGradesStore();
 
-  const [selectedQuarter, setSelectedQuarter] = useState("All Quarters");
-
-  const handleQuarterChange = (e) => setSelectedQuarter(e.target.value);
-
-  const handleInputChange = (id, field, value) => {
-    const updatedStudents = students.map((student) =>
-      student.id === id
-        ? {
-            ...student,
-            [field]:
-              field === "name" ? value : value === "" ? "" : Number(value),
-          }
-        : student
-    );
-    setStudents(updatedStudents);
-  };
+  const currentRecords = paginatedRecords();
+  const totalPagesValue = totalPages();
 
   return (
     <main className="p-4">
@@ -57,16 +43,16 @@ const Records = () => {
       </div>
 
       <GradesTable
-        students={currentStudents}
+        students={currentRecords}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPreviousPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        totalPages={totalPagesValue}
+        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
         onNextPage={() =>
-          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
         }
-        onInputChange={handleInputChange}
+        onInputChange={updateGrade}
         selectedQuarter={selectedQuarter}
-        onQuarterChange={handleQuarterChange}
+        onQuarterChange={(e) => setSelectedQuarter(e.target.value)}
       />
     </main>
   );

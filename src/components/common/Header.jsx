@@ -20,11 +20,9 @@ const Header = () => {
           {menuOpen ? <LuMenu /> : <LuMenu />}
         </button>
         <div className="flex w-full items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            Welcome, {user?.name}
-          </h1>
+          <h1 className="text-2xl font-semibold text-gray-800"></h1>
 
-          <div>
+          {/* <div>
             <button
               onClick={() => {
                 localStorage.removeItem("attendanceRecords");
@@ -35,7 +33,7 @@ const Header = () => {
             >
               Reset Data
             </button>
-          </div>
+          </div> */}
 
           <div className="flex items-center gap-5">
             <div className="flex items-center  gap-2 lg:gap-5">

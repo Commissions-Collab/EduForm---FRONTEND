@@ -1,44 +1,34 @@
-import React, { useEffect, useState } from "react";
-import { adminCards } from "../../../constants";
+// import { useEffect } from "react";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
-import { useStudentsRecords } from "../../../hooks/useStudentRecords";
+
+import { useAttendanceStore } from "../../../stores/useAttendanceStore";
 
 const Attendance = () => {
   const {
-    students: attendanceRecords,
-    setStudents: setAttendanceRecords,
+    records,
+    setStatus,
+    setReason,
     currentPage,
     setCurrentPage,
     totalPages,
-    currentRecords,
-  } = useStudentsRecords("students");
+    paginatedRecords,
+    fetchAttendanceData,
+    attendanceSummary,
+  } = useAttendanceStore();
 
-  const attendanceSummary = adminCards[0].data;
+  const summary = attendanceSummary();
+  const totalPagesValue = totalPages();
+  const currentRecords = paginatedRecords();
+
   const statusColors = {
     present: "bg-green-500",
     absent: "bg-red-500",
     late: "bg-yellow-400",
   };
 
-  const handleStatusClick = (id, value) => {
-    const updatedRecords = attendanceRecords.map((student) =>
-      student.id === id
-        ? {
-            ...student,
-            status: value,
-            reason: value === "Present" ? "" : student.reason,
-          }
-        : student
-    );
-    setAttendanceRecords(updatedRecords);
-  };
-
-  const handleReasonChange = (id, value) => {
-    const updatedRecords = attendanceRecords.map((student) =>
-      student.id === id ? { ...student, reason: value } : student
-    );
-    setAttendanceRecords(updatedRecords);
-  };
+  // useEffect(() => {
+  //   fetchAttendanceData();
+  // }, []);
 
   return (
     <main className="p-4">
@@ -52,13 +42,12 @@ const Attendance = () => {
           />
         </div>
       </div>
-
-      <div className="mt-10 shad-container p-5 flex justify-between items-center">
+      <div className="mt-10 shad-container p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h2 className="text-lg font-medium">Attendance Summary</h2>
         </div>
-        <div className="text-sm flex justify-between gap-4">
-          {Object.entries(attendanceSummary).map(([key, value]) => (
+        <div className="text-sm flex flex-wrap gap-4">
+          {Object.entries(summary).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${statusColors[key]}`} />
               <p className="capitalize">{key}</p>
@@ -71,13 +60,13 @@ const Attendance = () => {
 
       <AttendanceTable
         records={currentRecords}
-        onStatusClick={handleStatusClick}
-        onReasonChange={handleReasonChange}
+        onStatusClick={setStatus}
+        onReasonChange={setReason}
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPreviousPage={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        totalPages={totalPagesValue}
+        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
         onNextPage={() =>
-          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
         }
       />
     </main>

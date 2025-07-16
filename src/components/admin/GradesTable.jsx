@@ -64,48 +64,49 @@ const GradesTable = ({
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            {students.map((student) => {
-              const average = (
-                (student.math +
-                  student.science +
-                  student.english +
-                  student.filipino +
-                  student.history) /
-                5
-              ).toFixed(2);
+            {Array.isArray(students) &&
+              students.map((student) => {
+                const average = (
+                  (student.math +
+                    student.science +
+                    student.english +
+                    student.filipino +
+                    student.history) /
+                  5
+                ).toFixed(2);
 
-              const status = average >= 75 ? "Pass" : "Fail";
+                const status = average >= 75 ? "Pass" : "Fail";
 
-              return (
-                <tr key={student.id}>
-                  <td className="px-4 py-4 text-sm text-gray-900 font-medium">
-                    {student.name}
-                  </td>
-                  {["math", "science", "english", "filipino", "history"].map(
-                    (subject) => (
-                      <td key={subject} className="px-4 py-4 text-sm">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={student[subject]}
-                          onChange={(e) =>
-                            onInputChange(student.id, subject, e.target.value)
-                          }
-                          className="w-16 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700"
-                        />
-                      </td>
-                    )
-                  )}
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                    {average}
-                  </td>
-                  <td className="px-4 py-4">
-                    <StatusBadge status={status} />
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={student.id}>
+                    <td className="px-4 py-4 text-sm text-gray-900 font-medium">
+                      {student.name}
+                    </td>
+                    {["math", "science", "english", "filipino", "history"].map(
+                      (subject) => (
+                        <td key={subject} className="px-4 py-4 text-sm">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={student[subject]}
+                            onChange={(e) =>
+                              onInputChange(student.id, subject, e.target.value)
+                            }
+                            className="w-16 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700"
+                          />
+                        </td>
+                      )
+                    )}
+                    <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                      {average}
+                    </td>
+                    <td className="px-4 py-4">
+                      <StatusBadge status={status} />
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
