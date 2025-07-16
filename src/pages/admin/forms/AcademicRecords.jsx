@@ -2,7 +2,7 @@ import GradesTable from "../../../components/admin/GradesTable";
 import { LuCalendar, LuDownload } from "react-icons/lu";
 import { useGradesStore } from "../../../stores/useGradesStore";
 
-const Records = () => {
+const Grades = () => {
   const {
     updateGrade,
     selectedQuarter,
@@ -58,4 +58,4 @@ const Records = () => {
   );
 };
 
-export default Records;
+export default Grades;

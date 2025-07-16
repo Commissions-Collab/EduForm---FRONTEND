@@ -2,9 +2,10 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import {
   getAttendanceRecords,
-  updateAttendanceReason,
   updateAttendanceStatus,
+  updateAttendanceReason,
 } from "../api/attendance";
+import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 5;
 
@@ -16,11 +17,12 @@ export const useAttendanceStore = create(
     error: null,
 
     fetchAttendanceData: async () => {
+      set({ loading: true, error: null });
       try {
-        set({ loading: true, error: null });
         const data = await getAttendanceRecords();
-        if (!Array.isArray(data)) throw new Error("Invalid data format");
+        if (!Array.isArray(data)) throw new Error("Invalid attendance format");
         set({ records: data, loading: false });
+        toast.success("Attendance loaded");
       } catch (err) {
         console.error("Fetch error:", err);
         set({
@@ -28,10 +30,11 @@ export const useAttendanceStore = create(
           loading: false,
           records: [],
         });
+        toast.error("Failed to fetch attendance");
       }
     },
 
-    setStatus: (id, status) => {
+    setStatus: async (id, status) => {
       const updated = get().records.map((student) =>
         student.id === id
           ? {
@@ -43,16 +46,28 @@ export const useAttendanceStore = create(
       );
       set({ records: updated });
 
-      updateAttendanceStatus(id, status);
+      try {
+        await updateAttendanceStatus(id, status);
+        toast.success("Status updated");
+      } catch (err) {
+        console.error("Status update failed:", err);
+        toast.error("Failed to update status");
+      }
     },
 
-    setReason: (id, reason) => {
+    setReason: async (id, reason) => {
       const updated = get().records.map((student) =>
         student.id === id ? { ...student, reason } : student
       );
       set({ records: updated });
 
-      updateAttendanceReason(id, reason);
+      try {
+        await updateAttendanceReason(id, reason);
+        toast.success("Reason updated");
+      } catch (err) {
+        console.error("Reason update failed:", err);
+        toast.error("Failed to update reason");
+      }
     },
 
     attendanceSummary: () => {

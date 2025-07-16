@@ -20,6 +20,9 @@ import {
   LuUser,
   LuStar,
   LuFilePen,
+  LuChartNoAxesCombined,
+  LuHeartPulse,
+  LuArchiveRestore,
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -83,7 +86,7 @@ export const adminNav = [
   },
   {
     name: "Promotion Summary (SF6)",
-    icon: LuSignalHigh,
+    icon: LuChartNoAxesCombined,
     url: "/promotionSummary",
   },
   {
@@ -93,17 +96,17 @@ export const adminNav = [
   },
   {
     name: "Health Profile (SF8)",
-    icon: LuSignalHigh,
+    icon: LuHeartPulse,
     url: "/healthProfile",
   },
   {
-    name: "Academic Records (SF9)",
+    name: "Grades (SF9)",
     icon: LuClipboardList,
-    url: "/academicRecords",
+    url: "/grades",
   },
   {
     name: "Permanent Records (SF10)",
-    icon: LuClipboardList,
+    icon: LuArchiveRestore,
     url: "/permanentRecords",
   },
 

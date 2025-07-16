@@ -1,25 +1,30 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { studentsData } from "../constants";
+import { getPromotions } from "../api/promotion";
+import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 5;
 
 export const usePromotionStore = create(
   devtools((set, get) => ({
-    students: studentsData,
+    students: [],
     currentPage: 1,
     loading: false,
     error: null,
 
-    // fetchPromotionData: async () => {
-    //   try {
-    //     set({ loading: true, error: null });
-    //     const response = await axios.get("/api/promotions");
-    //     set({ students: response.data, loading: false });
-    //   } catch (err) {
-    //     set({ error: "Failed to fetch promotion data", loading: false });
-    //   }
-    // },
+    fetchPromotionData: async () => {
+      set({ loading: true, error: null });
+      try {
+        const data = await getPromotions();
+        if (!Array.isArray(data)) throw new Error("Invalid promotions format");
+        set({ students: data, loading: false });
+        toast.success("Promotions loaded");
+      } catch (err) {
+        console.error("Fetch error:", err);
+        set({ error: "Failed to fetch promotions", loading: false });
+        toast.error("Failed to fetch promotions");
+      }
+    },
 
     setCurrentPage: (page) => set({ currentPage: page }),
 

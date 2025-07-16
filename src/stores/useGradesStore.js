@@ -1,28 +1,33 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { studentsData } from "../constants";
+import { getGrades, updateGrade } from "../api/grades";
+import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 5;
 
 export const useGradesStore = create(
   devtools((set, get) => ({
-    students: studentsData,
+    students: [],
     selectedQuarter: "All Quarters",
     currentPage: 1,
     loading: false,
     error: null,
 
-    // fetchStudents: async () => {
-    //   try {
-    //     set({ loading: true, error: null });
-    //     const response = await axios.get("/api/grades");
-    //     set({ students: response.data, loading: false });
-    //   } catch (err) {
-    //     set({ error: "Failed to fetch grades", loading: false });
-    //   }
-    // },
+    fetchGrades: async () => {
+      set({ loading: true, error: null });
+      try {
+        const data = await getGrades();
+        if (!Array.isArray(data)) throw new Error("Invalid grades format");
+        set({ students: data, loading: false });
+        toast.success("Grades loaded");
+      } catch (err) {
+        console.error("Grades fetch failed:", err);
+        set({ error: "Failed to fetch grades", loading: false });
+        toast.error("Failed to fetch grades");
+      }
+    },
 
-    updateGrade: (id, field, value) => {
+    updateGrade: async (id, field, value) => {
       const updated = get().students.map((student) =>
         student.id === id
           ? {
@@ -34,7 +39,13 @@ export const useGradesStore = create(
       );
       set({ students: updated });
 
-      // axios.put(`/api/grades/${id}`, { field, value });
+      try {
+        await updateGrade(id, field, value);
+        toast.success("Grade updated");
+      } catch (err) {
+        console.error("Failed to update grade:", err);
+        toast.error("Failed to update grade");
+      }
     },
 
     setSelectedQuarter: (quarter) => set({ selectedQuarter: quarter }),
