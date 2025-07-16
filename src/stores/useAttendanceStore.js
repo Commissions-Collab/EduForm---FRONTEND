@@ -1,29 +1,35 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { studentsData } from "../constants";
+import {
+  getAttendanceRecords,
+  updateAttendanceReason,
+  updateAttendanceStatus,
+} from "../api/attendance";
 
 const RECORDS_PER_PAGE = 5;
 
 export const useAttendanceStore = create(
   devtools((set, get) => ({
-    records: studentsData,
+    records: [],
     currentPage: 1,
     loading: false,
     error: null,
 
-    // fetchAttendanceData: async () => {
-    //   try {
-    //     set({ loading: true, error: null });
-    //     const response = await axios.get("/api/attendance");
-    //     if (!Array.isArray(response.data)) {
-    //       throw new Error("Invalid data format");
-    //     }
-    //     set({ records: response.data, loading: false });
-    //   } catch (err) {
-    //     console.error("Fetch error:", err);
-    //     set({ error: "Failed to fetch attendance", loading: false, records: [] });
-    //   }
-    // },
+    fetchAttendanceData: async () => {
+      try {
+        set({ loading: true, error: null });
+        const data = await getAttendanceRecords();
+        if (!Array.isArray(data)) throw new Error("Invalid data format");
+        set({ records: data, loading: false });
+      } catch (err) {
+        console.error("Fetch error:", err);
+        set({
+          error: "Failed to fetch attendance",
+          loading: false,
+          records: [],
+        });
+      }
+    },
 
     setStatus: (id, status) => {
       const updated = get().records.map((student) =>
@@ -37,7 +43,7 @@ export const useAttendanceStore = create(
       );
       set({ records: updated });
 
-      // axios.put(`/api/attendance/${id}`, { status });
+      updateAttendanceStatus(id, status);
     },
 
     setReason: (id, reason) => {
@@ -46,7 +52,7 @@ export const useAttendanceStore = create(
       );
       set({ records: updated });
 
-      // axios.put(`/api/attendance/${id}`, { reason });
+      updateAttendanceReason(id, reason);
     },
 
     attendanceSummary: () => {

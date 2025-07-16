@@ -19,6 +19,7 @@ import {
   LuHourglass,
   LuUser,
   LuStar,
+  LuFilePen,
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -56,9 +57,19 @@ export const adminNav = [
     url: "/admin/dashboard",
   },
   {
+    name: "Enrollment (SF1)",
+    icon: LuFilePen,
+    url: "/enrollment",
+  },
+  {
     name: "Daily Attendance (SF2)",
     icon: LuCalendarCheck,
     url: "/attendance",
+  },
+  {
+    name: "Textbooks (SF3)",
+    icon: LuBookText,
+    url: "/textbook",
   },
   {
     name: "Monthly Summary (SF4)",
@@ -66,15 +77,36 @@ export const adminNav = [
     url: "/monthlySummary",
   },
   {
+    name: "Promotion Reports (SF5)",
+    icon: LuSignalHigh,
+    url: "/promotionReports",
+  },
+  {
+    name: "Promotion Summary (SF6)",
+    icon: LuSignalHigh,
+    url: "/promotionSummary",
+  },
+  {
+    name: "Workload (SF7)",
+    icon: MdOutlineWorkOutline,
+    url: "/workload",
+  },
+  {
+    name: "Health Profile (SF8)",
+    icon: LuSignalHigh,
+    url: "/healthProfile",
+  },
+  {
     name: "Academic Records (SF9)",
     icon: LuClipboardList,
     url: "/academicRecords",
   },
   {
-    name: "Promotion Reports (SF5)",
-    icon: LuSignalHigh,
-    url: "/promotionReports",
+    name: "Permanent Records (SF10)",
+    icon: LuClipboardList,
+    url: "/permanentRecords",
   },
+
   {
     name: "Certificates",
     icon: LuAward,
@@ -84,17 +116,6 @@ export const adminNav = [
     name: "Parent Conference",
     icon: LuUsers,
     url: "/parentConference",
-  },
-  {
-    name: "Textbooks (SF3)",
-    icon: LuBookText,
-    url: "/textbook",
-  },
-
-  {
-    name: "Workload (SF7)",
-    icon: MdOutlineWorkOutline,
-    url: "/workload",
   },
 ];
 
