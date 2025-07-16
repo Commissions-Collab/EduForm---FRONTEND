@@ -1,1 +1,153 @@
 @import "tailwindcss";
+
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove number input spinners in Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.sidebar {
+    @apply hidden lg:flex flex-col h-screen overflow-y-auto p-6 w-[300px] bg-white border-r border-gray-200 shadow-md;
+}
+
+.dashboard-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3
+}
+
+.page-title {
+    @apply text-2xl font-bold text-gray-800;
+}
+
+.between {
+    @apply flex justify-between
+}
+
+.card {
+    @apply bg-white shadow rounded-md p-6 sm:p-8 lg:p-10 transition duration-300;
+}
+
+.card-title {
+    @apply md:text-lg lg:text-xl font-semibold items-center text-gray-800 mb-3;
+}
+
+.card-status {
+    @apply w-12 h-12 text-lg flex items-center justify-center rounded-full;
+}
+
+.card-text {
+    @apply text-gray-600 text-[14px] font-semibold mt-2;
+}
+
+.count {
+    @apply text-xl font-bold text-gray-800;
+}
+
+.percent {
+    @apply text-[14px] text-gray-500;
+}
+
+.book {
+    @apply text-lg gap-3 flex items-center;
+}
+
+.card-layout {
+    @apply flex flex-col items-center p-3 rounded-lg flex-1;
+}
+
+.resources-layout {
+    @apply flex items-center justify-between;
+}
+
+
+.dashboard-p-button {
+    @apply w-full bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] text-[14px] font-semibold py-3 px-4 rounded-lg transition-all duration-200;
+}
+
+.dashboard-s-button {
+    @apply w-full border border-[#E0E7FF] hover:bg-[#C7D2FE]/20 text-[#3730A3] text-[14px] font-semibold py-3 px-4 rounded-lg transition-all duration-200;
+}
+
+
+.monthly-summary-button {
+    @apply flex items-center px-4 py-2 text-[12.5px] border border-gray-300 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200;
+}
+
+.blue-card {
+    @apply shadow rounded-md bg-[#EEF2FF] border border-[#E0E7FF] p-7 flex justify-between items-center;
+}
+
+.blue-card-icon {
+    @apply w-10 h-10 text-[#3730A3] pb-4;
+}
+
+.shad-container {
+    @apply bg-white shadow rounded-md;
+}
+
+.dropdown {
+    @apply px-4 py-2 border text-[12.5px] border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent;
+}
+
+.promoGrid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-3 md:py-4;
+}
+
+
+/* Hide sidebar completely on screens smaller than 1024px (lg breakpoint) */
+@media (max-width: 1023px) {
+    .sidebar {
+        display: none;
+    }
+}
+
+
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background-color: #ffffff;
+    border-bottom: 2px solid #e5e7eb;
+    box-shadow: 6px 0 8px rgba(0, 0, 0, 0.04);
+
+}
+
+
+.mobile-header {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    justify-content: space-between;
+    padding: 0 1rem;
+}
+
+@media (min-width: 1024px) {
+    .mobile-header {
+        display: none;
+    }
+}
+
+
+.main-content {
+    background-color: #F3F4F6;
+
+}
+
+
+
+
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
