@@ -1,6 +1,7 @@
 import GradesTable from "../../../components/admin/GradesTable";
 import { LuCalendar, LuDownload } from "react-icons/lu";
 import { useGradesStore } from "../../../stores/useGradesStore";
+import { useEffect } from "react";
 
 const Grades = () => {
   const {
@@ -11,10 +12,16 @@ const Grades = () => {
     setCurrentPage,
     totalPages,
     paginatedRecords,
+    loading,
+    error,
+    fetchGrades,
   } = useGradesStore();
 
   const currentRecords = paginatedRecords();
   const totalPagesValue = totalPages();
+  useEffect(() => {
+    fetchGrades();
+  }, []);
 
   return (
     <main className="p-4">
@@ -53,6 +60,8 @@ const Grades = () => {
         onInputChange={updateGrade}
         selectedQuarter={selectedQuarter}
         onQuarterChange={(e) => setSelectedQuarter(e.target.value)}
+        loading={loading}
+        error={error}
       />
     </main>
   );

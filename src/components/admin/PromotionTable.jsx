@@ -1,6 +1,7 @@
 import React from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
+import { ClipLoader } from "react-spinners";
 
 const PromotionTable = ({
   students,
@@ -8,6 +9,8 @@ const PromotionTable = ({
   totalPages,
   onPreviousPage,
   onNextPage,
+  loading,
+  error,
 }) => {
   const getPromotionStatus = (average) =>
     average >= 75 ? "Promoted" : "Retained";
@@ -16,10 +19,11 @@ const PromotionTable = ({
     return student.status === "Present" ? "100" : "0";
   };
 
+  const hasRecords = Array.isArray(students) && students.length > 0;
+
   return (
     <>
-      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md">
-        <h1 className="text-lg font-semibold p-5">Student Promotion Summary</h1>
+      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[200px]">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -40,8 +44,33 @@ const PromotionTable = ({
               </th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-200">
-            {Array.isArray(students) &&
+            {loading ? (
+              <tr>
+                <td colSpan={5}>
+                  <div className="flex justify-center items-center h-64">
+                    <ClipLoader color="#3730A3" size={30} />
+                  </div>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={5}>
+                  <div className="flex justify-center items-center h-64 text-red-600 font-medium">
+                    Failed to fetch promotion data. Please try again.
+                  </div>
+                </td>
+              </tr>
+            ) : !students.length ? (
+              <tr>
+                <td colSpan={5}>
+                  <div className="flex justify-center items-center h-64 text-gray-600 font-medium">
+                    No promotion records available.
+                  </div>
+                </td>
+              </tr>
+            ) : (
               students.map((student) => {
                 const average = (
                   (Number(student.math) +
@@ -74,17 +103,20 @@ const PromotionTable = ({
                     </td>
                   </tr>
                 );
-              })}
+              })
+            )}
           </tbody>
         </table>
       </div>
 
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={onPreviousPage}
-        onNext={onNextPage}
-      />
+      {!loading && hasRecords && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPrevious={onPreviousPage}
+          onNext={onNextPage}
+        />
+      )}
     </>
   );
 };

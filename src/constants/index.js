@@ -491,44 +491,29 @@ export const sampleStudentRecord = [
   },
 ];
 
-// New student dashboard constants
-export const studentNotifications = [
+export const parentStudents = [
   {
-    type: 'alert',
-    message: 'Science 78% - Below class average',
-    suggestion: 'Consider scheduling time with a tutor. View referrals',
+    name: "Miguel Santos",
+    guardian: "Gloria Santos",
+    status: "At Risk",
+    color: "bg-red-100 text-red-700",
   },
   {
-    type: 'clock',
-    message: 'Algebra II textbook due in 5 days',
-    returnDate: 'June 15',
-    fine: '50',
+    name: "Maria Lopez",
+    guardian: "Roberto Lopez",
+    status: "At Risk",
+    color: "bg-red-100 text-red-700",
   },
   {
-    type: 'award',
-    message: 'With High Honors eligibility confirmed',
-    suggestion: 'Maintain your grades to secure recognition.',
-  },
-];
-
-export const studentDashboardStats = [
-  {
-    title: 'QUARTERLY AVERAGE',
-    value: '89.4%',
-    change: '+2.1%',
-    progress: true,
+    name: "Juan Cruz",
+    guardian: "Elena Cruz",
+    status: "Good Standing",
+    color: "bg-blue-100 text-blue-700",
   },
   {
-    title: 'ATTENDANCE RATE',
-    value: '92%',
-    subText: '3 late arrivals',
-    progress: true,
-  },
-  {
-    title: 'RESOURCES',
-    value: '2 Books Borrowed', // No primary value, as it's a list
-    resources: [
-      '1 book due within a week',
-    ],
+    name: "Ana Reyes",
+    guardian: "Miguel Reyes",
+    status: "Excellent",
+    color: "bg-green-100 text-green-700",
   },
 ];
