@@ -16,21 +16,53 @@ export const useAttendanceStore = create(
     loading: false,
     error: null,
 
+    // fetchAttendanceData: async () => {
+    //   set({ loading: true, error: null });
+    //   try {
+    //     const data = await getAttendanceRecords();
+    //     if (!Array.isArray(data)) throw new Error("Invalid attendance format");
+    //     set({ records: data, loading: false });
+    //     toast.success("Attendance loaded");
+    //   } catch (err) {
+    //     console.error("Fetch error:", err);
+    //     set({
+    //       error: "Failed to fetch attendance",
+    //       loading: false,
+    //       records: [],
+    //     });
+    //     toast.error("Failed to fetch attendance");
+    //   }
+    // },
+
     fetchAttendanceData: async () => {
       set({ loading: true, error: null });
+
       try {
-        const data = await getAttendanceRecords();
-        if (!Array.isArray(data)) throw new Error("Invalid attendance format");
+        // 💡 Replace this with actual API call later
+        const data = [
+          {
+            id: 1,
+            name: "Juan Dela Cruz",
+            status: "Present",
+            reason: "",
+          },
+          {
+            id: 2,
+            name: "Maria Clara",
+            status: "Absent",
+            reason: "Sick",
+          },
+          {
+            id: 3,
+            name: "Jose Rizal",
+            status: "Late",
+            reason: "Traffic",
+          },
+        ];
+
         set({ records: data, loading: false });
-        toast.success("Attendance loaded");
       } catch (err) {
-        console.error("Fetch error:", err);
-        set({
-          error: "Failed to fetch attendance",
-          loading: false,
-          records: [],
-        });
-        toast.error("Failed to fetch attendance");
+        set({ error: "Failed to fetch attendance", loading: false });
       }
     },
 

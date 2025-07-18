@@ -2,6 +2,7 @@ import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
 import { LuCircleCheckBig } from "react-icons/lu";
 import { usePromotionStore } from "../../../stores/usePromotionStore";
+import { useEffect } from "react";
 
 const PromotionReport = () => {
   const {
@@ -10,9 +11,16 @@ const PromotionReport = () => {
     setCurrentPage,
     totalPages,
     paginatedRecords,
+    loading,
+    error,
+    fetchPromotionData,
   } = usePromotionStore();
+
   const currentRecords = paginatedRecords();
   const totalPagesValue = totalPages();
+  useEffect(() => {
+    fetchPromotionData();
+  }, []);
 
   return (
     <main className="p-4">
@@ -54,6 +62,8 @@ const PromotionReport = () => {
         onNextPage={() =>
           setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
         }
+        loading={loading}
+        error={error}
       />
     </main>
   );

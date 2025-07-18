@@ -16,15 +16,12 @@ const MonthlySummary = () => {
           Monthly Attendance Summary (SF4): Grade 10-A
         </div>
         <div className="flex space-x-3">
-          <button className="monthly-summary-button" onClick={handlePrint}>
+          <button className="gray-button" onClick={handlePrint}>
             <LuPrinter size={15} />
             <span className="ml-2">Print</span>
           </button>
 
-          <button
-            className="monthly-summary-button"
-            onClick={handleExportClick}
-          >
+          <button className="gray-button" onClick={handleExportClick}>
             <LuDownload size={15} />
             <span className="ml-2">Export</span>
           </button>

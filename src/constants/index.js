@@ -511,3 +511,30 @@ export const sampleStudentRecord = [
     records: ["SF1", "SF2", "SF4", "SF9", "SF10"],
   },
 ];
+
+export const parentStudents = [
+  {
+    name: "Miguel Santos",
+    guardian: "Gloria Santos",
+    status: "At Risk",
+    color: "bg-red-100 text-red-700",
+  },
+  {
+    name: "Maria Lopez",
+    guardian: "Roberto Lopez",
+    status: "At Risk",
+    color: "bg-red-100 text-red-700",
+  },
+  {
+    name: "Juan Cruz",
+    guardian: "Elena Cruz",
+    status: "Good Standing",
+    color: "bg-blue-100 text-blue-700",
+  },
+  {
+    name: "Ana Reyes",
+    guardian: "Miguel Reyes",
+    status: "Excellent",
+    color: "bg-green-100 text-green-700",
+  },
+];

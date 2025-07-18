@@ -1,6 +1,5 @@
-// import { useEffect } from "react";
+import { useEffect } from "react";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
-
 import { useAttendanceStore } from "../../../stores/useAttendanceStore";
 
 const Attendance = () => {
@@ -14,6 +13,8 @@ const Attendance = () => {
     paginatedRecords,
     fetchAttendanceData,
     attendanceSummary,
+    loading,
+    error, // <- add this line
   } = useAttendanceStore();
 
   const summary = attendanceSummary();
@@ -26,9 +27,9 @@ const Attendance = () => {
     late: "bg-yellow-400",
   };
 
-  // useEffect(() => {
-  //   fetchAttendanceData();
-  // }, []);
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []);
 
   return (
     <main className="p-4">
@@ -42,6 +43,7 @@ const Attendance = () => {
           />
         </div>
       </div>
+
       <div className="mt-10 shad-container p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h2 className="text-lg font-medium">Attendance Summary</h2>
@@ -68,6 +70,8 @@ const Attendance = () => {
         onNextPage={() =>
           setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
         }
+        loading={loading}
+        error={error} // <- pass error here
       />
     </main>
   );

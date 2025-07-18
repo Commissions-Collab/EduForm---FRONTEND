@@ -1,7 +1,7 @@
 import React from "react";
-
 import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
+import { ClipLoader } from "react-spinners";
 
 const GradesTable = ({
   students,
@@ -12,7 +12,11 @@ const GradesTable = ({
   onInputChange,
   selectedQuarter,
   onQuarterChange,
+  loading,
+  error,
 }) => {
+  const hasRecords = Array.isArray(students) && students.length > 0;
+
   return (
     <>
       <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md">
@@ -64,7 +68,31 @@ const GradesTable = ({
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            {Array.isArray(students) &&
+            {loading ? (
+              <tr>
+                <td colSpan={8}>
+                  <div className="flex justify-center items-center h-[60vh]">
+                    <ClipLoader color="#3730A3" size={30} />
+                  </div>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={8}>
+                  <div className="flex justify-center items-center h-[60vh] text-red-600 font-medium">
+                    Failed to fetch promotion data. Please try again.
+                  </div>
+                </td>
+              </tr>
+            ) : !hasRecords ? (
+              <tr>
+                <td colSpan={8}>
+                  <div className="flex justify-center items-center h-[60vh] text-gray-600 font-medium">
+                    No promotion records available.
+                  </div>
+                </td>
+              </tr>
+            ) : (
               students.map((student) => {
                 const average = (
                   (student.math +
@@ -106,17 +134,20 @@ const GradesTable = ({
                     </td>
                   </tr>
                 );
-              })}
+              })
+            )}
           </tbody>
         </table>
       </div>
 
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={onPreviousPage}
-        onNext={onNextPage}
-      />
+      {!loading && hasRecords && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPrevious={onPreviousPage}
+          onNext={onNextPage}
+        />
+      )}
     </>
   );
 };

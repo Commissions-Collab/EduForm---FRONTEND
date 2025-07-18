@@ -65,18 +65,22 @@ input[type="number"] {
 }
 
 
-.dashboard-p-button {
-    @apply w-full bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] text-[14px] font-semibold py-3 px-4 rounded-lg transition-all duration-200;
+.primary-button {
+    @apply w-full flex justify-center text-[12.5px] bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] font-semibold py-2 px-4 rounded-lg transition-all duration-200;
 }
 
-.dashboard-s-button {
-    @apply w-full border border-[#E0E7FF] hover:bg-[#C7D2FE]/20 text-[#3730A3] text-[14px] font-semibold py-3 px-4 rounded-lg transition-all duration-200;
+.secondary-button {
+    @apply w-full flex justify-center text-[12.5px] border border-[#E0E7FF] hover:bg-[#C7D2FE]/20 text-[#3730A3] font-semibold py-2 px-4 rounded-lg transition-all duration-200;
 }
 
-
-.monthly-summary-button {
+.gray-button {
     @apply flex items-center px-4 py-2 text-[12.5px] border border-gray-300 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200;
 }
+
+.brand-button {
+    @apply flex items-center px-4 py-2 text-[12.5px] bg-[#3730A3] hover:bg-[#2C268C] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200;
+}
+
 
 .blue-card {
     @apply shadow rounded-md bg-[#EEF2FF] border border-[#E0E7FF] p-7 flex justify-between items-center;

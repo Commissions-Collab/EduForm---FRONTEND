@@ -12,11 +12,63 @@ export const usePromotionStore = create(
     loading: false,
     error: null,
 
+    // fetchPromotionData: async () => {
+    //   set({ loading: true, error: null });
+    //   try {
+    //     const data = await getPromotions();
+    //     if (!Array.isArray(data)) throw new Error("Invalid promotions format");
+    //     set({ students: data, loading: false });
+    //     toast.success("Promotions loaded");
+    //   } catch (err) {
+    //     console.error("Fetch error:", err);
+    //     set({ error: "Failed to fetch promotions", loading: false });
+    //     toast.error("Failed to fetch promotions");
+    //   }
+    // },
+
     fetchPromotionData: async () => {
       set({ loading: true, error: null });
       try {
-        const data = await getPromotions();
-        if (!Array.isArray(data)) throw new Error("Invalid promotions format");
+        // 💡 Dummy promotion data
+        const data = [
+          {
+            id: 1,
+            name: "Juan Dela Cruz",
+            gradeLevel: "Grade 6",
+            section: "Rizal",
+            finalAverage: 89.4,
+            attendanceRate: "96%",
+            status: "Promoted",
+          },
+          {
+            id: 2,
+            name: "Maria Clara",
+            gradeLevel: "Grade 6",
+            section: "Bonifacio",
+            finalAverage: 93.1,
+            attendanceRate: "98%",
+            status: "Promoted",
+          },
+          {
+            id: 3,
+            name: "Jose Rizal",
+            gradeLevel: "Grade 6",
+            section: "Mabini",
+            finalAverage: 74.5,
+            attendanceRate: "82%",
+            status: "Conditional",
+          },
+          {
+            id: 4,
+            name: "Andres Bonifacio",
+            gradeLevel: "Grade 6",
+            section: "Mabini",
+            finalAverage: 68.9,
+            attendanceRate: "75%",
+            status: "Retained",
+          },
+        ];
+
         set({ students: data, loading: false });
         toast.success("Promotions loaded");
       } catch (err) {
@@ -25,7 +77,6 @@ export const usePromotionStore = create(
         toast.error("Failed to fetch promotions");
       }
     },
-
     setCurrentPage: (page) => set({ currentPage: page }),
 
     totalPages: () => Math.ceil(get().students.length / RECORDS_PER_PAGE),
