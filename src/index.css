@@ -90,6 +90,14 @@ input[type="number"] {
     @apply w-10 h-10 text-[#3730A3] pb-4;
 }
 
+.red-card {
+    @apply shadow rounded-md bg-[#FEE2E2] border border-[#FCA5A5] p-7 flex justify-between items-center;
+}
+
+.red-card-icon {
+    @apply w-10 h-10 text-[#B91C1C] pb-4;
+}
+
 .shad-container {
     @apply bg-white shadow rounded-md;
 }
@@ -118,6 +126,8 @@ input[type="number"] {
     justify-content: space-between;
     gap: 1.25rem;
     padding: 1.25rem;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
     background-color: #ffffff;
     border-bottom: 2px solid #e5e7eb;
     box-shadow: 6px 0 8px rgba(0, 0, 0, 0.04);

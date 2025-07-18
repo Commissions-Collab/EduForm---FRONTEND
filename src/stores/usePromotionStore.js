@@ -58,15 +58,6 @@ export const usePromotionStore = create(
             attendanceRate: "82%",
             status: "Conditional",
           },
-          {
-            id: 4,
-            name: "Andres Bonifacio",
-            gradeLevel: "Grade 6",
-            section: "Mabini",
-            finalAverage: 68.9,
-            attendanceRate: "75%",
-            status: "Retained",
-          },
         ];
 
         set({ students: data, loading: false });

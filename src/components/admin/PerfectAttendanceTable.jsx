@@ -1,16 +1,34 @@
 import React from "react";
+import { LuFilter, LuPrinter } from "react-icons/lu";
 
 const PerfectAttendanceTable = ({ records }) => {
   return (
     <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md">
-      <div className="p-5">
-        <h1 className="text-lg font-semibold mb-1">
-          Perfect Attendance Certificates
-        </h1>
-        <p className="text-sm text-gray-500">
-          Manage and generate certificates for students with perfect attendance.
-        </p>
+      <div className="flex items-center justify-between p-5">
+        <div>
+          <h1 className="text-lg font-semibold mb-1">
+            Perfect Attendance Certificates
+          </h1>
+          <p className="text-sm text-gray-500">
+            Manage and generate certificates for students with perfect
+            attendance.
+          </p>
+        </div>
+
+        <div className="items-center">
+          <div className="flex space-x-3">
+            <button className="gray-button">
+              <LuFilter size={15} />
+              <span className="ml-2">Filter</span>
+            </button>
+            <button className="flex text-[12.5px] bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+              <LuPrinter size={15} />
+              <span className="ml-2">Print All</span>
+            </button>
+          </div>
+        </div>
       </div>
+
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>

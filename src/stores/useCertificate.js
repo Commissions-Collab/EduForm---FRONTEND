@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-// Replace with real API calls if available
 import {
   getAttendanceCertificates,
   getHonorCertificates,
