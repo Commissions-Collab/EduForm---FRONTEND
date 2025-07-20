@@ -1,115 +1,129 @@
-// TextbookTable.jsx
-import React from "react";
-import PaginationControls from "./Pagination";
+import React, { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
-import { LuFilter, LuPrinter } from "react-icons/lu";
+import { useTextbookStore } from "../../stores/useTextbookStore";
+import Pagination from "./Pagination";
 
-const TextbookTable = ({
-  textbooks,
-  currentPage,
-  totalPages,
-  onPreviousPage,
-  onNextPage,
-  loading,
-  error,
-}) => {
-  const hasRecords = Array.isArray(textbooks) && textbooks.length > 0;
+const TextbookTable = () => {
+  const {
+    textbooks,
+    fetchTextbooks,
+    paginatedRecords,
+    totalPages,
+    currentPage,
+    setCurrentPage,
+    loading,
+    error,
+  } = useTextbookStore();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+
+  useEffect(() => {
+    fetchTextbooks();
+  }, []);
+
+  // Get all unique subjects for filter dropdown
+  const uniqueSubjects = [
+    ...new Set(textbooks.map((book) => book.subject).filter(Boolean)),
+  ];
+
+  const filteredRecords = paginatedRecords().filter((book) => {
+    const matchesSearch = book.title
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesSubject =
+      selectedSubject === "" || book.subject === selectedSubject;
+    return matchesSearch && matchesSubject;
+  });
 
   return (
     <>
-      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md">
-        <div className="flex items-center justify-between p-5">
-          <div>
-            <h1 className="text-lg font-semibold mb-1">Textbook Inventory</h1>
-            <p className="text-sm text-gray-500">
-              Overview of textbook availability and usage.
-            </p>
-          </div>
-          <div className="items-center">
-            <div className="flex space-x-3">
-              <button className="gray-button">
-                <LuFilter size={15} />
-                <span className="ml-2">Filter</span>
-              </button>
-              <button className="flex text-[12.5px] bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] font-semibold py-2 px-4 rounded-lg transition-all duration-200">
-                <LuPrinter size={15} />
-                <span className="ml-2">Print Report</span>
-              </button>
-            </div>
-          </div>
+      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[200px]">
+        <div className="flex justify-between p-5">
+          <input
+            type="text"
+            placeholder="Search by title..."
+            className="w-full md:w-1/2 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring focus:ring-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+            className="w-full md:w-1/4 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring focus:ring-blue-500"
+          >
+            <option value="">All Subjects</option>
+            {uniqueSubjects.map((subject) => (
+              <option key={subject} value={subject}>
+                {subject}
+              </option>
+            ))}
+          </select>
         </div>
 
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {[
-                "Title",
-                "Subject",
-                "Total Copies",
-                "Issued",
-                "Overdue",
-                "Available",
-                "Actions",
-              ].map((header) => (
-                <th
-                  key={header}
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
-                >
-                  {header}
-                </th>
-              ))}
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Title
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Subject
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Total Copies
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Issued
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Overdue
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Available
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
-
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={7}>
-                  <div className="flex justify-center items-center h-[60vh]">
-                    <ClipLoader color="#B91C1C" size={30} />
-                  </div>
+                <td colSpan={7} className="text-center py-20">
+                  <ClipLoader size={30} color="#4F46E5" />
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={7}>
-                  <div className="flex justify-center items-center h-[60vh] text-red-600 font-medium">
-                    Failed to fetch textbook data. Please try again.
-                  </div>
+                <td colSpan={7} className="text-center py-20 text-red-600">
+                  Failed to load textbook records.
                 </td>
               </tr>
-            ) : !hasRecords ? (
+            ) : filteredRecords.length === 0 ? (
               <tr>
-                <td colSpan={7}>
-                  <div className="flex justify-center items-center h-[60vh] text-gray-600 font-medium">
-                    No textbook records available.
-                  </div>
+                <td colSpan={7} className="text-center py-20 text-gray-500">
+                  No textbook records found.
                 </td>
               </tr>
             ) : (
-              textbooks.map((book) => (
-                <tr key={book.id}>
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
+              filteredRecords.map((book) => (
+                <tr key={book.id} className="border-t">
+                  <td className="px-4 py-4 text-sm text-gray-900">
                     {book.title}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-900">
                     {book.subject}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-900">
                     {book.total}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-700">
-                    {book.issued}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-red-500">
-                    {book.overdue}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-green-600">
-                    {book.available}
-                  </td>
-                  <td className="px-4 py-4">
-                    <button className="text-indigo-600 hover:underline text-sm font-medium">
-                      View Details
+                  <td className="px-4 py-3">{book.issued}</td>
+                  <td className="px-4 py-3 text-red-600">{book.overdue}</td>
+                  <td className="px-4 py-3 text-green-600">{book.available}</td>
+                  <td className="px-4 py-3">
+                    <button className="text-indigo-600 hover:underline text-sm">
+                      View
                     </button>
                   </td>
                 </tr>
@@ -119,12 +133,12 @@ const TextbookTable = ({
         </table>
       </div>
 
-      {!loading && hasRecords && (
-        <PaginationControls
+      {!loading && filteredRecords.length > 0 && (
+        <Pagination
           currentPage={currentPage}
-          totalPages={totalPages}
-          onPrevious={onPreviousPage}
-          onNext={onNextPage}
+          totalPages={totalPages()}
+          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+          onNext={() => setCurrentPage(Math.min(currentPage + 1, totalPages()))}
         />
       )}
     </>

@@ -1,22 +1,27 @@
-import React from "react";
-import { reasons } from "../../constants";
+import React, { useState } from "react";
 import { LuCircleCheck, LuCircleX, LuClock } from "react-icons/lu";
-import { getStatusButtonStyle } from "./ButtonStatus";
-import PaginationControls from "./Pagination";
 import { ClipLoader } from "react-spinners";
+import { reasons } from "../../constants";
+import { useAttendanceStore } from "../../stores/useAttendanceStore";
+import PaginationControls from "./Pagination";
+import { getStatusButtonStyle } from "./ButtonStatus";
 
-const AttendanceTable = ({
-  records,
-  onStatusClick,
-  onReasonChange,
-  currentPage,
-  totalPages,
-  onPreviousPage,
-  onNextPage,
-  loading,
-  error,
-}) => {
-  const hasRecords = Array.isArray(records) && records.length > 0;
+const RECORDS_PER_PAGE = 5;
+
+const AttendanceTable = () => {
+  const { records, setStatus, setReason, loading, error } =
+    useAttendanceStore();
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(records.length / RECORDS_PER_PAGE);
+  const paginatedRecords = records.slice(
+    (currentPage - 1) * RECORDS_PER_PAGE,
+    currentPage * RECORDS_PER_PAGE
+  );
+
+  const hasRecords =
+    Array.isArray(paginatedRecords) && paginatedRecords.length > 0;
 
   return (
     <>
@@ -56,7 +61,7 @@ const AttendanceTable = ({
                   </div>
                 </td>
               </tr>
-            ) : !records.length ? (
+            ) : !hasRecords ? (
               <tr>
                 <td colSpan={4}>
                   <div className="flex justify-center items-center h-64 text-gray-600 font-medium">
@@ -65,7 +70,7 @@ const AttendanceTable = ({
                 </td>
               </tr>
             ) : (
-              records.map((student) => (
+              paginatedRecords.map((student) => (
                 <tr key={student.id}>
                   <td className="px-4 py-4 text-sm text-gray-900">
                     {student.name}
@@ -74,7 +79,7 @@ const AttendanceTable = ({
                     {["Present", "Absent", "Late"].map((status) => (
                       <button
                         key={status}
-                        onClick={() => onStatusClick(student.id, status)}
+                        onClick={() => setStatus(student.id, status)}
                         className={`p-1 rounded-full ${getStatusButtonStyle(
                           student.status,
                           status
@@ -95,9 +100,7 @@ const AttendanceTable = ({
                     {student.status === "Absent" ? (
                       <select
                         value={student.reason}
-                        onChange={(e) =>
-                          onReasonChange(student.id, e.target.value)
-                        }
+                        onChange={(e) => setReason(student.id, e.target.value)}
                         className="w-36 p-1 border border-gray-300 rounded text-sm"
                       >
                         <option value="">Select Reason</option>
@@ -125,8 +128,8 @@ const AttendanceTable = ({
         <PaginationControls
           currentPage={currentPage}
           totalPages={totalPages}
-          onPrevious={onPreviousPage}
-          onNext={onNextPage}
+          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+          onNext={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
         />
       )}
     </>

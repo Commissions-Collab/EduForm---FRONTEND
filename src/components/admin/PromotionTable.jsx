@@ -1,25 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
 import { ClipLoader } from "react-spinners";
+import { usePromotionStore } from "../../stores/usePromotionStore";
 
-const PromotionTable = ({
-  students,
-  currentPage,
-  totalPages,
-  onPreviousPage,
-  onNextPage,
-  loading,
-  error,
-}) => {
+const PromotionTable = () => {
+  const {
+    students,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedRecords,
+    loading,
+    error,
+  } = usePromotionStore();
+
+  const records = paginatedRecords();
+  const pages = totalPages();
+
+  const hasRecords = Array.isArray(records) && records.length > 0;
+
   const getPromotionStatus = (average) =>
     average >= 75 ? "Promoted" : "Retained";
 
   const getAttendancePercentage = (student) => {
-    return student.status === "Present" ? "100" : "0";
+    return student.attendanceRate || "0%";
   };
-
-  const hasRecords = Array.isArray(students) && students.length > 0;
 
   return (
     <>
@@ -62,7 +68,7 @@ const PromotionTable = ({
                   </div>
                 </td>
               </tr>
-            ) : !students.length ? (
+            ) : !hasRecords ? (
               <tr>
                 <td colSpan={5}>
                   <div className="flex justify-center items-center h-64 text-gray-600 font-medium">
@@ -71,18 +77,11 @@ const PromotionTable = ({
                 </td>
               </tr>
             ) : (
-              students.map((student) => {
-                const average = (
-                  (Number(student.math) +
-                    Number(student.science) +
-                    Number(student.english) +
-                    Number(student.filipino) +
-                    Number(student.history)) /
-                  5
-                ).toFixed(2);
-
+              records.map((student) => {
+                const average = student.finalAverage?.toFixed(2) || "0.00";
                 const attendancePercent = getAttendancePercentage(student);
-                const promotionStatus = getPromotionStatus(average);
+                const promotionStatus =
+                  student.status || getPromotionStatus(average);
 
                 return (
                   <tr key={student.id}>
@@ -93,7 +92,7 @@ const PromotionTable = ({
                       {average}
                     </td>
                     <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                      {attendancePercent}%
+                      {attendancePercent}
                     </td>
                     <td className="px-4 py-4">
                       <StatusBadge status={promotionStatus} />
@@ -112,9 +111,9 @@ const PromotionTable = ({
       {!loading && hasRecords && (
         <PaginationControls
           currentPage={currentPage}
-          totalPages={totalPages}
-          onPrevious={onPreviousPage}
-          onNext={onNextPage}
+          totalPages={pages}
+          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+          onNext={() => setCurrentPage(Math.min(currentPage + 1, pages))}
         />
       )}
     </>

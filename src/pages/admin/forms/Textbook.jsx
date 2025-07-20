@@ -4,23 +4,12 @@ import TextbookTable from "../../../components/admin/TextbookTable";
 import { useTextbookStore } from "../../../stores/useTextbookStore";
 
 const Textbook = () => {
-  const {
-    textbooks,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    paginatedRecords,
-    fetchTextbooks,
-    loading,
-    error,
-  } = useTextbookStore();
+  const { fetchTextbooks } = useTextbookStore();
 
   useEffect(() => {
     fetchTextbooks();
   }, []);
 
-  const currentRecords = paginatedRecords();
-  const totalPagesValue = totalPages();
   return (
     <main className="p-4">
       <div className="between">
@@ -41,6 +30,7 @@ const Textbook = () => {
           </div>
         </div>
       </div>
+
       <div className="mt-10 red-card">
         <div className="flex items-center gap-5">
           <LuBadgeAlert className="red-card-icon" />
@@ -54,17 +44,9 @@ const Textbook = () => {
           </div>
         </div>
       </div>
-      <TextbookTable
-        textbooks={currentRecords}
-        currentPage={currentPage}
-        totalPages={totalPagesValue}
-        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-        onNextPage={() =>
-          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
-        }
-        loading={loading}
-        error={error}
-      />
+
+      {/* ✅ Just clean table below */}
+      <TextbookTable />
     </main>
   );
 };

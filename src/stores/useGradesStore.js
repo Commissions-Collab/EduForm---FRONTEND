@@ -63,10 +63,10 @@ export const useGradesStore = create(
           {
             id: 3,
             name: "Jose Rizal",
-            math: 76,
-            science: 80,
-            english: 79,
-            filipino: 77,
+            math: 75,
+            science: 73,
+            english: 73,
+            filipino: 75,
             history: 74,
             attendance: [
               { date: "2025-07-01", status: "Late" },

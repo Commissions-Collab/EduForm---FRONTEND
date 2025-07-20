@@ -1,24 +1,11 @@
-import GradesTable from "../../../components/admin/GradesTable";
+import { useEffect } from "react";
 import { LuCalendar, LuDownload } from "react-icons/lu";
 import { useGradesStore } from "../../../stores/useGradesStore";
-import { useEffect } from "react";
+import GradesTable from "../../../components/admin/GradesTable";
 
 const Grades = () => {
-  const {
-    updateGrade,
-    selectedQuarter,
-    setSelectedQuarter,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    paginatedRecords,
-    loading,
-    error,
-    fetchGrades,
-  } = useGradesStore();
+  const { fetchGrades } = useGradesStore();
 
-  const currentRecords = paginatedRecords();
-  const totalPagesValue = totalPages();
   useEffect(() => {
     fetchGrades();
   }, []);
@@ -49,20 +36,7 @@ const Grades = () => {
         </div>
       </div>
 
-      <GradesTable
-        students={currentRecords}
-        currentPage={currentPage}
-        totalPages={totalPagesValue}
-        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-        onNextPage={() =>
-          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
-        }
-        onInputChange={updateGrade}
-        selectedQuarter={selectedQuarter}
-        onQuarterChange={(e) => setSelectedQuarter(e.target.value)}
-        loading={loading}
-        error={error}
-      />
+      <GradesTable />
     </main>
   );
 };

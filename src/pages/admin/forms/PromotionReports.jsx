@@ -1,23 +1,12 @@
+import { useEffect } from "react";
+import { usePromotionStore } from "../../../stores/usePromotionStore";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
 import { LuCircleCheckBig } from "react-icons/lu";
-import { usePromotionStore } from "../../../stores/usePromotionStore";
-import { useEffect } from "react";
 
 const PromotionReport = () => {
-  const {
-    students,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    paginatedRecords,
-    loading,
-    error,
-    fetchPromotionData,
-  } = usePromotionStore();
+  const { fetchPromotionData } = usePromotionStore();
 
-  const currentRecords = paginatedRecords();
-  const totalPagesValue = totalPages();
   useEffect(() => {
     fetchPromotionData();
   }, []);
@@ -54,17 +43,7 @@ const PromotionReport = () => {
         </div>
       </div>
 
-      <PromotionTable
-        students={currentRecords}
-        currentPage={currentPage}
-        totalPages={totalPagesValue}
-        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-        onNextPage={() =>
-          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
-        }
-        loading={loading}
-        error={error}
-      />
+      <PromotionTable />
     </main>
   );
 };

@@ -8,6 +8,44 @@ import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 5;
 
+// 🟦 Mock data: Attendance Certificates
+const mockAttendanceCertificates = [
+  {
+    id: 1,
+    studentName: "Juan Dela Cruz",
+    certificateType: "Perfect Attendance",
+    quarter: "Quarter 1",
+  },
+  {
+    id: 2,
+    studentName: "Maria Santos",
+    certificateType: "Perfect Attendance",
+    quarter: "Quarter 2",
+  },
+  {
+    id: 3,
+    studentName: "Jose Rizal",
+    certificateType: "Perfect Attendance",
+    quarter: "Quarter 3",
+  },
+];
+
+// 🟨 Mock data: Honor Certificates
+const mockHonorCertificates = [
+  {
+    id: 1,
+    studentName: "Andres Bonifacio",
+    honorType: "With Honors",
+    gradeAverage: "91.25",
+  },
+  {
+    id: 2,
+    studentName: "Gabriela Silang",
+    honorType: "With High Honors",
+    gradeAverage: "94.50",
+  },
+];
+
 export const useCertificateStore = create(
   devtools((set, get) => ({
     attendanceCertificates: [],
@@ -19,14 +57,14 @@ export const useCertificateStore = create(
     fetchCertificateData: async () => {
       set({ loading: true, error: null });
       try {
-        const [attendanceData, honorData] = await Promise.all([
-          getAttendanceCertificates(),
-          getHonorCertificates(),
-        ]);
+        // 🧪 Use mock data (replace with real API calls if needed)
+        // const [attendanceData, honorData] = await Promise.all([
+        //   getAttendanceCertificates(),
+        //   getHonorCertificates(),
+        // ]);
 
-        if (!Array.isArray(attendanceData) || !Array.isArray(honorData)) {
-          throw new Error("Invalid certificate data format");
-        }
+        const attendanceData = mockAttendanceCertificates;
+        const honorData = mockHonorCertificates;
 
         set({
           attendanceCertificates: attendanceData,
