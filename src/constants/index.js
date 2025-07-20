@@ -1,3 +1,5 @@
+// constants/index.js (Add these new constants)
+
 import { MdOutlineSpaceDashboard, MdOutlineWorkOutline } from "react-icons/md";
 import {
   LuUsers,
@@ -19,10 +21,7 @@ import {
   LuHourglass,
   LuUser,
   LuStar,
-  LuFilePen,
-  LuChartNoAxesCombined,
-  LuHeartPulse,
-  LuArchiveRestore,
+  LuCircleAlert, // Add this for notification
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -60,19 +59,9 @@ export const adminNav = [
     url: "/admin/dashboard",
   },
   {
-    name: "Enrollment (SF1)",
-    icon: LuFilePen,
-    url: "/enrollment",
-  },
-  {
     name: "Daily Attendance (SF2)",
     icon: LuCalendarCheck,
     url: "/attendance",
-  },
-  {
-    name: "Textbooks (SF3)",
-    icon: LuBookText,
-    url: "/textbook",
   },
   {
     name: "Monthly Summary (SF4)",
@@ -80,36 +69,15 @@ export const adminNav = [
     url: "/monthlySummary",
   },
   {
+    name: "Academic Records (SF9)",
+    icon: LuClipboardList,
+    url: "/academicRecords",
+  },
+  {
     name: "Promotion Reports (SF5)",
     icon: LuSignalHigh,
     url: "/promotionReports",
   },
-  {
-    name: "Promotion Summary (SF6)",
-    icon: LuChartNoAxesCombined,
-    url: "/promotionSummary",
-  },
-  {
-    name: "Workload (SF7)",
-    icon: MdOutlineWorkOutline,
-    url: "/workload",
-  },
-  {
-    name: "Health Profile (SF8)",
-    icon: LuHeartPulse,
-    url: "/healthProfile",
-  },
-  {
-    name: "Grades (SF9)",
-    icon: LuClipboardList,
-    url: "/grades",
-  },
-  {
-    name: "Permanent Records (SF10)",
-    icon: LuArchiveRestore,
-    url: "/permanentRecords",
-  },
-
   {
     name: "Certificates",
     icon: LuAward,
@@ -119,6 +87,17 @@ export const adminNav = [
     name: "Parent Conference",
     icon: LuUsers,
     url: "/parentConference",
+  },
+  {
+    name: "Textbooks (SF3)",
+    icon: LuBookText,
+    url: "/textbook",
+  },
+
+  {
+    name: "Workload (SF7)",
+    icon: MdOutlineWorkOutline,
+    url: "/workload",
   },
 ];
 
@@ -536,5 +515,47 @@ export const parentStudents = [
     guardian: "Miguel Reyes",
     status: "Excellent",
     color: "bg-green-100 text-green-700",
+  },
+];
+
+// New student dashboard constants
+export const studentNotifications = [
+  {
+    type: 'alert',
+    message: 'Science 78% - Below class average',
+    suggestion: 'Consider scheduling time with a tutor. View referrals',
+  },
+  {
+    type: 'clock',
+    message: 'Algebra II textbook due in 5 days',
+    returnDate: 'June 15',
+    fine: '50',
+  },
+  {
+    type: 'award',
+    message: 'With High Honors eligibility confirmed',
+    suggestion: 'Maintain your grades to secure recognition.',
+  },
+];
+
+export const studentDashboardStats = [
+  {
+    title: 'QUARTERLY AVERAGE',
+    value: '89.4%',
+    change: '+2.1%',
+    progress: true,
+  },
+  {
+    title: 'ATTENDANCE RATE',
+    value: '92%',
+    subText: '3 late arrivals',
+    progress: true,
+  },
+  {
+    title: 'RESOURCES',
+    value: '2 Books Borrowed', // No primary value, as it's a list
+    resources: [
+      '1 book due within a week',
+    ],
   },
 ];
