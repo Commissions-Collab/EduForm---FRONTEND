@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { LuBadgeAlert, LuSearch } from "react-icons/lu";
 import TextbookTable from "../../../components/admin/TextbookTable";
 import { useTextbookStore } from "../../../stores/useTextbookStore";
 
 const Textbook = () => {
   const { fetchTextbooks } = useTextbookStore();
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchTextbooks();
@@ -21,11 +22,12 @@ const Textbook = () => {
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <LuSearch />
             </div>
-
             <input
               type="text"
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
               placeholder="Search textbook..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
@@ -45,8 +47,7 @@ const Textbook = () => {
         </div>
       </div>
 
-      {/* ✅ Just clean table below */}
-      <TextbookTable />
+      <TextbookTable searchTerm={searchTerm} />
     </main>
   );
 };

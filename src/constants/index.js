@@ -71,7 +71,7 @@ export const adminNav = [
   {
     name: "Academic Records (SF9)",
     icon: LuClipboardList,
-    url: "/academicRecords",
+    url: "/grades",
   },
   {
     name: "Promotion Reports (SF5)",
@@ -521,41 +521,39 @@ export const parentStudents = [
 // New student dashboard constants
 export const studentNotifications = [
   {
-    type: 'alert',
-    message: 'Science 78% - Below class average',
-    suggestion: 'Consider scheduling time with a tutor. View referrals',
+    type: "alert",
+    message: "Science 78% - Below class average",
+    suggestion: "Consider scheduling time with a tutor. View referrals",
   },
   {
-    type: 'clock',
-    message: 'Algebra II textbook due in 5 days',
-    returnDate: 'June 15',
-    fine: '50',
+    type: "clock",
+    message: "Algebra II textbook due in 5 days",
+    returnDate: "June 15",
+    fine: "50",
   },
   {
-    type: 'award',
-    message: 'With High Honors eligibility confirmed',
-    suggestion: 'Maintain your grades to secure recognition.',
+    type: "award",
+    message: "With High Honors eligibility confirmed",
+    suggestion: "Maintain your grades to secure recognition.",
   },
 ];
 
 export const studentDashboardStats = [
   {
-    title: 'QUARTERLY AVERAGE',
-    value: '89.4%',
-    change: '+2.1%',
+    title: "QUARTERLY AVERAGE",
+    value: "89.4%",
+    change: "+2.1%",
     progress: true,
   },
   {
-    title: 'ATTENDANCE RATE',
-    value: '92%',
-    subText: '3 late arrivals',
+    title: "ATTENDANCE RATE",
+    value: "92%",
+    subText: "3 late arrivals",
     progress: true,
   },
   {
-    title: 'RESOURCES',
-    value: '2 Books Borrowed', // No primary value, as it's a list
-    resources: [
-      '1 book due within a week',
-    ],
+    title: "RESOURCES",
+    value: "2 Books Borrowed", // No primary value, as it's a list
+    resources: ["1 book due within a week"],
   },
 ];

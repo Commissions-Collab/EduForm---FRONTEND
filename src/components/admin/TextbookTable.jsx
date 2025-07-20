@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ClipLoader } from "react-spinners";
 import { useTextbookStore } from "../../stores/useTextbookStore";
 import Pagination from "./Pagination";
 
-const TextbookTable = () => {
+const TextbookTable = ({ searchTerm }) => {
   const {
     textbooks,
-    fetchTextbooks,
     paginatedRecords,
     totalPages,
     currentPage,
@@ -15,14 +14,8 @@ const TextbookTable = () => {
     error,
   } = useTextbookStore();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedSubject, setSelectedSubject] = React.useState("");
 
-  useEffect(() => {
-    fetchTextbooks();
-  }, []);
-
-  // Get all unique subjects for filter dropdown
   const uniqueSubjects = [
     ...new Set(textbooks.map((book) => book.subject).filter(Boolean)),
   ];
@@ -39,14 +32,7 @@ const TextbookTable = () => {
   return (
     <>
       <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[200px]">
-        <div className="flex justify-between p-5">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            className="w-full md:w-1/2 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex justify-end p-5">
           <select
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
