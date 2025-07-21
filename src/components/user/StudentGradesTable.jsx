@@ -15,16 +15,16 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
     } = useGradesStoreUser();
 
     return (
-        <div className="bg-white rounded-lg shadow-md container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+        <>
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 border-b pb-5 gap-4">
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">
                     {pageTitle}
                 </h2>
                 <div className="flex items-center gap-2 text-sm sm:text-base">
                     <span className="text-gray-600">Quarter:</span>
                     <select
-                        className="select select-bordered select-sm sm:select-md rounded-lg border"
+                        className="select select-bordered select-sm sm:select-md rounded-md border bg-white"
                         value={selectedQuarter}
                         onChange={(e) => setSelectedQuarter(e.target.value)}
                     >
@@ -36,6 +36,8 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                     </select>
                 </div>
             </div>
+
+            <div className="bg-white rounded-lg shadow-md container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
 
             {/* Grade Summary */}
             <div className="mb-8">
@@ -127,7 +129,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                                                     ? "bg-red-500"
                                                     : "bg-yellow-500"
                                             }`}></span>
-                                            <span className="text-sm sm:text-base">{data.subject}</span>
+                                            <span className="text-sm md:text-base sm:text-lg">{data.subject}</span>
                                         </div>
                                     </td>
                                     <td className="font-bold whitespace-nowrap">{data.grade}%</td>
@@ -163,6 +165,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                 </table>
             </div>
         </div>
+        </>
     );
 };
 
