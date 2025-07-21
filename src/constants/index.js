@@ -21,7 +21,8 @@ import {
   LuHourglass,
   LuUser,
   LuStar,
-  LuCircleAlert, // Add this for notification
+  LuCircleAlert,
+  LuFileChartLine, // Add this for notification
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -555,5 +556,45 @@ export const studentDashboardStats = [
     title: "RESOURCES",
     value: "2 Books Borrowed", // No primary value, as it's a list
     resources: ["1 book due within a week"],
+  },
+];
+
+export const workloadCards = [
+  {
+    label: "Total Students",
+    value: "97",
+    icon: LuUsers,
+    iconColor: "text-blue-600",
+    iconBg: "bg-blue-100",
+  },
+  {
+    label: "Subject Areas",
+    value: "3",
+    icon: LuBookOpen,
+    iconColor: "text-green-600",
+    iconBg: "bg-green-100",
+  },
+
+  {
+    label: "Class Sections",
+    value: "3",
+    icon: LuUser,
+    iconColor: "text-red-600",
+    iconBg: "bg-red-100",
+  },
+
+  {
+    label: "Advisory Duties",
+    value: "1",
+    icon: LuClipboardList,
+    iconColor: "text-purple-600",
+    iconBg: "bg-purple-100",
+  },
+  {
+    label: "Hours per Week",
+    value: "26",
+    icon: LuFileChartLine,
+    iconColor: "text-yellow-600",
+    iconBg: "bg-yellow-100",
   },
 ];

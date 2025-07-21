@@ -22,7 +22,7 @@ const Grades = () => {
         </div>
       </div>
 
-      <div className="mt-10 blue-card">
+      <div className="mt-8 blue-card">
         <div className="flex items-center gap-5">
           <LuCalendar className="blue-card-icon" />
           <div className="flex flex-col">

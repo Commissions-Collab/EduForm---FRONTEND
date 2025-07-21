@@ -33,7 +33,7 @@ const Textbook = () => {
         </div>
       </div>
 
-      <div className="mt-10 red-card">
+      <div className="mt-5 red-card">
         <div className="flex items-center gap-5">
           <LuBadgeAlert className="red-card-icon" />
           <div className="flex flex-col">

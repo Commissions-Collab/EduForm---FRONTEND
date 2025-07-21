@@ -31,7 +31,7 @@ const Attendance = () => {
       </div>
 
       {/* Summary */}
-      <div className="mt-10 shad-container p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div className="mt-8 shad-container p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h2 className="text-lg font-medium">Attendance Summary</h2>
         </div>

@@ -25,8 +25,9 @@ const PromotionReport = () => {
           </select>
         </div>
       </div>
-
-      <PromotionCards />
+      <div className="mt-3">
+        <PromotionCards />
+      </div>
 
       <div className="mt-3 blue-card">
         <div className="flex items-center gap-5">
