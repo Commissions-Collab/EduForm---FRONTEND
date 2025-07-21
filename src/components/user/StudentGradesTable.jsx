@@ -1,5 +1,7 @@
 // src/components/UserComponents/StudentGradesTable.jsx
 import React from "react";
+// Import Lucide React icons directly
+import { LuGauge, LuAward, LuArrowUp, LuArrowDown, LuTriangleAlert, LuCircleX } from "react-icons/lu"
 import { useGradesStoreUser } from "../../stores/useGradesStoreUser";
 
 const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
@@ -64,14 +66,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                 <div className="bg-blue-50 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3 text-sm sm:text-base">
                         {/* Gauge Icon */}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                            strokeLinejoin="round" className="w-6 h-6 text-blue-600">
-                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                            <path d="M12 12l6 4"></path>
-                            <path d="M12 12v6"></path>
-                            <path d="M12 12l-6 4"></path>
-                        </svg>
+                        <LuGauge className="w-6 h-6 text-blue-600" />
                         <span className="text-blue-800 font-semibold">Quarterly Average</span>
                         <span className="text-2xl sm:text-3xl font-bold text-blue-800">
                             {quarterlyAverage}%
@@ -80,12 +75,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                     {honorsEligibility && (
                         <div className="flex items-center gap-2 text-yellow-700 font-semibold text-sm sm:text-base">
                             {/* Shield Icon */}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                                strokeLinejoin="round" className="w-5 h-5">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                                <path d="M9 12l2 2l4-4"></path>
-                            </svg>
+                            <LuAward className="w-5 h-5" />
                             <span>With High Honors Eligibility</span>
                         </div>
                     )}
@@ -128,7 +118,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                                                     : data.status === "below"
                                                     ? "bg-red-500"
                                                     : "bg-yellow-500"
-                                            }`}></span>
+                                                }`}></span>
                                             <span className="text-sm md:text-base sm:text-lg">{data.subject}</span>
                                         </div>
                                     </td>
@@ -139,20 +129,10 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                                             data.trend.includes("+") ? "text-green-600" : "text-red-600"
                                         }`}>
                                             {data.trend.includes("+") && (
-                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor" strokeWidth="2">
-                                                    <path strokeLinecap="round" strokeLinejoin="round"
-                                                        d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                                                </svg>
+                                                <LuArrowUp className="h-4 w-4" /> // Lucide ArrowUp
                                             )}
                                             {data.trend.includes("-") && (
-                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                                    stroke="currentColor" strokeWidth="2">
-                                                    <path strokeLinecap="round" strokeLinejoin="round"
-                                                        d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                                </svg>
+                                                <LuArrowDown className="h-4 w-4" /> // Lucide ArrowDown
                                             )}
                                             {data.trend}
                                         </span>
@@ -164,7 +144,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                     </tbody>
                 </table>
             </div>
-        </div>
+            </div>
         </>
     );
 };
