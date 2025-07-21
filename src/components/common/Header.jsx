@@ -34,10 +34,10 @@ const Header = () => {
         >
           {menuOpen ? <LuMenu /> : <LuMenu />}
         </button>
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-end">
           <div className="block lg:hidden items-center"></div>
 
-          <div className="hidden lg:block  items-center">
+          {/* <div className="hidden lg:block  items-center">
             <select
               id="section"
               className="px-4 py-2 text-sm rounded-lg border border-[#C7D2FE] bg-[#E0E7FF] text-[#3730A3] hover:bg-[#C7D2FE] focus:outline-none focus:ring-2 focus:ring-[#3730A3] transition-all duration-200"
@@ -50,16 +50,15 @@ const Header = () => {
             <span className="ml-3 text-sm text-gray-500">
               Academic year: 2024-2025
             </span>
-          </div>
+          </div> */}
 
           <div className="relative" ref={notifDropdownRef}>
-            {/* Notification Bell */}
             <button
               onClick={() => setIsNotifOpen(!isNotifOpen)}
               className="relative text-[17px]  p-2 bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] rounded-full transition"
             >
               <LuBell />
-              {/* Red Circle with Count */}
+
               <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white">
                 3
               </span>

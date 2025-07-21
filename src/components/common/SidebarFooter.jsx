@@ -19,7 +19,12 @@ const SidebarFooter = () => {
       </div>
 
       <div className="text-sm">
-        <p className="text-[14px] text-gray-700 font-medium">{user?.name}</p>
+        <p className="text-[14px] text-gray-900 font-bold uppercase">
+          {user?.name}
+        </p>
+        <p className="text-xs text-gray-600 font-medium uppercase ">
+          {user?.role}
+        </p>
       </div>
     </div>
   );

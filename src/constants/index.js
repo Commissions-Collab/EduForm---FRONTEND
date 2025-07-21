@@ -109,24 +109,24 @@ export const studentNav = [
     url: "/student/dashboard",
   },
   {
-    name: "Grades",
+    name: "Grade",
     icon: LuGraduationCap,
-    url: "/grades",
+    url: "/grade",
   },
   {
     name: "Attendance",
     icon: LuCalendarDays,
-    url: "/attendance",
+    url: "/student/attendance",
   },
   {
     name: "Health Profile",
     icon: LuHeart,
-    url: "/healthProfile",
+    url: "/health-profile",
   },
   {
-    name: "Resources",
+    name: "Textbooks",
     icon: LuBookOpen,
-    url: "/resources",
+    url: "/textbooks",
   },
 
   {
