@@ -1,18 +1,27 @@
 import React from "react";
-
+import { ClipLoader } from "react-spinners";
 import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
+import { useGradesStore } from "../../stores/useGradesStore";
 
-const GradesTable = ({
-  students,
-  currentPage,
-  totalPages,
-  onPreviousPage,
-  onNextPage,
-  onInputChange,
-  selectedQuarter,
-  onQuarterChange,
-}) => {
+const GradesTable = () => {
+  const {
+    students,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedRecords,
+    updateGrade,
+    selectedQuarter,
+    setSelectedQuarter,
+    loading,
+    error,
+  } = useGradesStore();
+
+  const records = paginatedRecords();
+  const pages = totalPages();
+  const hasRecords = Array.isArray(records) && records.length > 0;
+
   return (
     <>
       <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md">
@@ -27,7 +36,7 @@ const GradesTable = ({
           </div>
           <select
             value={selectedQuarter}
-            onChange={onQuarterChange}
+            onChange={(e) => setSelectedQuarter(e.target.value)}
             className="px-3 py-2 text-sm border border-gray-300 rounded"
           >
             <option value="All Quarters">All Quarters</option>
@@ -64,8 +73,32 @@ const GradesTable = ({
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            {Array.isArray(students) &&
-              students.map((student) => {
+            {loading ? (
+              <tr>
+                <td colSpan={8}>
+                  <div className="flex justify-center items-center h-[60vh]">
+                    <ClipLoader color="#3730A3" size={30} />
+                  </div>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={8}>
+                  <div className="flex justify-center items-center h-[60vh] text-red-600 font-medium">
+                    Failed to fetch grades. Please try again.
+                  </div>
+                </td>
+              </tr>
+            ) : !hasRecords ? (
+              <tr>
+                <td colSpan={8}>
+                  <div className="flex justify-center items-center h-[60vh] text-gray-600 font-medium">
+                    No grade records available.
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              records.map((student) => {
                 const average = (
                   (student.math +
                     student.science +
@@ -91,7 +124,7 @@ const GradesTable = ({
                             max="100"
                             value={student[subject]}
                             onChange={(e) =>
-                              onInputChange(student.id, subject, e.target.value)
+                              updateGrade(student.id, subject, e.target.value)
                             }
                             className="w-16 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700"
                           />
@@ -106,17 +139,20 @@ const GradesTable = ({
                     </td>
                   </tr>
                 );
-              })}
+              })
+            )}
           </tbody>
         </table>
       </div>
 
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPrevious={onPreviousPage}
-        onNext={onNextPage}
-      />
+      {!loading && hasRecords && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={pages}
+          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+          onNext={() => setCurrentPage(Math.min(currentPage + 1, pages))}
+        />
+      )}
     </>
   );
 };

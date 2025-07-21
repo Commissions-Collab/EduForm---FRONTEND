@@ -1,3 +1,5 @@
+// constants/index.js (Add these new constants)
+
 import { MdOutlineSpaceDashboard, MdOutlineWorkOutline } from "react-icons/md";
 import {
   LuUsers,
@@ -19,10 +21,8 @@ import {
   LuHourglass,
   LuUser,
   LuStar,
-  LuFilePen,
-  LuChartNoAxesCombined,
-  LuHeartPulse,
-  LuArchiveRestore,
+  LuCircleAlert,
+  LuFileChartLine, // Add this for notification
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -60,19 +60,9 @@ export const adminNav = [
     url: "/admin/dashboard",
   },
   {
-    name: "Enrollment (SF1)",
-    icon: LuFilePen,
-    url: "/enrollment",
-  },
-  {
     name: "Daily Attendance (SF2)",
     icon: LuCalendarCheck,
     url: "/attendance",
-  },
-  {
-    name: "Textbooks (SF3)",
-    icon: LuBookText,
-    url: "/textbook",
   },
   {
     name: "Monthly Summary (SF4)",
@@ -80,36 +70,15 @@ export const adminNav = [
     url: "/monthlySummary",
   },
   {
-    name: "Promotion Reports (SF5)",
-    icon: LuSignalHigh,
-    url: "/promotionReports",
-  },
-  {
-    name: "Promotion Summary (SF6)",
-    icon: LuChartNoAxesCombined,
-    url: "/promotionSummary",
-  },
-  {
-    name: "Workload (SF7)",
-    icon: MdOutlineWorkOutline,
-    url: "/workload",
-  },
-  {
-    name: "Health Profile (SF8)",
-    icon: LuHeartPulse,
-    url: "/healthProfile",
-  },
-  {
-    name: "Grades (SF9)",
+    name: "Academic Records (SF9)",
     icon: LuClipboardList,
     url: "/grades",
   },
   {
-    name: "Permanent Records (SF10)",
-    icon: LuArchiveRestore,
-    url: "/permanentRecords",
+    name: "Promotion Reports (SF5)",
+    icon: LuSignalHigh,
+    url: "/promotionReports",
   },
-
   {
     name: "Certificates",
     icon: LuAward,
@@ -120,6 +89,17 @@ export const adminNav = [
     icon: LuUsers,
     url: "/parentConference",
   },
+  {
+    name: "Textbooks (SF3)",
+    icon: LuBookText,
+    url: "/textbook",
+  },
+
+  {
+    name: "Workload (SF7)",
+    icon: MdOutlineWorkOutline,
+    url: "/workload",
+  },
 ];
 
 export const studentNav = [
@@ -129,24 +109,24 @@ export const studentNav = [
     url: "/student/dashboard",
   },
   {
-    name: "Grades",
+    name: "Grade",
     icon: LuGraduationCap,
-    url: "/grades",
+    url: "/grade",
   },
   {
     name: "Attendance",
     icon: LuCalendarDays,
-    url: "/attendance",
+    url: "/userAttendance",
   },
   {
     name: "Health Profile",
     icon: LuHeart,
-    url: "/healthProfile",
+    url: "/health-profile",
   },
   {
-    name: "Resources",
+    name: "Textbooks",
     icon: LuBookOpen,
-    url: "/resources",
+    url: "/text-books",
   },
 
   {
@@ -509,5 +489,112 @@ export const sampleStudentRecord = [
     gwa: "90.1",
     attendance: "93%",
     records: ["SF1", "SF2", "SF4", "SF9", "SF10"],
+  },
+];
+
+export const parentStudents = [
+  {
+    name: "Miguel Santos",
+    guardian: "Gloria Santos",
+    status: "At Risk",
+    color: "bg-red-100 text-red-700",
+  },
+  {
+    name: "Maria Lopez",
+    guardian: "Roberto Lopez",
+    status: "At Risk",
+    color: "bg-red-100 text-red-700",
+  },
+  {
+    name: "Juan Cruz",
+    guardian: "Elena Cruz",
+    status: "Good Standing",
+    color: "bg-blue-100 text-blue-700",
+  },
+  {
+    name: "Ana Reyes",
+    guardian: "Miguel Reyes",
+    status: "Excellent",
+    color: "bg-green-100 text-green-700",
+  },
+];
+
+// New student dashboard constants
+export const studentNotifications = [
+  {
+    type: "alert",
+    message: "Science 78% - Below class average",
+    suggestion: "Consider scheduling time with a tutor. View referrals",
+  },
+  {
+    type: "clock",
+    message: "Algebra II textbook due in 5 days",
+    returnDate: "June 15",
+    fine: "50",
+  },
+  {
+    type: "award",
+    message: "With High Honors eligibility confirmed",
+    suggestion: "Maintain your grades to secure recognition.",
+  },
+];
+
+export const studentDashboardStats = [
+  {
+    title: "QUARTERLY AVERAGE",
+    value: "89.4%",
+    change: "+2.1%",
+    progress: true,
+  },
+  {
+    title: "ATTENDANCE RATE",
+    value: "92%",
+    subText: "3 late arrivals",
+    progress: true,
+  },
+  {
+    title: "RESOURCES",
+    value: "2 Books Borrowed", // No primary value, as it's a list
+    resources: ["1 book due within a week"],
+  },
+];
+
+export const workloadCards = [
+  {
+    label: "Total Students",
+    value: "97",
+    icon: LuUsers,
+    iconColor: "text-blue-600",
+    iconBg: "bg-blue-100",
+  },
+  {
+    label: "Subject Areas",
+    value: "3",
+    icon: LuBookOpen,
+    iconColor: "text-green-600",
+    iconBg: "bg-green-100",
+  },
+
+  {
+    label: "Class Sections",
+    value: "3",
+    icon: LuUser,
+    iconColor: "text-red-600",
+    iconBg: "bg-red-100",
+  },
+
+  {
+    label: "Advisory Duties",
+    value: "1",
+    icon: LuClipboardList,
+    iconColor: "text-purple-600",
+    iconBg: "bg-purple-100",
+  },
+  {
+    label: "Hours per Week",
+    value: "26",
+    icon: LuFileChartLine,
+    iconColor: "text-yellow-600",
+    iconBg: "bg-yellow-100",
   },
 ];

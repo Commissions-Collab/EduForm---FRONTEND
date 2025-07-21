@@ -48,7 +48,7 @@ const Sidebar = () => {
       </div>
 
       {/* Footer sticks to bottom inside sidebar */}
-      <div className="py-3">
+      <div className="py-1">
         <SidebarFooter />
       </div>
     </aside>

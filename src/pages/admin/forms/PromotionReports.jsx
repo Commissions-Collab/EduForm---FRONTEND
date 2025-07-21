@@ -1,18 +1,15 @@
+import { useEffect } from "react";
+import { usePromotionStore } from "../../../stores/usePromotionStore";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
 import { LuCircleCheckBig } from "react-icons/lu";
-import { usePromotionStore } from "../../../stores/usePromotionStore";
 
 const PromotionReport = () => {
-  const {
-    students,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    paginatedRecords,
-  } = usePromotionStore();
-  const currentRecords = paginatedRecords();
-  const totalPagesValue = totalPages();
+  const { fetchPromotionData } = usePromotionStore();
+
+  useEffect(() => {
+    fetchPromotionData();
+  }, []);
 
   return (
     <main className="p-4">
@@ -28,8 +25,9 @@ const PromotionReport = () => {
           </select>
         </div>
       </div>
-
-      <PromotionCards />
+      <div className="mt-3">
+        <PromotionCards />
+      </div>
 
       <div className="mt-3 blue-card">
         <div className="flex items-center gap-5">
@@ -46,15 +44,7 @@ const PromotionReport = () => {
         </div>
       </div>
 
-      <PromotionTable
-        students={currentRecords}
-        currentPage={currentPage}
-        totalPages={totalPagesValue}
-        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-        onNextPage={() =>
-          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
-        }
-      />
+      <PromotionTable />
     </main>
   );
 };

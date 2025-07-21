@@ -1,24 +1,10 @@
-// import { useEffect } from "react";
+import React, { useEffect } from "react";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
-
 import { useAttendanceStore } from "../../../stores/useAttendanceStore";
 
 const Attendance = () => {
-  const {
-    records,
-    setStatus,
-    setReason,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    paginatedRecords,
-    fetchAttendanceData,
-    attendanceSummary,
-  } = useAttendanceStore();
-
+  const { fetchAttendanceData, attendanceSummary } = useAttendanceStore();
   const summary = attendanceSummary();
-  const totalPagesValue = totalPages();
-  const currentRecords = paginatedRecords();
 
   const statusColors = {
     present: "bg-green-500",
@@ -26,12 +12,13 @@ const Attendance = () => {
     late: "bg-yellow-400",
   };
 
-  // useEffect(() => {
-  //   fetchAttendanceData();
-  // }, []);
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []);
 
   return (
     <main className="p-4">
+      {/* Header */}
       <div className="between">
         <div className="page-title">Daily Attendance (SF2): Grade 10-A</div>
         <div className="flex items-center gap-2">
@@ -42,7 +29,9 @@ const Attendance = () => {
           />
         </div>
       </div>
-      <div className="mt-10 shad-container p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+
+      {/* Summary */}
+      <div className="mt-8 shad-container p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h2 className="text-lg font-medium">Attendance Summary</h2>
         </div>
@@ -58,17 +47,8 @@ const Attendance = () => {
         </div>
       </div>
 
-      <AttendanceTable
-        records={currentRecords}
-        onStatusClick={setStatus}
-        onReasonChange={setReason}
-        currentPage={currentPage}
-        totalPages={totalPagesValue}
-        onPreviousPage={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-        onNextPage={() =>
-          setCurrentPage(Math.min(currentPage + 1, totalPagesValue))
-        }
-      />
+      {/* Table */}
+      <AttendanceTable />
     </main>
   );
 };

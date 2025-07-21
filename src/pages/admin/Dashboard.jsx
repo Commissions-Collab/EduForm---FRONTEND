@@ -6,7 +6,7 @@ const AdminDashboard = () => {
   return (
     <main className="p-4">
       <div className="page-title">Dashboard</div>
-      <div className="mt-10 dashboard-grid">
+      <div className="mt-8 dashboard-grid">
         {adminCards.map((card) => (
           <DashboardCard
             key={card.id}

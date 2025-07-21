@@ -51,14 +51,14 @@ const DashboardCard = ({ title, type, data }) => {
           </div>
           <div className="mt-5">
             <Link to="/attendance">
-              <button type="button" className="dashboard-p-button">
+              <button type="button" className="primary-button">
                 Update Attendance (SF2)
               </button>
             </Link>
           </div>
           <div className="mt-3">
             <Link to="/monthlySummary">
-              <button type="button" className="dashboard-s-button">
+              <button type="button" className="secondary-button">
                 View Monthly Summary (SF4)
               </button>
             </Link>
