@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 const SignUp = () => {
   return (
     <div className="w-full max-w-md bg-white p-6 sm:p-8 md:p-10 relative overflow-hidden max-h-[calc(100vh-80px)] overflow-y-auto">
-
       <h1 className="text-4xl font-extrabold text-[#3730A3] text-center mb-2">
         AcadFlow
       </h1>
@@ -48,7 +47,12 @@ const SignUp = () => {
         />
 
         <div>
-          <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+          <label
+            htmlFor="dob"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Date of Birth
+          </label>
           <input
             type="date"
             id="dob"
@@ -59,7 +63,12 @@ const SignUp = () => {
         </div>
 
         <div>
-          <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <label
+            htmlFor="gender"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Gender
+          </label>
           <select
             id="gender"
             name="gender"

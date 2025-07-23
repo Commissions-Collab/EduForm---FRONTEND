@@ -11,23 +11,21 @@ import UserRoutes from "./routes/userRoutes";
 
 function App() {
   return (
-    <main className="flex h-screen">
-      <BrowserRouter>
-        <Routes>
-          <Route element={<AuthLayout />}>
-            <Route index element={<SignIn />} />
-            <Route path="sign-in" element={<SignIn />} />
-            <Route path="/sign-up" element={<SignUp />} />
-          </Route>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AuthLayout />}>
+          <Route index element={<SignIn />} />
+          <Route path="sign-in" element={<SignIn />} />
+          <Route path="sign-up" element={<SignUp />} />
+        </Route>
 
-          {SuperAdminRoutes}
-          {AdminRoutes}
-          {UserRoutes}
+        {SuperAdminRoutes}
+        {AdminRoutes}
+        {UserRoutes}
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </main>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

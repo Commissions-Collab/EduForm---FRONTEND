@@ -12,8 +12,13 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
+
+.header {
+    @apply flex items-center justify-between gap-5 px-10 py-5 bg-white border-b border-gray-200 shadow;
+}
+
 .sidebar {
-    @apply hidden lg:flex flex-col h-screen overflow-y-auto p-6 w-[300px] bg-white border-r border-gray-200 shadow-md;
+    @apply hidden lg:flex flex-col w-[300px] p-6 h-full bg-white border-r border-gray-200 shadow-md;
 }
 
 .dashboard-grid {
@@ -120,19 +125,7 @@ input[type="number"] {
 
 
 
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.25rem;
-    padding: 1.25rem;
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
-    background-color: #ffffff;
-    border-bottom: 2px solid #e5e7eb;
-    box-shadow: 6px 0 8px rgba(0, 0, 0, 0.04);
 
-}
 
 
 .mobile-header {

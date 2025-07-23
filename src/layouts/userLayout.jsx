@@ -4,15 +4,21 @@ import Header from "../components/common/Header";
 
 const UserLayout = () => {
   return (
-    <main className="flex min-h-screen w-full">
+    <div className="flex h-screen w-full overflow-hidden">
+      {/* Sidebar - fixed width, full height */}
       <Sidebar />
-      <section className="flex flex-col flex-1 overflow-hidden">
+
+      {/* Main panel (Header + Page) */}
+      <div className="flex flex-col flex-1 h-full">
+        {/* Fixed Header */}
         <Header />
-        <div className="main-content flex-1 overflow-y-auto p-6 ">
+
+        {/* Scrollable content only */}
+        <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
           <Outlet />
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 };
 
