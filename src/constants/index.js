@@ -116,7 +116,7 @@ export const studentNav = [
   {
     name: "Attendance",
     icon: LuCalendarDays,
-    url: "/student/attendance",
+    url: "/userAttendance",
   },
   {
     name: "Health Profile",
@@ -126,7 +126,7 @@ export const studentNav = [
   {
     name: "Textbooks",
     icon: LuBookOpen,
-    url: "/textbooks",
+    url: "/text-books",
   },
 
   {
