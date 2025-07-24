@@ -84,5 +84,46 @@ export const useAttendanceStore = create(
         },
       };
     },
+
+    downloadAttendancePDF: async ({
+      sectionId,
+      quarterId,
+      academicYearId,
+      token,
+    }) => {
+      set({ loading: true, error: null });
+
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/attendance/pdf/${sectionId}?quarter_id=${quarterId}&academic_year_id=${academicYearId}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/pdf",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to download PDF");
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "Quarterly_Attendance_Summary.pdf");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        set({ error: error.message });
+        console.error("Error downloading PDF:", error);
+      } finally {
+        set({ loading: false });
+      }
+    },
   }))
 );

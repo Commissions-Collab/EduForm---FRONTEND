@@ -1,5 +1,6 @@
 import React from "react";
 import { LuDownload, LuPrinter } from "react-icons/lu";
+import AttendanceDownloadBtn from "../AttendanceDownloadBtn";
 
 const MonthlySummary = () => {
   const handlePrint = () => {
@@ -21,10 +22,7 @@ const MonthlySummary = () => {
             <span className="ml-2">Print</span>
           </button>
 
-          <button className="gray-button" onClick={handleExportClick}>
-            <LuDownload size={15} />
-            <span className="ml-2">Export</span>
-          </button>
+          <AttendanceDownloadBtn />
         </div>
       </div>
     </main>
