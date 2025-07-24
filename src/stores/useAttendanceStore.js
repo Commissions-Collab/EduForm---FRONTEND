@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import toast from "react-hot-toast";
+import axios from "axios";
 import {
   updateAttendanceReason,
   updateAttendanceStatus,
@@ -83,6 +84,47 @@ export const useAttendanceStore = create(
           percent: ((summary.late / total) * 100).toFixed(0),
         },
       };
+    },
+
+    downloadAttendancePDF: async ({
+      sectionId,
+      quarterId,
+      academicYearId,
+      token,
+    }) => {
+      set({ loading: true, error: null });
+
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/teacher/sections/${sectionId}/attendance/quarterly/pdf`,
+          {
+            params: {
+              quarter_id: quarterId,
+              academic_year_id: academicYearId,
+            },
+            responseType: "blob",
+            headers: {
+              Accept: "application/pdf",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "Quarterly_Attendance_Summary.pdf");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        set({ error: error.message });
+        console.error("Error downloading PDF:", error);
+      } finally {
+        set({ loading: false });
+      }
     },
   }))
 );
