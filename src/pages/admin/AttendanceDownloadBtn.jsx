@@ -9,8 +9,8 @@ const AttendanceDownloadBtn = () => {
 
   const handleDownload = () => {
     downloadAttendancePDF({
-      sectionId: 1,
-      quarterId: 2,
+      sectionId: 3,
+      quarterId: 1,
       academicYearId: 3,
       token: localStorage.getItem("token"), // or however you store your auth token
     });

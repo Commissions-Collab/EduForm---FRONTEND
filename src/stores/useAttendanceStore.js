@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import toast from "react-hot-toast";
+import axios from "axios";
 import {
   updateAttendanceReason,
   updateAttendanceStatus,
@@ -94,10 +95,14 @@ export const useAttendanceStore = create(
       set({ loading: true, error: null });
 
       try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/attendance/pdf/${sectionId}?quarter_id=${quarterId}&academic_year_id=${academicYearId}`,
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/teacher/sections/${sectionId}/attendance/quarterly/pdf`,
           {
-            method: "GET",
+            params: {
+              quarter_id: quarterId,
+              academic_year_id: academicYearId,
+            },
+            responseType: "blob",
             headers: {
               Accept: "application/pdf",
               Authorization: `Bearer ${token}`,
@@ -105,11 +110,7 @@ export const useAttendanceStore = create(
           }
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to download PDF");
-        }
-
-        const blob = await response.blob();
+        const blob = new Blob([response.data], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;

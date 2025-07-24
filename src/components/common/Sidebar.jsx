@@ -5,7 +5,6 @@ import SidebarFooter from "./SidebarFooter";
 
 const Sidebar = () => {
   const user = useAuthStore((state) => state.user);
-  const user = useAuthStore((state) => state.user);
   const { pathname } = useLocation();
 
   if (!user) return null;
