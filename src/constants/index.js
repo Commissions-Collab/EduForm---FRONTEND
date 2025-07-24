@@ -22,61 +22,119 @@ import {
   LuUser,
   LuStar,
   LuCircleAlert,
-  LuFileChartLine,
+  LuFileChartLine, // Add this for notification
 } from "react-icons/lu";
 
-export const navConfig = {
-  superadmin: [
-    {
-      name: "Dashboard",
-      icon: MdOutlineSpaceDashboard,
-      url: "/superadmin/dashboard",
-    },
-    { name: "Users", icon: LuUsers, url: "/users" },
-    { name: "Forms", icon: LuFileText, url: "/forms" },
-    { name: "Records", icon: LuClipboardList, url: "/records" },
-    { name: "Calendar", icon: LuCalendarDays, url: "/calendar" },
-  ],
-  admin: [
-    {
-      name: "Dashboard",
-      icon: MdOutlineSpaceDashboard,
-      url: "/admin/dashboard",
-    },
-    {
-      name: "Daily Attendance (SF2)",
-      icon: LuCalendarCheck,
-      url: "/attendance",
-    },
-    {
-      name: "Monthly Summary (SF4)",
-      icon: LuCalendarDays,
-      url: "/monthlySummary",
-    },
-    { name: "Academic Records (SF9)", icon: LuClipboardList, url: "/grades" },
-    {
-      name: "Promotion Reports (SF5)",
-      icon: LuSignalHigh,
-      url: "/promotionReports",
-    },
-    { name: "Certificates", icon: LuAward, url: "/certificates" },
-    { name: "Parent Conference", icon: LuUsers, url: "/parentConference" },
-    { name: "Textbooks (SF3)", icon: LuBookText, url: "/textbook" },
-    { name: "Workload (SF7)", icon: MdOutlineWorkOutline, url: "/workload" },
-  ],
-  student: [
-    {
-      name: "Dashboard",
-      icon: MdOutlineSpaceDashboard,
-      url: "/student/dashboard",
-    },
-    { name: "Grade", icon: LuGraduationCap, url: "/grade" },
-    { name: "Attendance", icon: LuCalendarDays, url: "/userAttendance" },
-    { name: "Health Profile", icon: LuHeart, url: "/health-profile" },
-    { name: "Textbooks", icon: LuBookOpen, url: "/text-books" },
-    { name: "Achievements", icon: LuAward, url: "/achievements" },
-  ],
-};
+export const superAdminNav = [
+  {
+    name: "Dashboard",
+    icon: MdOutlineSpaceDashboard,
+    url: "/admin/dashboard",
+  },
+  {
+    name: "Users",
+    icon: LuUsers,
+    url: "admin/users",
+  },
+  {
+    name: "Forms",
+    icon: LuFileText,
+    url: "admin/forms",
+  },
+  {
+    name: "Records",
+    icon: LuClipboardList,
+    url: "admin/records",
+  },
+  {
+    name: "Calendar",
+    icon: LuCalendarDays,
+    url: "admin/calendar",
+  },
+];
+
+export const adminNav = [
+  {
+    name: "Dashboard",
+    icon: MdOutlineSpaceDashboard,
+    url: "/teacher/dashboard",
+  },
+  {
+    name: "Daily Attendance (SF2)",
+    icon: LuCalendarCheck,
+    url: "/teacher/attendance",
+  },
+  {
+    name: "Monthly Summary (SF4)",
+    icon: LuCalendarDays,
+    url: "/teacher/monthlySummary",
+  },
+  {
+    name: "Academic Records (SF9)",
+    icon: LuClipboardList,
+    url: "/teacher/grades",
+  },
+  {
+    name: "Promotion Reports (SF5)",
+    icon: LuSignalHigh,
+    url: "/teacher/promotionReports",
+  },
+  {
+    name: "Certificates",
+    icon: LuAward,
+    url: "/teacher/certificates",
+  },
+  {
+    name: "Parent Conference",
+    icon: LuUsers,
+    url: "/teacher/parentConference",
+  },
+  {
+    name: "Textbooks (SF3)",
+    icon: LuBookText,
+    url: "/teacher/textbook",
+  },
+
+  {
+    name: "Workload (SF7)",
+    icon: MdOutlineWorkOutline,
+    url: "/teacher/workload",
+  },
+];
+
+export const studentNav = [
+  {
+    name: "Dashboard",
+    icon: MdOutlineSpaceDashboard,
+    url: "/student/dashboard",
+  },
+  {
+    name: "Grade",
+    icon: LuGraduationCap,
+    url: "/student/grade",
+  },
+  {
+    name: "Attendance",
+    icon: LuCalendarDays,
+    url: "/student/userAttendance",
+  },
+  {
+    name: "Health Profile",
+    icon: LuHeart,
+    url: "/student/health-profile",
+  },
+  {
+    name: "Textbooks",
+    icon: LuBookOpen,
+    url: "/student/text-books",
+  },
+
+  {
+    name: "Achievements",
+    icon: LuAward,
+    url: "/student/achievements",
+  },
+];
 
 //superAdmin Constants
 export const dashboardStats = [
