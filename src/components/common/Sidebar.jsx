@@ -1,26 +1,20 @@
-import { adminNav, studentNav, superAdminNav } from "../../constants";
-
 import { Link, useLocation } from "react-router-dom";
-import SidebarFooter from "./SidebarFooter";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { navConfig } from "../../constants";
+import SidebarFooter from "./SidebarFooter";
 
 const Sidebar = () => {
-  const user = useAuthStore((state) => state.user); // Get user from Zustand store
+  const user = useAuthStore((state) => state.user);
   const { pathname } = useLocation();
 
   if (!user) return null;
 
-  let navItems = [];
-
-  if (user.role === "superadmin") navItems = superAdminNav;
-  else if (user.role === "admin") navItems = adminNav;
-  else if (user.role === "student") navItems = studentNav;
+  const navItems = navConfig[user.role] || [];
 
   return (
     <aside className="sidebar h-screen flex flex-col max-h-screen overflow-hidden">
       <h2 className="text-3xl font-bold mb-6 text-[#3730A3]">AcadFlow</h2>
 
-      {/* Scrollable menu area */}
       <div className="flex-1 overflow-y-auto pr-1">
         <ul className="flex flex-col mt-10 gap-1.5">
           {navItems.map(({ name, url, icon: Icon }) => (
@@ -48,7 +42,6 @@ const Sidebar = () => {
         </ul>
       </div>
 
-      {/* Footer sticks to bottom inside sidebar */}
       <div className="py-1">
         <SidebarFooter />
       </div>
