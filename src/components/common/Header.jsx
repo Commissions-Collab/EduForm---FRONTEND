@@ -24,10 +24,10 @@ const Header = () => {
 
   return (
     <>
-      <header className="header  w-full border-gray-100 bg-white">
+      <header className="header w-full border-gray-100 bg-white">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="text-3xl text-[#3730A3] hover:scale-105 transition-transform duration-300 cursor-pointer focus:outline-none lg:hidden"
+          className="text-3xl text-[#3730A3] hover:scale-105 transition-transform duration-300 cursor-pointer focus:outline-none xl:hidden"
         >
           {menuOpen ? <LuMenu /> : <LuMenu />}
         </button>

@@ -5,7 +5,7 @@ import SidebarFooter from "./SidebarFooter";
 import { useAuthStore } from "../../stores/useAuthStore";
 
 const MobileNavigation = ({ onClose }) => {
-  const user = useAuthStore((state) => state.user); // Zustand store
+  const user = useAuthStore((state) => state.user);
   const { pathname } = useLocation();
 
   if (!user) return null;
@@ -17,7 +17,7 @@ const MobileNavigation = ({ onClose }) => {
   else if (user.role === "student") navItems = studentNav;
 
   return (
-    <div className="fixed top-0 left-0 h-full w-[290px] bg-white z-50 flex flex-col p-5 gap-6 lg:hidden shadow-xl">
+    <div className="fixed top-0 left-0 h-full w-[290px] bg-white z-50 flex flex-col p-5 gap-6 xl:hidden shadow-xl">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[#3730A3]">AcadFlow</h2>
         <button
