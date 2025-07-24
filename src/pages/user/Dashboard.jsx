@@ -3,18 +3,18 @@ import React from "react";
 import DashboardStatCard from "../../components/user/DashboardStatCard";
 import NotificationCard from "../../components/user/NotificationCard";
 import { studentDashboardStats, studentNotifications } from "../../constants";
-import { LuCircleAlert } from "react-icons/lu"; 
+import { LuCircleAlert } from "react-icons/lu";
 
 const Dashboard = () => {
   return (
     <main className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold">Student Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="page-title">Student Dashboard</h1>
         <p className="text-sm text-gray-500">Last updated: Today, 10:45 AM</p>
       </div>
 
       {/* Important Notifications Section */}
-      <section className="bg-white p-4 rounded-lg shadow-md mb-8">
+      <section className="bg-white p-4 rounded-lg shadow-md mt-5 mb-8">
         <h2 className="text-xl font-semibold text-gray-800 flex items-center mb-4">
           <LuCircleAlert className="w-6 h-6 text-red-500 mr-2" />
           Important Notifications

@@ -1,15 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import MobileNavigation from "./MobileNavigation";
-import { useAuth } from "../../context/AuthContext";
-import { useLocation } from "react-router-dom";
+
 import { LuUsers, LuMenu, LuSettings, LuBell } from "react-icons/lu";
 
 const Header = () => {
-  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifDropdownRef = useRef();
-  const { pathname } = useLocation();
 
   useEffect(() => {
     const handleClickOutside = (event) => {

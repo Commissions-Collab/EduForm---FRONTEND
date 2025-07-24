@@ -1,10 +1,11 @@
 import { adminNav, studentNav, superAdminNav } from "../../constants";
-import { useAuth } from "../../context/AuthContext";
+
 import { Link, useLocation } from "react-router-dom";
 import SidebarFooter from "./SidebarFooter";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 const Sidebar = () => {
-  const { user } = useAuth();
+  const user = useAuthStore((state) => state.user); // Get user from Zustand store
   const { pathname } = useLocation();
 
   if (!user) return null;
