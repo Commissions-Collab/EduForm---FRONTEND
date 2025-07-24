@@ -1,8 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { LuBell, LuSettings } from "react-icons/lu";
-import { adminNav, studentNav, superAdminNav } from "../../constants";
 import SidebarFooter from "./SidebarFooter";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { navConfig } from "../../constants";
 
 const MobileNavigation = ({ onClose }) => {
   const user = useAuthStore((state) => state.user);
@@ -10,14 +9,11 @@ const MobileNavigation = ({ onClose }) => {
 
   if (!user) return null;
 
-  let navItems = [];
-
-  if (user.role === "superadmin") navItems = superAdminNav;
-  else if (user.role === "admin") navItems = adminNav;
-  else if (user.role === "student") navItems = studentNav;
+  const navItems = navConfig[user.role] || [];
 
   return (
     <div className="fixed top-0 left-0 h-full w-[290px] bg-white z-50 flex flex-col p-5 gap-6 xl:hidden shadow-xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[#3730A3]">AcadFlow</h2>
         <button
@@ -28,6 +24,7 @@ const MobileNavigation = ({ onClose }) => {
         </button>
       </div>
 
+      {/* Scrollable Nav */}
       <div className="flex-1 overflow-y-auto pr-1">
         <nav className="flex flex-col gap-2 mt-6">
           {navItems.map(({ name, url, icon: Icon }) => (
@@ -55,6 +52,7 @@ const MobileNavigation = ({ onClose }) => {
 
       <hr className="border-t border-gray-300" />
 
+      {/* Footer */}
       <SidebarFooter />
     </div>
   );

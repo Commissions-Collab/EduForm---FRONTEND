@@ -1,29 +1,16 @@
-import { adminNav, studentNav, superAdminNav } from "../../constants";
 import { Link, useLocation } from "react-router-dom";
-import SidebarFooter from "./SidebarFooter";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { navConfig } from "../../constants";
+import SidebarFooter from "./SidebarFooter";
 
 const Sidebar = () => {
+  const user = useAuthStore((state) => state.user);
   const user = useAuthStore((state) => state.user);
   const { pathname } = useLocation();
 
   if (!user) return null;
 
-  let navItems = [];
-
-  switch (user.role?.toLowerCase()) {
-    case "superadmin":
-      navItems = superAdminNav;
-      break;
-    case "teacher":
-      navItems = adminNav;
-      break;
-    case "student":
-      navItems = studentNav;
-      break;
-    default:
-      navItems = [];
-  }
+  const navItems = navConfig[user.role] || [];
 
   return (
     <aside className="sidebar h-screen flex flex-col max-h-screen overflow-hidden">
