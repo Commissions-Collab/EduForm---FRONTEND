@@ -12,14 +12,20 @@ const SignIn = () => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = login(form);
+    setError(""); // Clear previous errors
 
-    if (res.success) {
-      navigate(`/${res.user.role}/dashboard`);
-    } else {
-      setError(res.message);
+    try {
+      const res = await login(form);
+
+      if (res.success) {
+        navigate(`/${res.user.role}/dashboard`);
+      } else {
+        setError(res.message);
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
     }
   };
 
@@ -60,7 +66,9 @@ const SignIn = () => {
           />
         </div>
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+        )}
 
         <div className="flex justify-end pt-2">
           <Link

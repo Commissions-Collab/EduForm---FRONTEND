@@ -1,5 +1,3 @@
-// src/routes/UserRoutes.jsx
-import React from "react";
 import { Route } from "react-router-dom";
 import UserLayout from "../layouts/userLayout";
 import UserDashboard from "../pages/user/Dashboard";
@@ -8,9 +6,16 @@ import UserAttendance from "../pages/user/UserAttendance";
 import HealthProfile from "../pages/user/HealthProfile";
 import TextBooks from "../pages/user/TextBooks";
 import Achievements from "../pages/user/Achievements";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const UserRoutes = (
-  <Route element={<UserLayout />}>
+  <Route
+    element={
+      <ProtectedRoute allowedRoles={["student"]}>
+        <UserLayout />
+      </ProtectedRoute>
+    }
+  >
     <Route path="/student/dashboard" element={<UserDashboard />} />
     <Route path="/grade" element={<Grade />} />
     <Route path="/userAttendance" element={<UserAttendance />} />

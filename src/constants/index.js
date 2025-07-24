@@ -29,27 +29,27 @@ export const superAdminNav = [
   {
     name: "Dashboard",
     icon: MdOutlineSpaceDashboard,
-    url: "/superadmin/dashboard",
+    url: "/admin/dashboard",
   },
   {
     name: "Users",
     icon: LuUsers,
-    url: "/users",
+    url: "/admin/users",
   },
   {
     name: "Forms",
     icon: LuFileText,
-    url: "/forms",
+    url: "/admin/forms",
   },
   {
     name: "Records",
     icon: LuClipboardList,
-    url: "/records",
+    url: "/admin/records",
   },
   {
     name: "Calendar",
     icon: LuCalendarDays,
-    url: "/calendar",
+    url: "/admin/calendar",
   },
 ];
 
@@ -57,48 +57,48 @@ export const adminNav = [
   {
     name: "Dashboard",
     icon: MdOutlineSpaceDashboard,
-    url: "/admin/dashboard",
+    url: "/teacher/dashboard",
   },
   {
     name: "Daily Attendance (SF2)",
     icon: LuCalendarCheck,
-    url: "/attendance",
+    url: "/teacher/attendance",
   },
   {
     name: "Monthly Summary (SF4)",
     icon: LuCalendarDays,
-    url: "/monthlySummary",
+    url: "/teacher/monthlySummary",
   },
   {
     name: "Academic Records (SF9)",
     icon: LuClipboardList,
-    url: "/grades",
+    url: "/teacher/grades",
   },
   {
     name: "Promotion Reports (SF5)",
     icon: LuSignalHigh,
-    url: "/promotionReports",
+    url: "/teacher/promotionReports",
   },
   {
     name: "Certificates",
     icon: LuAward,
-    url: "/certificates",
+    url: "/teacher/certificates",
   },
   {
     name: "Parent Conference",
     icon: LuUsers,
-    url: "/parentConference",
+    url: "/teacher/parentConference",
   },
   {
     name: "Textbooks (SF3)",
     icon: LuBookText,
-    url: "/textbook",
+    url: "/teacher/textbook",
   },
 
   {
     name: "Workload (SF7)",
     icon: MdOutlineWorkOutline,
-    url: "/workload",
+    url: "/teacher/workload",
   },
 ];
 
@@ -111,28 +111,28 @@ export const studentNav = [
   {
     name: "Grade",
     icon: LuGraduationCap,
-    url: "/grade",
+    url: "/student/grade",
   },
   {
     name: "Attendance",
     icon: LuCalendarDays,
-    url: "/userAttendance",
+    url: "/student/userAttendance",
   },
   {
     name: "Health Profile",
     icon: LuHeart,
-    url: "/health-profile",
+    url: "/student/health-profile",
   },
   {
     name: "Textbooks",
     icon: LuBookOpen,
-    url: "/text-books",
+    url: "/student/text-books",
   },
 
   {
     name: "Achievements",
     icon: LuAward,
-    url: "/achievements",
+    url: "/student/achievements",
   },
 ];
 
