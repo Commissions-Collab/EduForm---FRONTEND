@@ -2,30 +2,6 @@
 import { create } from "zustand";
 import axios from "axios";
 
-const dummyAccounts = [
-  {
-    id: 1,
-    name: "Super Admin A",
-    role: "superadmin",
-    email: "superadmin@gmail.com",
-    password: "password",
-  },
-  {
-    id: 2,
-    name: "Admin A",
-    role: "admin",
-    email: "admin@gmail.com",
-    password: "password",
-  },
-  {
-    id: 3,
-    name: "Student A",
-    role: "student",
-    email: "student@gmail.com",
-    password: "password",
-  },
-];
-
 export const useAuthStore = create((set) => ({
   user: null,
   token: null,

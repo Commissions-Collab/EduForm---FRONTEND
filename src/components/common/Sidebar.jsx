@@ -13,7 +13,7 @@ const Sidebar = () => {
   let navItems = [];
 
   switch (user.role?.toLowerCase()) {
-    case "superadmin":
+    case "super_admin":
       navItems = superAdminNav;
       break;
     case "teacher":

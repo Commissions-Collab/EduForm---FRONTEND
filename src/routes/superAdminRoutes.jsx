@@ -5,7 +5,7 @@ import Users from "../pages/superadmin/Users";
 import Forms from "../pages/superadmin/Forms";
 import Records from "../pages/superadmin/Records";
 import Calendar from "../pages/superadmin/Calendar";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "./ProtectedRoute";
 
 const SuperAdminRoutes = [
   <Route
@@ -16,11 +16,11 @@ const SuperAdminRoutes = [
       </ProtectedRoute>
     }
   >
-    <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
-    <Route path="/users" element={<Users />} />
-    <Route path="/forms" element={<Forms />} />
-    <Route path="/records" element={<Records />} />
-    <Route path="/calendar" element={<Calendar />} />
+    <Route path="/super_admin/dashboard" element={<SuperAdminDashboard />} />
+    <Route path="/superadmin/users" element={<Users />} />
+    <Route path="/superadmin/forms" element={<Forms />} />
+    <Route path="/superadmin/records" element={<Records />} />
+    <Route path="/superadmin/calendar" element={<Calendar />} />
   </Route>,
 ];
 

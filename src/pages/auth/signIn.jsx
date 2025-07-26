@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { ClipLoader } from "react-spinners";
 
 const SignIn = () => {
   const { login } = useAuthStore();
@@ -8,23 +9,27 @@ const SignIn = () => {
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
+    setLoading(true);
 
     try {
       const res = await login(form);
+      setLoading(false);
 
       if (res.success) {
         navigate(`/${res.user.role}/dashboard`);
       } else {
-        setError(res.message);
+        setError(res.message || "Invalid credentials");
       }
     } catch (err) {
+      setLoading(false);
       setError("Something went wrong. Please try again.");
     }
   };
@@ -81,9 +86,17 @@ const SignIn = () => {
 
         <button
           type="submit"
-          className="w-full bg-[#3730A3] hover:bg-[#2C268C] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+          disabled={loading}
+          className="w-full bg-[#3730A3] hover:bg-[#2C268C] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 flex justify-center items-center gap-2"
         >
-          Login
+          {loading ? (
+            <>
+              <span>Logging in...</span>
+              <ClipLoader size={18} color="#ffffff" />
+            </>
+          ) : (
+            "Login"
+          )}
         </button>
 
         <div className="flex justify-center mt-5">

@@ -59,7 +59,7 @@ const MobileNavigation = ({ onClose }) => {
                         }`}
                       />
                     )}
-                    <p className="hidden lg:block text-[14px]">{name}</p>
+                    <p className="text-[14px]">{name}</p>
                   </Link>
                 </li>
               ))}

@@ -6,7 +6,7 @@ import UserAttendance from "../pages/user/UserAttendance";
 import HealthProfile from "../pages/user/HealthProfile";
 import TextBooks from "../pages/user/TextBooks";
 import Achievements from "../pages/user/Achievements";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "./ProtectedRoute";
 
 const UserRoutes = (
   <Route

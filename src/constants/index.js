@@ -29,27 +29,27 @@ export const superAdminNav = [
   {
     name: "Dashboard",
     icon: MdOutlineSpaceDashboard,
-    url: "/admin/dashboard",
+    url: "/super_admin/dashboard",
   },
   {
     name: "Users",
     icon: LuUsers,
-    url: "admin/users",
+    url: "/superadmin/users",
   },
   {
     name: "Forms",
     icon: LuFileText,
-    url: "admin/forms",
+    url: "/superadmin/forms",
   },
   {
     name: "Records",
     icon: LuClipboardList,
-    url: "admin/records",
+    url: "/superadmin/records",
   },
   {
     name: "Calendar",
     icon: LuCalendarDays,
-    url: "admin/calendar",
+    url: "/superadmin/calendar",
   },
 ];
 

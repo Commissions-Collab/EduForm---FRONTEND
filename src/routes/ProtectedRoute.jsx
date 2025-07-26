@@ -2,14 +2,10 @@ import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
 
 const ProtectedRoute = ({ allowedRoles, children }) => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   if (!user) {
-    return <Navigate to="/sign-in" />;
-  }
-
-  if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/not-found" />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

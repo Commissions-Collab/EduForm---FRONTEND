@@ -13,7 +13,7 @@ import Enrollment from "../pages/admin/forms/Enrollment";
 import HealthProfile from "../pages/admin/forms/HealthProfile";
 import PromotionSummary from "../pages/admin/forms/PromotionSummary";
 import PermanentRecords from "../pages/admin/forms/PermanentRecords";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "./ProtectedRoute";
 
 const AdminRoutes = (
   <Route

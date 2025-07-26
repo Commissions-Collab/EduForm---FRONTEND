@@ -1,6 +1,6 @@
 import React from "react";
 import { LuDownload, LuPrinter } from "react-icons/lu";
-import AttendanceDownloadBtn from "../AttendanceDownloadBtn";
+import AttendanceDownloadBtn from "../../../components/admin/AttendanceDownloadBtn";
 
 const MonthlySummary = () => {
   const handlePrint = () => {
