@@ -7,21 +7,21 @@ import Records from "../pages/superadmin/Records";
 import Calendar from "../pages/superadmin/Calendar";
 import ProtectedRoute from "./ProtectedRoute";
 
-const SuperAdminRoutes = [
+const SuperAdminRoutes = (
   <Route
-    key="superadmin"
+    path="/super_admin"
     element={
       <ProtectedRoute allowedRoles={["super_admin"]}>
         <SuperAdminLayout />
       </ProtectedRoute>
     }
   >
-    <Route path="/super_admin/dashboard" element={<SuperAdminDashboard />} />
-    <Route path="/superadmin/users" element={<Users />} />
-    <Route path="/superadmin/forms" element={<Forms />} />
-    <Route path="/superadmin/records" element={<Records />} />
-    <Route path="/superadmin/calendar" element={<Calendar />} />
-  </Route>,
-];
+    <Route path="dashboard" element={<SuperAdminDashboard />} />
+    <Route path="users" element={<Users />} />
+    <Route path="forms" element={<Forms />} />
+    <Route path="records" element={<Records />} />
+    <Route path="calendar" element={<Calendar />} />
+  </Route>
+);
 
 export default SuperAdminRoutes;

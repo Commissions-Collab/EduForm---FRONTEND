@@ -1,11 +1,16 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
 
 const ProtectedRoute = ({ allowedRoles, children }) => {
-  const user = useAuthStore((state) => state.user);
+  const { user } = useAuthStore();
+  const location = useLocation();
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/sign-in" state={{ from: location }} replace />;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to={`/${user.role}/dashboard`} replace />;
   }
 
   return children;

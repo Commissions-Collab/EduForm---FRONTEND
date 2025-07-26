@@ -1,64 +1,42 @@
-// src/store/useAuthStore.js
 import { create } from "zustand";
 import axios from "axios";
+import { getItem, setItem, removeItem } from "../utils/storage";
 
 export const useAuthStore = create((set) => ({
-  user: null,
-  token: null,
+  user: getItem("user"),
+  token: getItem("token", false),
 
   login: async ({ email, password }) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/login", {
+      const res = await axios.post("http://127.0.0.1:8000/api/login", {
         email,
         password,
       });
 
-      const { user, token } = response.data;
+      const { user, token } = res.data;
 
-      // Save to localStorage
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", token);
+      setItem("user", user);
+      setItem("token", token);
 
-      // Update Zustand state
       set({ user, token });
 
       return { success: true, user };
-    } catch (error) {
+    } catch (err) {
       return {
         success: false,
-        message: error.response?.data?.message || "Login failed",
+        message: err.response?.data?.message || "Login failed",
       };
     }
   },
 
   logout: () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    removeItem("user");
+    removeItem("token");
     set({ user: null, token: null });
   },
 
-  // user: JSON.parse(localStorage.getItem("user")) || null,
-
-  // login: ({ email, password }) => {
-  //   const account = dummyAccounts.find(
-  //     (u) => u.email === email && u.password === password
-  //   );
-  //   if (account) {
-  //     localStorage.setItem("user", JSON.stringify(account));
-  //     set({ user: account });
-  //     return { success: true, user: account };
-  //   } else {
-  //     return { success: false, message: "Invalid credentials" };
-  //   }
-  // },
-
-  // logout: () => {
-  //   localStorage.removeItem("user");
-  //   set({ user: null });
-  // },
-
   getUserRole: () => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = getItem("user");
     return user?.role || null;
   },
 }));

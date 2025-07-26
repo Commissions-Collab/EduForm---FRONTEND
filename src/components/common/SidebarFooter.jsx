@@ -29,10 +29,8 @@ const SidebarFooter = () => {
       </div>
 
       <div className="flex-1 text-sm">
-        <p className="text-[14px] text-gray-900 font-bold uppercase">
-          {user.name}
-        </p>
-        <p className="text-xs text-gray-600 font-medium uppercase">
+        <p className="text-md text-gray-900 font-bold uppercase">{user.name}</p>
+        <p className="text-sm text-gray-600 font-medium uppercase">
           {user.role}
         </p>
       </div>

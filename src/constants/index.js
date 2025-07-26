@@ -34,22 +34,22 @@ export const superAdminNav = [
   {
     name: "Users",
     icon: LuUsers,
-    url: "/superadmin/users",
+    url: "/super_admin/users",
   },
   {
     name: "Forms",
     icon: LuFileText,
-    url: "/superadmin/forms",
+    url: "/super_admin/forms",
   },
   {
     name: "Records",
     icon: LuClipboardList,
-    url: "/superadmin/records",
+    url: "/super_admin/records",
   },
   {
     name: "Calendar",
     icon: LuCalendarDays,
-    url: "/superadmin/calendar",
+    url: "/super_admin/calendar",
   },
 ];
 

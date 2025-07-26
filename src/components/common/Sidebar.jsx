@@ -32,7 +32,7 @@ const Sidebar = () => {
 
       {/* Scrollable menu area */}
       <div className="flex-1 overflow-y-auto pr-1">
-        <ul className="flex flex-col mt-10 gap-1.5">
+        <ul className="flex flex-col gap-1.5">
           {navItems.length > 0 ? (
             <ul className="flex flex-col mt-10 gap-1.5">
               {navItems.map(({ name, url, icon: Icon }) => (

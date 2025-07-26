@@ -1,130 +1,128 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
 import toast from "react-hot-toast";
-import axios from "axios";
+
 import {
-  updateAttendanceReason,
+  fetchAttendance,
   updateAttendanceStatus,
+  updateAttendanceReason,
+  downloadAttendancePDF,
 } from "../api/attendance";
+import { getItem } from "../utils/storage";
 
-export const useAttendanceStore = create(
-  devtools((set, get) => ({
-    records: [],
-    loading: false,
-    error: null,
+export const useAttendanceStore = create((set, get) => ({
+  records: [],
+  loading: false,
+  error: null,
 
-    fetchAttendanceData: async () => {
-      set({ loading: true, error: null });
-      try {
-        const data = [
-          { id: 1, name: "Juan Dela Cruz", status: "Present", reason: "" },
-          { id: 2, name: "Maria Clara", status: "Absent", reason: "Sick" },
-          { id: 3, name: "Jose Rizal", status: "Late", reason: "Traffic" },
-          { id: 4, name: "Gregorio Del Pilar", status: "Present", reason: "" },
-        ];
-        set({ records: data, loading: false });
-      } catch (err) {
-        set({ error: "Failed to fetch attendance", loading: false });
-      }
-    },
+  fetchAttendanceData: async () => {
+    set({ loading: true, error: null });
 
-    setStatus: async (id, status) => {
-      const updated = get().records.map((student) =>
-        student.id === id
-          ? {
-              ...student,
-              status,
-              reason: status === "Present" ? "" : student.reason,
-            }
-          : student
-      );
-      set({ records: updated });
+    try {
+      const sectionId = getItem("sectionId", false);
+      const academicYearId = getItem("academicYearId", false);
+      const quarterId = getItem("quarterId", false);
 
-      try {
-        await updateAttendanceStatus(id, status);
-        toast.success("Status updated");
-      } catch {
-        toast.error("Failed to update status");
-      }
-    },
+      const data = await fetchAttendance(sectionId, quarterId, academicYearId);
+      set({ records: data });
+      toast.success("Attendance loaded");
+    } catch (error) {
+      console.error("Fetch failed:", error);
+      set({ error: "Failed to fetch attendance" });
+      toast.error("Failed to fetch attendance");
+    } finally {
+      set({ loading: false });
+    }
+  },
 
-    setReason: async (id, reason) => {
-      const updated = get().records.map((student) =>
-        student.id === id ? { ...student, reason } : student
-      );
-      set({ records: updated });
-
-      try {
-        await updateAttendanceReason(id, reason);
-        toast.success("Reason updated");
-      } catch {
-        toast.error("Failed to update reason");
-      }
-    },
-
-    attendanceSummary: () => {
-      const { records } = get();
-      const total = records.length || 1;
-      const summary = {
-        present: records.filter((r) => r.status === "Present").length,
-        absent: records.filter((r) => r.status === "Absent").length,
-        late: records.filter((r) => r.status === "Late").length,
-      };
-      return {
-        present: {
-          count: summary.present,
-          percent: ((summary.present / total) * 100).toFixed(0),
-        },
-        absent: {
-          count: summary.absent,
-          percent: ((summary.absent / total) * 100).toFixed(0),
-        },
-        late: {
-          count: summary.late,
-          percent: ((summary.late / total) * 100).toFixed(0),
-        },
-      };
-    },
-
-    downloadAttendancePDF: async ({
-      sectionId,
-      quarterId,
-      academicYearId,
-      token,
-    }) => {
-      set({ loading: true, error: null });
-
-      try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/teacher/sections/${sectionId}/attendance/quarterly/pdf`,
-          {
-            params: {
-              quarter_id: quarterId,
-              academic_year_id: academicYearId,
-            },
-            responseType: "blob",
-            headers: {
-              Accept: "application/pdf",
-              Authorization: `Bearer ${token}`,
-            },
+  setStatus: async (id, status) => {
+    const updated = get().records.map((student) =>
+      student.id === id
+        ? {
+            ...student,
+            status,
+            reason: status === "Present" ? "" : student.reason,
           }
-        );
+        : student
+    );
+    set({ records: updated });
 
-        const blob = new Blob([response.data], { type: "application/pdf" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "Quarterly_Attendance_Summary.pdf");
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        set({ error: error.message });
-        console.error("Error downloading PDF:", error);
-      } finally {
-        set({ loading: false });
-      }
-    },
-  }))
-);
+    try {
+      await updateAttendanceStatus(id, status);
+      toast.success("Status updated");
+    } catch {
+      toast.error("Failed to update status");
+    }
+  },
+
+  setReason: async (id, reason) => {
+    const updated = get().records.map((student) =>
+      student.id === id ? { ...student, reason } : student
+    );
+    set({ records: updated });
+
+    try {
+      await updateAttendanceReason(id, reason);
+      toast.success("Reason updated");
+    } catch {
+      toast.error("Failed to update reason");
+    }
+  },
+
+  attendanceSummary: () => {
+    const { records } = get();
+    const total = records.length || 1;
+
+    const summary = {
+      present: records.filter((r) => r.status === "Present").length,
+      absent: records.filter((r) => r.status === "Absent").length,
+      late: records.filter((r) => r.status === "Late").length,
+    };
+
+    return {
+      present: {
+        count: summary.present,
+        percent: ((summary.present / total) * 100).toFixed(0),
+      },
+      absent: {
+        count: summary.absent,
+        percent: ((summary.absent / total) * 100).toFixed(0),
+      },
+      late: {
+        count: summary.late,
+        percent: ((summary.late / total) * 100).toFixed(0),
+      },
+    };
+  },
+
+  downloadAttendancePDF: async () => {
+    set({ loading: true, error: null });
+
+    try {
+      const sectionId = getItem("sectionId", false);
+      const academicYearId = getItem("academicYearId", false);
+      const quarterId = getItem("quarterId", false);
+
+      const blobData = await downloadAttendancePDF(
+        sectionId,
+        quarterId,
+        academicYearId
+      );
+
+      const blob = new Blob([blobData], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "Quarterly_Attendance_Summary.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      set({ error: error.message });
+      console.error("Error downloading PDF:", error);
+      toast.error("Download failed");
+    } finally {
+      set({ loading: false });
+    }
+  },
+}));

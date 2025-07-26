@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { ClipLoader } from "react-spinners";
 
 const SignIn = () => {
-  const { login } = useAuthStore();
+  const { login, user } = useAuthStore();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -24,7 +24,8 @@ const SignIn = () => {
       setLoading(false);
 
       if (res.success) {
-        navigate(`/${res.user.role}/dashboard`);
+        // Navigate and replace history so back button won't return to login
+        navigate(`/${res.user.role}/dashboard`, { replace: true });
       } else {
         setError(res.message || "Invalid credentials");
       }
@@ -33,6 +34,12 @@ const SignIn = () => {
       setError("Something went wrong. Please try again.");
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate(`/${user.role}/dashboard`, { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <div className="w-full max-w-lg p-4 sm:p-6 md:p-8 overflow-y-auto max-h-screen">
