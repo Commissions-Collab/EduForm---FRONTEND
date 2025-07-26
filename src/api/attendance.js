@@ -1,5 +1,3 @@
-// src/api/attendance.js
-
 import axios from "axios";
 import { getItem } from "../utils/storage";
 

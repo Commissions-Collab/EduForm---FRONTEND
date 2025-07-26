@@ -4,7 +4,7 @@ import {
   getAttendanceCertificates,
   getHonorCertificates,
 } from "../api/certificates";
-import { paginate } from "../utils/pagination"; // 👈 import helper
+import { paginate } from "../utils/pagination";
 
 const RECORDS_PER_PAGE = 5;
 
@@ -55,6 +55,6 @@ export const useCertificateStore = create((set, get) => ({
         ? get().attendanceCertificates
         : get().honorCertificates;
 
-    return paginate(certificates, currentPage, RECORDS_PER_PAGE); // ✅ use paginate
+    return paginate(certificates, currentPage, RECORDS_PER_PAGE);
   },
 }));

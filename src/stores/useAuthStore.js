@@ -1,5 +1,6 @@
+// src/stores/authStore.js
 import { create } from "zustand";
-import axios from "axios";
+import { login } from "../api/auth";
 import { getItem, setItem, removeItem } from "../utils/storage";
 
 export const useAuthStore = create((set) => ({
@@ -8,12 +9,7 @@ export const useAuthStore = create((set) => ({
 
   login: async ({ email, password }) => {
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/login", {
-        email,
-        password,
-      });
-
-      const { user, token } = res.data;
+      const { user, token } = await login(email, password);
 
       setItem("user", user);
       setItem("token", token);
@@ -24,7 +20,7 @@ export const useAuthStore = create((set) => ({
     } catch (err) {
       return {
         success: false,
-        message: err.response?.data?.message || "Login failed",
+        message: err?.response?.data?.message || "Login failed",
       };
     }
   },

@@ -1,4 +1,3 @@
-// src/stores/usePromotionStore.js
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { getPromotions } from "../api/promotion";

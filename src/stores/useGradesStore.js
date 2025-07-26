@@ -1,11 +1,10 @@
-// src/stores/useGradesStore.js
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import {
   fetchGrades as apiFetchGrades,
   updateGrade as apiUpdateGrade,
 } from "../api/grades";
-import { paginate } from "../utils/pagination"; // 👈 reusable helper
+import { paginate } from "../utils/pagination";
 
 const RECORDS_PER_PAGE = 5;
 

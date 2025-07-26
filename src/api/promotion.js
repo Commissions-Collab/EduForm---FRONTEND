@@ -1,4 +1,3 @@
-// src/api/promotion.js
 import axios from "axios";
 import { getItem } from "../utils/storage";
 

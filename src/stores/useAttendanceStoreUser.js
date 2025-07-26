@@ -43,7 +43,8 @@ const allAttendanceData = {
     absences: 0,
     absencesNote: "",
   },
-  "June 2023": { // Data matching the image
+  "June 2023": {
+    // Data matching the image
     attendanceRate: 92,
     lateArrivals: 3,
     lateArrivalsNote: "Pattern on Mondays",
@@ -62,7 +63,6 @@ const allAttendanceData = {
 };
 // --- End Dummy Data ---
 
-
 export const useAttendanceStoreUser = create((set, get) => ({
   // State
   monthOptions: Object.keys(allAttendanceData), // Derived from dummy data keys
@@ -71,14 +71,16 @@ export const useAttendanceStoreUser = create((set, get) => ({
   // Derived state (getter function) for current month's data
   getCurrentMonthData: () => {
     const { selectedMonth } = get();
-    return allAttendanceData[selectedMonth] || {
-      attendanceRate: 0,
-      lateArrivals: 0,
-      lateArrivalsNote: "",
-      lateArrivalsDelay: "",
-      absences: 0,
-      absencesNote: "",
-    };
+    return (
+      allAttendanceData[selectedMonth] || {
+        attendanceRate: 0,
+        lateArrivals: 0,
+        lateArrivalsNote: "",
+        lateArrivalsDelay: "",
+        absences: 0,
+        absencesNote: "",
+      }
+    );
   },
 
   // Actions
