@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
-import { getItem } from "../utils/storage";
-import { paginate } from "../utils/pagination";
+import { getItem, paginate } from "../lib/utils";
 
 const RECORDS_PER_PAGE = 5;
 

@@ -1,3 +1,9 @@
+export const paginate = (items, currentPage, recordsPerPage) => {
+  const indexOfLast = currentPage * recordsPerPage;
+  const indexOfFirst = indexOfLast - recordsPerPage;
+  return items.slice(indexOfFirst, indexOfLast);
+};
+
 export const getItem = (key, parse = true) => {
   try {
     const value = localStorage.getItem(key);

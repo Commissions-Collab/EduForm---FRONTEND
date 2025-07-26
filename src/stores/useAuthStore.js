@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
-import { getItem, setItem, removeItem } from "../utils/storage";
+import { getItem, setItem, removeItem } from "../lib/utils";
 
 export const useAuthStore = create((set, get) => ({
   user: getItem("user"),
