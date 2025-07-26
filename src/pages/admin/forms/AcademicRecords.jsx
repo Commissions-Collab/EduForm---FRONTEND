@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { LuCalendar, LuDownload } from "react-icons/lu";
-import { useGradesStore } from "../../../stores/useGradesStore";
 import GradesTable from "../../../components/admin/GradesTable";
+import { useAdminStore } from "../../../stores/useAdminStore";
 
 const Grades = () => {
-  const { fetchGrades } = useGradesStore();
+  const { fetchGrades } = useAdminStore();
 
   useEffect(() => {
     fetchGrades();

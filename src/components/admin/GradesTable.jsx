@@ -2,7 +2,7 @@ import React from "react";
 import { ClipLoader } from "react-spinners";
 import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
-import { useGradesStore } from "../../stores/useGradesStore";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const GradesTable = () => {
   const {
@@ -16,7 +16,7 @@ const GradesTable = () => {
     setSelectedQuarter,
     loading,
     error,
-  } = useGradesStore();
+  } = useAdminStore();
 
   const records = paginatedRecords();
   const pages = totalPages();

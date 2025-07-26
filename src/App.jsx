@@ -7,27 +7,30 @@ import NotFound from "./pages/NotFound";
 import SuperAdminRoutes from "./routes/superAdminRoutes";
 import AdminRoutes from "./routes/adminRoutes";
 import UserRoutes from "./routes/userRoutes";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route element={<AuthLayout />}>
-          <Route index element={<SignIn />} />
-          <Route path="sign-in" element={<SignIn />} />
-          <Route path="sign-up" element={<SignUp />} />
-        </Route>
+    <>
+      <Toaster position="top-center" />
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route element={<AuthLayout />}>
+            <Route index element={<SignIn />} />
+            <Route path="sign-in" element={<SignIn />} />
+            <Route path="sign-up" element={<SignUp />} />
+          </Route>
 
-        {/* Role-based Routes */}
-        {SuperAdminRoutes}
-        {AdminRoutes}
-        {UserRoutes}
+          {/* Role-based Routes */}
+          {SuperAdminRoutes}
+          {AdminRoutes}
+          {UserRoutes}
 
-        {/* Catch-all */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

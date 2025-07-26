@@ -1,9 +1,9 @@
 import React from "react";
-import { useAttendanceStore } from "../../stores/useAttendanceStore";
 import { LuDownload } from "react-icons/lu";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const AttendanceDownloadBtn = () => {
-  const downloadAttendancePDF = useAttendanceStore(
+  const downloadAttendancePDF = useAdminStore(
     (state) => state.downloadAttendancePDF
   );
 
@@ -12,7 +12,7 @@ const AttendanceDownloadBtn = () => {
       sectionId: 3,
       quarterId: 1,
       academicYearId: 3,
-      token: localStorage.getItem("token"), // or however you store your auth token
+      token: localStorage.getItem("token"),
     });
   };
 

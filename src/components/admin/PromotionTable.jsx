@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
 import { ClipLoader } from "react-spinners";
-import { usePromotionStore } from "../../stores/usePromotionStore";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const PromotionTable = () => {
   const {
@@ -13,7 +13,7 @@ const PromotionTable = () => {
     paginatedRecords,
     loading,
     error,
-  } = usePromotionStore();
+  } = useAdminStore();
 
   const records = paginatedRecords();
   const pages = totalPages();

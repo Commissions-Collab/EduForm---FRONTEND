@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useCertificateStore } from "../../stores/useCertificate";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const Certificates = () => {
-  const { fetchCertificateData } = useCertificateStore();
+  const { fetchCertificateData } = useAdminStore();
 
   useEffect(() => {
     fetchCertificateData();

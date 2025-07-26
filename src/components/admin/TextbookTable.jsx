@@ -1,7 +1,7 @@
 import React from "react";
 import { ClipLoader } from "react-spinners";
-import { useTextbookStore } from "../../stores/useTextbookStore";
 import Pagination from "./Pagination";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const TextbookTable = ({ searchTerm }) => {
   const {
@@ -12,7 +12,7 @@ const TextbookTable = ({ searchTerm }) => {
     setCurrentPage,
     loading,
     error,
-  } = useTextbookStore();
+  } = useAdminStore();
 
   const [selectedSubject, setSelectedSubject] = React.useState("");
 

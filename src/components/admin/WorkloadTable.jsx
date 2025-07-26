@@ -1,7 +1,8 @@
 import React from "react";
 import { ClipLoader } from "react-spinners";
-import { useWorkloadStore } from "../../stores/useWorkloadStore";
+
 import Pagination from "./Pagination";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const WorkloadTable = ({ searchTerm }) => {
   const {
@@ -12,7 +13,7 @@ const WorkloadTable = ({ searchTerm }) => {
     setCurrentPage,
     loading,
     error,
-  } = useWorkloadStore();
+  } = useAdminStore();
 
   const filteredRecords = paginatedRecords().filter((record) => {
     return record.section?.toLowerCase().includes(searchTerm.toLowerCase());

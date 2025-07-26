@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
-import { useAttendanceStore } from "../../../stores/useAttendanceStore";
+import { useAdminStore } from "../../../stores/useAdminStore";
 
 const Attendance = () => {
-  const { fetchAttendanceData, attendanceSummary } = useAttendanceStore();
+  const { fetchAttendanceData, attendanceSummary } = useAdminStore();
   const summary = attendanceSummary();
 
   const statusColors = {

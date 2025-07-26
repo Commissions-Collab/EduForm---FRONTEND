@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useCertificateStore } from "../../stores/useCertificate";
 import { LuFilter, LuPrinter } from "react-icons/lu";
 import PaginationControls from "./Pagination";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const PerfectAttendanceTable = () => {
   const {
@@ -11,7 +11,7 @@ const PerfectAttendanceTable = () => {
     totalPages,
     loading,
     error,
-  } = useCertificateStore();
+  } = useAdminStore();
 
   const [searchName, setSearchName] = useState("");
 

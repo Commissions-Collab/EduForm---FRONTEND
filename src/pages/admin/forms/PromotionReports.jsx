@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { usePromotionStore } from "../../../stores/usePromotionStore";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
 import { LuCircleCheckBig } from "react-icons/lu";
+import { useAdminStore } from "../../../stores/useAdminStore";
 
 const PromotionReport = () => {
-  const { fetchPromotionData } = usePromotionStore();
+  const { fetchPromotionData } = useAdminStore();
 
   useEffect(() => {
     fetchPromotionData();

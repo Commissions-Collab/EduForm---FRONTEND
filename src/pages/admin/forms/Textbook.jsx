@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { LuBadgeAlert, LuSearch } from "react-icons/lu";
 import TextbookTable from "../../../components/admin/TextbookTable";
-import { useTextbookStore } from "../../../stores/useTextbookStore";
+
+import { useAdminStore } from "../../../stores/useAdminStore";
 
 const Textbook = () => {
-  const { fetchTextbooks } = useTextbookStore();
+  const { fetchTextbooks } = useAdminStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {

@@ -2,15 +2,14 @@ import React, { useState } from "react";
 import { LuCircleCheck, LuCircleX, LuClock } from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
 import { reasons } from "../../constants";
-import { useAttendanceStore } from "../../stores/useAttendanceStore";
 import PaginationControls from "./Pagination";
 import { getStatusButtonStyle } from "./ButtonStatus";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const RECORDS_PER_PAGE = 5;
 
 const AttendanceTable = () => {
-  const { records, setStatus, setReason, loading, error } =
-    useAttendanceStore();
+  const { records, setStatus, setReason, loading, error } = useAdminStore();
 
   const [currentPage, setCurrentPage] = useState(1);
 

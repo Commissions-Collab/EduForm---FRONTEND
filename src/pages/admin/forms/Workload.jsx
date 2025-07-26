@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { LuBadgeAlert, LuSearch } from "react-icons/lu";
 import WorkloadCards from "../../../components/admin/WorkloadCards";
 import WorkloadTable from "../../../components/admin/WorkloadTable";
-import { useWorkloadStore } from "../../../stores/useWorkloadStore";
+import { useAdminStore } from "../../../stores/useAdminStore";
 
 const Workload = () => {
-  const { fetchWorkloads } = useWorkloadStore();
+  const { fetchWorkloads } = useAdminStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {

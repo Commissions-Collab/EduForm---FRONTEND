@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { useCertificateStore } from "../../stores/useCertificate";
+
 import { LuPrinter } from "react-icons/lu";
 import PaginationControls from "./Pagination";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const HonorsCertificateTable = () => {
   const {
@@ -11,7 +12,7 @@ const HonorsCertificateTable = () => {
     totalPages,
     loading,
     error,
-  } = useCertificateStore();
+  } = useAdminStore();
 
   const [searchName, setSearchName] = useState("");
   const [filterType, setFilterType] = useState("All");
