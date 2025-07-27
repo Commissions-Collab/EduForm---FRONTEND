@@ -18,11 +18,10 @@ const Attendance = () => {
 
   return (
     <main className="p-4">
-      {/* Header */}
       <div className="between">
         <div className="page-title">Daily Attendance (SF2): Grade 10-A</div>
         <div className="flex items-center gap-2">
-          <div className="items-center">Date:</div>
+          <label className="items-center">Date:</label>
           <input
             type="date"
             className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring focus:ring-indigo-200 focus:border-indigo-500"
@@ -30,7 +29,6 @@ const Attendance = () => {
         </div>
       </div>
 
-      {/* Summary */}
       <div className="mt-8 shad-container p-5 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h2 className="text-lg font-medium">Attendance Summary</h2>
@@ -47,7 +45,6 @@ const Attendance = () => {
         </div>
       </div>
 
-      {/* Table */}
       <AttendanceTable />
     </main>
   );

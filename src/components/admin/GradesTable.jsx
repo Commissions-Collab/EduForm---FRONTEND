@@ -3,14 +3,16 @@ import { ClipLoader } from "react-spinners";
 import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
 import { useAdminStore } from "../../stores/useAdminStore";
+import { getItem } from "../../lib/utils";
 
 const GradesTable = () => {
   const {
     students,
+    subjects,
     currentPage,
-    setCurrentPage,
+    setPage,
     totalPages,
-    paginatedRecords,
+    paginatedGradeRecords,
     updateGrade,
     selectedQuarter,
     setSelectedQuarter,
@@ -18,9 +20,11 @@ const GradesTable = () => {
     error,
   } = useAdminStore();
 
-  const records = paginatedRecords();
+  const records = paginatedGradeRecords();
   const pages = totalPages();
   const hasRecords = Array.isArray(records) && records.length > 0;
+
+  const quarterId = getItem("quarterId", false);
 
   return (
     <>
@@ -35,15 +39,15 @@ const GradesTable = () => {
             </p>
           </div>
           <select
-            value={selectedQuarter}
+            value={selectedQuarter || ""}
             onChange={(e) => setSelectedQuarter(e.target.value)}
             className="px-3 py-2 text-sm border border-gray-300 rounded"
           >
-            <option value="All Quarters">All Quarters</option>
-            <option value="1st Quarter">1st Quarter</option>
-            <option value="2nd Quarter">2nd Quarter</option>
-            <option value="3rd Quarter">3rd Quarter</option>
-            <option value="4th Quarter">4th Quarter</option>
+            <option value="">Select Quarter</option>
+            <option value="1">1st Quarter</option>
+            <option value="2">2nd Quarter</option>
+            <option value="3">3rd Quarter</option>
+            <option value="4">4th Quarter</option>
           </select>
         </div>
 
@@ -53,19 +57,14 @@ const GradesTable = () => {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Name
               </th>
-              {["Math", "Science", "English", "Filipino", "History"].map(
-                (subject) => (
-                  <th
-                    key={subject}
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
-                  >
-                    {subject}
-                  </th>
-                )
-              )}
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Average
-              </th>
+              {subjects.map((subject) => (
+                <th
+                  key={subject.id}
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                >
+                  {subject.name}
+                </th>
+              ))}
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Status
               </th>
@@ -75,7 +74,7 @@ const GradesTable = () => {
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={subjects.length + 2}>
                   <div className="flex justify-center items-center h-[60vh]">
                     <ClipLoader color="#3730A3" size={30} />
                   </div>
@@ -83,7 +82,7 @@ const GradesTable = () => {
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={subjects.length + 2}>
                   <div className="flex justify-center items-center h-[60vh] text-red-600 font-medium">
                     Failed to fetch grades. Please try again.
                   </div>
@@ -91,55 +90,52 @@ const GradesTable = () => {
               </tr>
             ) : !hasRecords ? (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={subjects.length + 2}>
                   <div className="flex justify-center items-center h-[60vh] text-gray-600 font-medium">
                     No grade records available.
                   </div>
                 </td>
               </tr>
             ) : (
-              records.map((student) => {
-                const average = (
-                  (student.math +
-                    student.science +
-                    student.english +
-                    student.filipino +
-                    student.history) /
-                  5
-                ).toFixed(2);
+              records.map((student) => (
+                <tr key={student.id}>
+                  <td className="px-4 py-4 text-sm text-gray-900 font-medium">
+                    {student.name}
+                  </td>
+                  {subjects.map((subject) => {
+                    const grade = student.grades.find(
+                      (g) => g.subject_id === subject.id
+                    );
 
-                const status = average >= 75 ? "Pass" : "Fail";
-
-                return (
-                  <tr key={student.id}>
-                    <td className="px-4 py-4 text-sm text-gray-900 font-medium">
-                      {student.name}
-                    </td>
-                    {["math", "science", "english", "filipino", "history"].map(
-                      (subject) => (
-                        <td key={subject} className="px-4 py-4 text-sm">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={student[subject]}
-                            onChange={(e) =>
-                              updateGrade(student.id, subject, e.target.value)
-                            }
-                            className="w-16 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700"
-                          />
-                        </td>
-                      )
-                    )}
-                    <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                      {average}
-                    </td>
-                    <td className="px-4 py-4">
-                      <StatusBadge status={status} />
-                    </td>
-                  </tr>
-                );
-              })
+                    return (
+                      <td key={subject.id} className="px-4 py-4 text-sm">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          disabled={!grade?.can_edit}
+                          value={grade?.grade ?? ""}
+                          onChange={(e) =>
+                            updateGrade({
+                              student_id: student.id,
+                              subject_id: subject.id,
+                              quarter_id: quarterId,
+                              grade:
+                                e.target.value === ""
+                                  ? null
+                                  : Number(e.target.value),
+                            })
+                          }
+                          className="w-16 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700 disabled:bg-gray-100"
+                        />
+                      </td>
+                    );
+                  })}
+                  <td className="px-4 py-4">
+                    <StatusBadge status={student.status} />
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
@@ -149,8 +145,8 @@ const GradesTable = () => {
         <PaginationControls
           currentPage={currentPage}
           totalPages={pages}
-          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-          onNext={() => setCurrentPage(Math.min(currentPage + 1, pages))}
+          onPrevious={() => setPage(Math.max(currentPage - 1, 1))}
+          onNext={() => setPage(Math.min(currentPage + 1, pages))}
         />
       )}
     </>

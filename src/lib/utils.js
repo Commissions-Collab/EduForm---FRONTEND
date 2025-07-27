@@ -8,7 +8,8 @@ export const getItem = (key, parse = true) => {
   try {
     const value = localStorage.getItem(key);
     return parse ? JSON.parse(value) : value;
-  } catch {
+  } catch (err) {
+    console.error(`Failed to get or parse ${key}:`, err);
     return null;
   }
 };

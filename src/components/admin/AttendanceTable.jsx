@@ -10,7 +10,6 @@ const RECORDS_PER_PAGE = 5;
 
 const AttendanceTable = () => {
   const { records, setStatus, setReason, loading, error } = useAdminStore();
-
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(records.length / RECORDS_PER_PAGE);
@@ -70,7 +69,7 @@ const AttendanceTable = () => {
               </tr>
             ) : (
               paginatedRecords.map((student) => (
-                <tr key={student.id}>
+                <tr key={student.student_id}>
                   <td className="px-4 py-4 text-sm text-gray-900">
                     {student.name}
                   </td>
@@ -78,7 +77,7 @@ const AttendanceTable = () => {
                     {["Present", "Absent", "Late"].map((status) => (
                       <button
                         key={status}
-                        onClick={() => setStatus(student.id, status)}
+                        onClick={() => setStatus(student.student_id, status)}
                         className={`p-1 rounded-full ${getStatusButtonStyle(
                           student.status,
                           status
@@ -98,8 +97,10 @@ const AttendanceTable = () => {
                   <td className="px-4 py-4 text-sm text-center">
                     {student.status === "Absent" ? (
                       <select
-                        value={student.reason}
-                        onChange={(e) => setReason(student.id, e.target.value)}
+                        value={student.reason || ""}
+                        onChange={(e) =>
+                          setReason(student.student_id, e.target.value)
+                        }
                         className="w-36 p-1 border border-gray-300 rounded text-sm"
                       >
                         <option value="">Select Reason</option>

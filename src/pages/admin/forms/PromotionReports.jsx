@@ -17,7 +17,7 @@ const PromotionReport = () => {
         <div className="page-title">Promotion Reports (SF5): Grade 10-A</div>
         <div className="items-center">
           <select className="px-3 py-2 text-sm border border-gray-300 rounded">
-            <option value="All Quarters">End of School Year</option>
+            <option value="End of School Year">End of School Year</option>
             <option value="1st Quarter">1st Quarter</option>
             <option value="2nd Quarter">2nd Quarter</option>
             <option value="3rd Quarter">3rd Quarter</option>
@@ -25,6 +25,7 @@ const PromotionReport = () => {
           </select>
         </div>
       </div>
+
       <div className="mt-3">
         <PromotionCards />
       </div>

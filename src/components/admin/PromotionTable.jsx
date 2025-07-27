@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
 import { ClipLoader } from "react-spinners";
@@ -6,18 +6,17 @@ import { useAdminStore } from "../../stores/useAdminStore";
 
 const PromotionTable = () => {
   const {
-    students,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    paginatedRecords,
+    promotionStudents,
+    promotionCurrentPage,
+    setPromotionCurrentPage,
+    totalPromotionPages,
+    paginatedPromotionRecords,
     loading,
     error,
   } = useAdminStore();
 
-  const records = paginatedRecords();
-  const pages = totalPages();
-
+  const records = paginatedPromotionRecords();
+  const pages = totalPromotionPages();
   const hasRecords = Array.isArray(records) && records.length > 0;
 
   const getPromotionStatus = (average) =>
@@ -81,7 +80,7 @@ const PromotionTable = () => {
                 const average = student.finalAverage?.toFixed(2) || "0.00";
                 const attendancePercent = getAttendancePercentage(student);
                 const promotionStatus =
-                  student.status || getPromotionStatus(average);
+                  student.status || getPromotionStatus(Number(average));
 
                 return (
                   <tr key={student.id}>
@@ -110,10 +109,14 @@ const PromotionTable = () => {
 
       {!loading && hasRecords && (
         <PaginationControls
-          currentPage={currentPage}
+          currentPage={promotionCurrentPage}
           totalPages={pages}
-          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-          onNext={() => setCurrentPage(Math.min(currentPage + 1, pages))}
+          onPrevious={() =>
+            setPromotionCurrentPage(Math.max(promotionCurrentPage - 1, 1))
+          }
+          onNext={() =>
+            setPromotionCurrentPage(Math.min(promotionCurrentPage + 1, pages))
+          }
         />
       )}
     </>
