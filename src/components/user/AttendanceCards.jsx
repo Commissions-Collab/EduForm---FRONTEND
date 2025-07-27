@@ -25,14 +25,14 @@ const AttendanceCards = () => {
     return (
         <>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-5"> {/* Lessened mb and pb */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4"> {/* Lessened mb and pb */}
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">
             Attendance Records (SF2/SF4)
             </h2>
             <div className="flex items-center gap-2">
             <span className="text-gray-600">Month: </span>
             <select
-                className="select select-bordered select-sm rounded-md border bg-white"
+                className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
             >
@@ -45,7 +45,7 @@ const AttendanceCards = () => {
             </div>
         </div>
 
-        <div className="sm:p-5 lg:p-6 container mx-auto"> {/* Lessened padding here */}
+        <div className="container mx-auto"> {/* Lessened padding here */}
         {/* Cards Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"> {/* Lessened gap and mt */}
             {/* Attendance Rate Card */}

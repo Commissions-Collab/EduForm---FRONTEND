@@ -17,11 +17,11 @@ const UserRoutes = (
     }
   >
     <Route path="/student/dashboard" element={<UserDashboard />} />
-    <Route path="/grade" element={<Grade />} />
-    <Route path="/userAttendance" element={<UserAttendance />} />
-    <Route path="/health-profile" element={<HealthProfile />} />
-    <Route path="/text-books" element={<TextBooks />} />
-    <Route path="/achievements" element={<Achievements />} />
+    <Route path="/student/grade" element={<Grade />} />
+    <Route path="/student/userAttendance" element={<UserAttendance />} />
+    <Route path="/student/health-profile" element={<HealthProfile />} />
+    <Route path="/student/text-books" element={<TextBooks />} />
+    <Route path="/student/achievements" element={<Achievements />} />
   </Route>
 );
 
