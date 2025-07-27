@@ -1,19 +1,15 @@
-// src/components/UserComponents/AttendanceCards.jsx
 import React from "react";
 import { LuTriangleAlert, LuCircleX } from "react-icons/lu";
-import { useAttendanceStoreUser } from "../../stores/useAttendanceStoreUser";
+import { useStoreUser } from "../../stores/useStoreUser";
 
 const AttendanceCards = () => {
-  // Destructure state and actions from the Zustand store
+    // Destructure state and actions from the Zustand store
     const {
-        monthOptions,
-        selectedMonth,
-        setSelectedMonth,
         getCurrentMonthData, // Use the getter for current month's data
         // loading, // If you implement loading in the store
         // error,   // If you implement error in the store
         // fetchAttendanceData, // If you implement fetching
-    } = useAttendanceStoreUser(); // Ensure this matches your store filename
+    } = useStoreUser(); // Ensure this matches your store filename
 
     const currentMonthData = getCurrentMonthData(); // Get the data for the selected month
 
@@ -23,33 +19,17 @@ const AttendanceCards = () => {
     // }, [fetchAttendanceData, selectedMonth]);
 
     return (
-        <>
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-5"> {/* Lessened mb and pb */}
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">
-            Attendance Records (SF2/SF4)
-            </h2>
-            <div className="flex items-center gap-2">
-            <span className="text-gray-600">Month: </span>
-            <select
-                className="select select-bordered select-sm rounded-md border bg-white"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-                {monthOptions.map((month, index) => (
-                <option key={index} value={month}>
-                    {month}
-                </option>
-                ))}
-            </select>
-            </div>
-        </div>
-
-        <div className="sm:p-5 lg:p-6 container mx-auto"> {/* Lessened padding here */}
+        <div className="container mx-auto">
+        {" "}
+        {/* Lessened padding here */}
         {/* Cards Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"> {/* Lessened gap and mt */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {" "}
+            {/* Lessened gap and mt */}
             {/* Attendance Rate Card */}
-            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200"> {/* Lessened p */}
+            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+            {" "}
+            {/* Lessened p */}
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Attendance Rate
             </h3>
@@ -63,9 +43,10 @@ const AttendanceCards = () => {
                 ></div>
             </div>
             </div>
-
             {/* Late Arrivals Card */}
-            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200"> {/* Lessened p */}
+            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+            {" "}
+            {/* Lessened p */}
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Late Arrivals
             </h3>
@@ -84,9 +65,10 @@ const AttendanceCards = () => {
                 </p>
             )}
             </div>
-
             {/* Absences Card */}
-            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200"> {/* Lessened p */}
+            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+            {" "}
+            {/* Lessened p */}
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Absences
             </h3>
@@ -94,12 +76,20 @@ const AttendanceCards = () => {
                 {currentMonthData.absences}
             </p>
             {currentMonthData.absencesNote && (
-                <p className={`flex items-center text-sm mb-1 ${currentMonthData.absencesNote.includes('Not excused') ? 'text-red-600' : 'text-gray-600'}`}>
-                {currentMonthData.absencesNote.includes('Not excused') && <LuCircleX className="w-4 h-4 mr-1" />}
+                <p
+                className={`flex items-center text-sm mb-1 ${
+                    currentMonthData.absencesNote.includes("Not excused")
+                    ? "text-red-600"
+                    : "text-gray-600"
+                }`}
+                >
+                {currentMonthData.absencesNote.includes("Not excused") && (
+                    <LuCircleX className="w-4 h-4 mr-1" />
+                )}
                 {currentMonthData.absencesNote}
                 </p>
             )}
-            {currentMonthData.absencesNote.includes('Not excused') && (
+            {currentMonthData.absencesNote.includes("Not excused") && (
                 <p className="text-sm text-gray-500">
                 Submit excuse within 3 days
                 </p>
@@ -107,7 +97,6 @@ const AttendanceCards = () => {
             </div>
         </div>
         </div>
-        </>
     );
 };
 
