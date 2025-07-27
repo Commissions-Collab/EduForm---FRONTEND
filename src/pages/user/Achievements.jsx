@@ -1,8 +1,11 @@
 import React from 'react'
+import AchievementsCertificates from '../../components/user/AchievementsCertificates'
 
 const Achievements = () => {
     return (
-        <div>Achievements</div>
+        <div>
+        <AchievementsCertificates />
+        </div>
     )
 }
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { LuGauge, LuAward, LuArrowUp, LuArrowDown } from "react-icons/lu";
-import { useGradesStoreUser } from "../../stores/useGradesStoreUser";
+import { useStoreUser } from "../../stores/useStoreUser";
 
 const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
     const {
@@ -12,7 +12,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
         setSelectedQuarter,
         loading,
         error,
-    } = useGradesStoreUser();
+    } = useStoreUser();
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -88,7 +88,7 @@ const StudentGradesTable = ({ pageTitle = "Quarterly Grades (SF9)" }) => {
                                             <span className="text-blue-800 font-semibold text-sm sm:text-base block">
                                                 Quarterly Average
                                             </span>
-                                            <span className="text-3xl sm:text-4xl font-bold text-blue-900">
+                                            <span className="text-2xl sm:text-3xl font-bold text-blue-900">
                                                 {quarterlyAverage}%
                                             </span>
                                         </div>

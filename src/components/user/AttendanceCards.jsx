@@ -1,7 +1,7 @@
 // src/components/UserComponents/AttendanceCards.jsx
 import React from "react";
 import { LuTriangleAlert, LuCircleX } from "react-icons/lu";
-import { useAttendanceStoreUser } from "../../stores/useAttendanceStoreUser";
+import { useStoreUser } from "../../stores/useStoreUser";
 
 const AttendanceCards = () => {
   // Destructure state and actions from the Zustand store
@@ -13,7 +13,7 @@ const AttendanceCards = () => {
         // loading, // If you implement loading in the store
         // error,   // If you implement error in the store
         // fetchAttendanceData, // If you implement fetching
-    } = useAttendanceStoreUser(); // Ensure this matches your store filename
+    } = useStoreUser(); // Ensure this matches your store filename
 
     const currentMonthData = getCurrentMonthData(); // Get the data for the selected month
 
@@ -26,7 +26,7 @@ const AttendanceCards = () => {
         <>
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4"> {/* Lessened mb and pb */}
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">
+            <h2 className="text-md sm:text-lg lg:text-1xl font-bold text-gray-800 mb-4 sm:mb-0">
             Attendance Records (SF2/SF4)
             </h2>
             <div className="flex items-center gap-2">
