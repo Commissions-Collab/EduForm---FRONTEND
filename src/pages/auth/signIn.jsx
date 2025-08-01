@@ -1,37 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../stores/useAuthStore";
+// src/pages/SignIn.jsx
+import React, { useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { ClipLoader } from "react-spinners";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 const SignIn = () => {
-  const { login, user } = useAuthStore();
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
+  const user = useAuthStore((state) => state.user);
+  const isLoggingIn = useAuthStore((state) => state.isLoggingIn);
 
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const onSubmit = async (formData) => {
+    const result = await login(formData);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const res = await login(form);
-      setLoading(false);
-
-      if (res.success) {
-        // Navigate and replace history so back button won't return to login
-        navigate(`/${res.user.role}/dashboard`, { replace: true });
-      } else {
-        setError(res.message || "Invalid credentials");
-      }
-    } catch (err) {
-      setLoading(false);
-      setError("Something went wrong. Please try again.");
+    if (result.success && result.user) {
+      navigate(`/${result.user.role}/dashboard`, { replace: true });
+    } else {
+      setError("api", {
+        type: "manual",
+        message: result.message || "Login failed. Please try again.",
+      });
     }
   };
 
@@ -44,7 +45,7 @@ const SignIn = () => {
   return (
     <div className="w-full max-w-lg p-4 sm:p-6 md:p-8 overflow-y-auto max-h-screen">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         className="w-full bg-white p-6 sm:p-8 md:p-10 rounded-xl shadow-lg space-y-6"
       >
         <h1 className="text-4xl font-extrabold text-[#3730A3] text-center mb-2">
@@ -58,28 +59,51 @@ const SignIn = () => {
         </h2>
 
         <div className="space-y-4">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email address"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-3 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700 placeholder-gray-400"
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-3 focus:ring-[#3730A3] focus:border-transparent transition-all duration-200 text-gray-700 placeholder-gray-400"
-            required
-          />
+          <div>
+            <input
+              type="email"
+              placeholder="Email address"
+              className="form-input"
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^\S+@\S+\.\S+$/,
+                  message: "Enter a valid email address",
+                },
+              })}
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              className="form-input"
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+              })}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
         </div>
 
-        {error && (
-          <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+        {errors.api && (
+          <p className="text-red-500 text-sm text-center mt-2">
+            {errors.api.message}
+          </p>
         )}
 
         <div className="flex justify-end pt-2">
@@ -90,13 +114,18 @@ const SignIn = () => {
             Forgot password?
           </Link>
         </div>
-
         <button
           type="submit"
-          disabled={loading}
-          className="w-full bg-[#3730A3] hover:bg-[#2C268C] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 flex justify-center items-center gap-2"
+          disabled={isLoggingIn}
+          className={`w-full flex justify-center items-center gap-2 font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5
+    ${
+      isLoggingIn
+        ? "bg-gray-400 text-white cursor-not-allowed"
+        : "bg-[#3730A3] hover:bg-[#2C268C] text-white"
+    }
+  `}
         >
-          {loading ? (
+          {isLoggingIn ? (
             <>
               <span>Logging in...</span>
               <ClipLoader size={18} color="#ffffff" />
@@ -110,7 +139,7 @@ const SignIn = () => {
           <span className="text-gray-600 text-sm">Don't have an account?</span>
           <Link
             to="/sign-up"
-            className="ml-1 text-[#3730A3] hover:text-[#2C268C] hover:underline text-sm font-medium transition-colors duration-200"
+            className="ml-1 text-[#3730A3] hover:text-[#2C268C] hover:underline text-sm font-medium"
           >
             Sign Up
           </Link>

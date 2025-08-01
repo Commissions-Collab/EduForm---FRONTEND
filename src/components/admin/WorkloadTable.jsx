@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 
 import Pagination from "./Pagination";
@@ -6,18 +6,19 @@ import { useAdminStore } from "../../stores/useAdminStore";
 
 const WorkloadTable = ({ searchTerm }) => {
   const {
+    fetchWorkloads,
     workloads,
-    paginatedRecords,
-    totalPages,
-    currentPage,
-    setCurrentPage,
     loading,
     error,
+    paginatedWorkloadRecords,
+    workloadCurrentPage,
+    setWorkloadCurrentPage,
+    totalWorkloadPages,
   } = useAdminStore();
 
-  const filteredRecords = paginatedRecords().filter((record) => {
-    return record.section?.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  const filteredRecords = paginatedWorkloadRecords().filter((record) =>
+    record.section?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
@@ -52,7 +53,7 @@ const WorkloadTable = ({ searchTerm }) => {
             ) : error ? (
               <tr>
                 <td colSpan={5} className="text-center py-20 text-red-600">
-                  Failed to load workload records.
+                  {error}
                 </td>
               </tr>
             ) : filteredRecords.length === 0 ? (
@@ -71,21 +72,21 @@ const WorkloadTable = ({ searchTerm }) => {
                     {record.students}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
-                    {record.subject}
+                    {record.subjects_display}
                   </td>
                   <td className="px-4 py-4">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        record.advisory
+                        record.advisory_role === "Yes"
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {record.advisory ? "Yes" : "No"}
+                      {record.advisory_role}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
-                    {record.hoursPerWeek}
+                    {record.hours_per_week}
                   </td>
                 </tr>
               ))
@@ -96,10 +97,16 @@ const WorkloadTable = ({ searchTerm }) => {
 
       {!loading && filteredRecords.length > 0 && (
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages()}
-          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-          onNext={() => setCurrentPage(Math.min(currentPage + 1, totalPages()))}
+          currentPage={workloadCurrentPage}
+          totalPages={totalWorkloadPages()}
+          onPrevious={() =>
+            setWorkloadCurrentPage(Math.max(workloadCurrentPage - 1, 1))
+          }
+          onNext={() =>
+            setWorkloadCurrentPage(
+              Math.min(workloadCurrentPage + 1, totalWorkloadPages())
+            )
+          }
         />
       )}
     </>

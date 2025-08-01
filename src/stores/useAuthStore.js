@@ -4,16 +4,19 @@ import { axiosInstance } from "../lib/axios";
 import { getItem, setItem, removeItem } from "../lib/utils";
 
 export const useAuthStore = create((set, get) => ({
-  user: getItem("user"),
-  token: getItem("token", false),
+  user: getItem("user") || null,
+  token: getItem("token", false) || null,
+
   isLoggingIn: false,
+  isRegistering: false,
   isCheckingAuth: true,
 
   login: async ({ email, password }) => {
     set({ isLoggingIn: true });
+
     try {
-      const response = await axiosInstance.post("/login", { email, password });
-      const { user, token } = response.data;
+      const { data } = await axiosInstance.post("/login", { email, password });
+      const { user, token } = data;
 
       setItem("user", user);
       setItem("token", token);
@@ -30,6 +33,22 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  register: async (formData) => {
+    set({ isRegistering: true });
+
+    try {
+      await axiosInstance.post("/register", formData);
+      toast.success("Registration successful! You may now log in.");
+      return { success: true };
+    } catch (error) {
+      const message = error?.response?.data?.message || "Registration failed";
+      toast.error(message);
+      return { success: false, message };
+    } finally {
+      set({ isRegistering: false });
+    }
+  },
+
   logout: async () => {
     try {
       await axiosInstance.post("/logout");
@@ -37,7 +56,6 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const status = error?.response?.status;
       const message = error?.response?.data?.message || "Logout failed";
-
       if (status !== 401) {
         toast.error(message);
       }
@@ -50,18 +68,17 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     const token = getItem("token", false);
+
     if (!token) {
       set({ user: null, isCheckingAuth: false });
       return;
     }
 
     try {
-      const response = await axiosInstance.get("/auth/check");
-      const user = response.data;
-
+      const { data: user } = await axiosInstance.get("/auth/check");
       setItem("user", user);
       set({ user });
-    } catch (error) {
+    } catch {
       removeItem("user");
       removeItem("token");
       set({ user: null, token: null });
@@ -70,7 +87,5 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  getUserRole: () => {
-    return get().user?.role || null;
-  },
+  getUserRole: () => get().user?.role || null,
 }));

@@ -5,7 +5,6 @@ import { getItem, paginate } from "../lib/utils";
 const RECORDS_PER_PAGE = 5;
 
 export const useAdminStore = create((set, get) => ({
-  // === Global ===
   loading: false,
   error: null,
 
@@ -14,14 +13,20 @@ export const useAdminStore = create((set, get) => ({
 
   fetchAttendanceData: async () => {
     set({ loading: true, error: null });
+    const scheduleId = getItem("scheduleId", false);
+
+    if (!scheduleId) {
+      set({
+        error: "Schedule not selected",
+        loading: false,
+      });
+      return;
+    }
 
     try {
-      const scheduleId = getItem("scheduleId", false);
-
       const { data } = await axiosInstance.get(
         `/teacher/schedule/${scheduleId}/students`
       );
-
       set({ records: data });
     } catch {
       set({ error: "Failed to fetch attendance" });
@@ -96,10 +101,14 @@ export const useAdminStore = create((set, get) => ({
 
   downloadAttendancePDF: async () => {
     set({ loading: true, error: null });
+    const sectionId = getItem("sectionId", false);
+
+    if (!sectionId) {
+      set({ error: "Section not selected" });
+      return;
+    }
 
     try {
-      const sectionId = getItem("sectionId", false);
-
       const response = await axiosInstance.get(
         `/teacher/sections/${sectionId}/attendance/quarterly/pdf`,
         {
@@ -153,13 +162,20 @@ export const useAdminStore = create((set, get) => ({
 
   fetchGrades: async () => {
     set({ loading: true });
-    try {
-      const params = {
-        academic_year_id: getItem("academicYearId", false),
-        quarter_id: getItem("quarterId", false),
-        section_id: getItem("sectionId", false),
-      };
 
+    const params = {
+      academic_year_id: 3,
+      quarter_id: 1,
+      section_id: 5,
+    };
+
+    if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
+      set({ error: "Missing required filter data" });
+      set({ loading: false });
+      return;
+    }
+
+    try {
       const { data } = await axiosInstance.get(
         "/teacher/academic-records/students-grade",
         { params }
@@ -207,18 +223,23 @@ export const useAdminStore = create((set, get) => ({
   fetchStatistics: async () => {
     set({ loading: true });
 
-    try {
-      const params = {
-        academic_year_id: getItem("academicYearId", false),
-        quarter_id: getItem("quarterId", false),
-        section_id: getItem("sectionId", false),
-      };
+    const params = {
+      academic_year_id: getItem("academicYearId", false),
+      quarter_id: getItem("quarterId", false),
+      section_id: getItem("sectionId", false),
+    };
 
+    if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
+      set({ error: "Missing required filter data" });
+      set({ loading: false });
+      return null;
+    }
+
+    try {
       const { data } = await axiosInstance.get(
         "/teacher/academic-records/statistics",
         { params }
       );
-
       return data;
     } catch (error) {
       console.error("Failed to fetch statistics:", error);
@@ -247,11 +268,17 @@ export const useAdminStore = create((set, get) => ({
   fetchPromotionData: async () => {
     set({ loading: true, error: null });
 
-    try {
-      const academicYearId = getItem("academicYearId", false);
-      const quarterId = getItem("quarterId", false);
-      const sectionId = getItem("sectionId", false);
+    const academicYearId = getItem("academicYearId", false);
+    const quarterId = getItem("quarterId", false);
+    const sectionId = getItem("sectionId", false);
 
+    if (!academicYearId || !quarterId || !sectionId) {
+      set({ error: "Missing required filter data" });
+      set({ loading: false });
+      return;
+    }
+
+    try {
       const { data } = await axiosInstance.get(
         "/teacher/promotion-reports/statistics",
         {
@@ -293,26 +320,26 @@ export const useAdminStore = create((set, get) => ({
   fetchCertificateData: async () => {
     set({ loading: true, error: null });
 
-    try {
-      const sectionId = getItem("sectionId", false);
-      const academicYearId = getItem("academicYearId", false);
-      const quarterId = getItem("quarterId", false);
-      const token = getItem("token", false);
+    const sectionId = getItem("sectionId", false);
+    const academicYearId = getItem("academicYearId", false);
+    const quarterId = getItem("quarterId", false);
 
+    if (!sectionId || !academicYearId || !quarterId) {
+      set({ error: "Missing certificate filter data" });
+      set({ loading: false });
+      return;
+    }
+
+    try {
       const [attendanceRes, honorRes] = await Promise.all([
         axiosInstance.get(
           `/teacher/sections/${sectionId}/certificates/attendance`,
           {
-            params: {
-              academic_year_id: academicYearId,
-              quarter_id: quarterId,
-            },
-            headers: { Authorization: `Bearer ${token}` },
+            params: { academic_year_id: academicYearId, quarter_id: quarterId },
           }
         ),
         axiosInstance.get(`/teacher/sections/${sectionId}/certificates/honor`, {
           params: { academic_year_id: academicYearId },
-          headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
@@ -353,23 +380,22 @@ export const useAdminStore = create((set, get) => ({
   fetchTextbooks: async () => {
     set({ loading: true, error: null });
 
-    try {
-      const sectionId = getItem("sectionId", false);
-      const academicYearId = getItem("academicYearId", false);
-      const token = getItem("token", false);
+    const sectionId = getItem("sectionId", false);
+    const academicYearId = getItem("academicYearId", false);
 
+    if (!sectionId || !academicYearId) {
+      set({ error: "Missing textbook filter data" });
+      set({ loading: false });
+      return;
+    }
+
+    try {
       const response = await axiosInstance.get(
         `/teacher/sections/${sectionId}/textbooks`,
-        {
-          params: { academic_year_id: academicYearId },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { params: { academic_year_id: academicYearId } }
       );
 
-      const data = response.data || [];
-      set({ textbooks: data });
+      set({ textbooks: response.data || [] });
     } catch (err) {
       console.error("Textbook fetch failed:", err);
       set({ error: "Failed to fetch textbooks" });
@@ -390,22 +416,39 @@ export const useAdminStore = create((set, get) => ({
 
   // === Workloads ===
   workloads: [],
+  workloadSummary: null,
+  quarterComparison: [],
+  availableQuarters: [],
+  currentQuarter: null,
+  currentAcademicYear: null,
   workloadCurrentPage: 1,
 
   fetchWorkloads: async () => {
     set({ loading: true, error: null });
 
     try {
-      const token = getItem("token", false);
-      const response = await axiosInstance.get("/teacher/workloads", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axiosInstance.get("/teacher/workload");
 
-      const data = response.data?.workloads || [];
-      set({ workloads: data });
+      const {
+        data,
+        current_quarter,
+        current_academic_year,
+        available_quarters,
+      } = res.data;
+
+      set({
+        workloads: data?.teaching_load_details || [],
+        workloadSummary: data?.summary || null,
+        quarterComparison: data?.quarter_comparison || [],
+        currentQuarter: current_quarter || null,
+        currentAcademicYear: current_academic_year || null,
+        availableQuarters: available_quarters || [],
+      });
     } catch (err) {
       console.error("Workload fetch failed:", err);
-      set({ error: "Failed to fetch workloads" });
+      const message =
+        err.response?.data?.message || "Failed to fetch workload data";
+      set({ error: message });
     } finally {
       set({ loading: false });
     }
@@ -413,8 +456,10 @@ export const useAdminStore = create((set, get) => ({
 
   setWorkloadCurrentPage: (page) => set({ workloadCurrentPage: page }),
 
-  totalWorkloadPages: () =>
-    Math.ceil(get().workloads.length / RECORDS_PER_PAGE),
+  totalWorkloadPages: () => {
+    const { workloads } = get();
+    return Math.ceil(workloads.length / RECORDS_PER_PAGE);
+  },
 
   paginatedWorkloadRecords: () => {
     const { workloads, workloadCurrentPage } = get();
