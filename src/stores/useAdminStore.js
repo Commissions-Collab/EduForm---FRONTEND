@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { getItem, paginate } from "../lib/utils";
 
-const RECORDS_PER_PAGE = 5;
+const RECORDS_PER_PAGE = 10;
 
 export const useAdminStore = create((set, get) => ({
   loading: false,
@@ -16,10 +16,7 @@ export const useAdminStore = create((set, get) => ({
     const scheduleId = getItem("scheduleId", false);
 
     if (!scheduleId) {
-      set({
-        error: "Schedule not selected",
-        loading: false,
-      });
+      set({ error: "Schedule not selected", loading: false });
       return;
     }
 
@@ -27,8 +24,9 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/teacher/schedule/${scheduleId}/students`
       );
-      set({ records: data });
-    } catch {
+      set({ records: Array.isArray(data) ? data : [] });
+    } catch (err) {
+      console.error("Failed to fetch attendance:", err);
       set({ error: "Failed to fetch attendance" });
     } finally {
       set({ loading: false });
@@ -48,11 +46,12 @@ export const useAdminStore = create((set, get) => ({
     set({ records: updated });
 
     try {
-      await axiosInstance.post(`/teacher/attendance/update-individual`, {
+      await axiosInstance.post("/teacher/attendance/update-individual", {
         student_id,
         status,
       });
-    } catch {
+    } catch (err) {
+      console.error("Failed to update status:", err);
       set({ error: "Failed to update status" });
     }
   },
@@ -64,11 +63,12 @@ export const useAdminStore = create((set, get) => ({
     set({ records: updated });
 
     try {
-      await axiosInstance.post(`/teacher/attendance/update-individual`, {
+      await axiosInstance.post("/teacher/attendance/update-individual", {
         student_id,
         reason,
       });
-    } catch {
+    } catch (err) {
+      console.error("Failed to update reason:", err);
       set({ error: "Failed to update reason" });
     }
   },
@@ -77,24 +77,20 @@ export const useAdminStore = create((set, get) => ({
     const { records } = get();
     const total = records.length || 1;
 
-    const summary = {
-      present: records.filter((r) => r.status === "Present").length,
-      absent: records.filter((r) => r.status === "Absent").length,
-      late: records.filter((r) => r.status === "Late").length,
-    };
+    const count = (status) => records.filter((r) => r.status === status).length;
 
     return {
       present: {
-        count: summary.present,
-        percent: ((summary.present / total) * 100).toFixed(0),
+        count: count("Present"),
+        percent: ((count("Present") / total) * 100).toFixed(0),
       },
       absent: {
-        count: summary.absent,
-        percent: ((summary.absent / total) * 100).toFixed(0),
+        count: count("Absent"),
+        percent: ((count("Absent") / total) * 100).toFixed(0),
       },
       late: {
-        count: summary.late,
-        percent: ((summary.late / total) * 100).toFixed(0),
+        count: count("Late"),
+        percent: ((count("Late") / total) * 100).toFixed(0),
       },
     };
   },
@@ -104,7 +100,7 @@ export const useAdminStore = create((set, get) => ({
     const sectionId = getItem("sectionId", false);
 
     if (!sectionId) {
-      set({ error: "Section not selected" });
+      set({ error: "Section not selected", loading: false });
       return;
     }
 
@@ -118,16 +114,17 @@ export const useAdminStore = create((set, get) => ({
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const url = window.URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "Quarterly_Attendance_Summary.pdf");
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      set({ error: error.message });
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download PDF:", err);
+      set({ error: err.message || "PDF download failed" });
     } finally {
       set({ loading: false });
     }
@@ -146,14 +143,14 @@ export const useAdminStore = create((set, get) => ({
   },
 
   fetchFilterOptions: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
         "/teacher/academic-records/filter-options"
       );
       set({ filters: data });
-    } catch (error) {
-      console.error("Failed to fetch filter options", error);
+    } catch (err) {
+      console.error("Failed to fetch filter options:", err);
       set({ error: "Unable to load filter options" });
     } finally {
       set({ loading: false });
@@ -161,7 +158,7 @@ export const useAdminStore = create((set, get) => ({
   },
 
   fetchGrades: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
 
     const params = {
       academic_year_id: 3,
@@ -170,8 +167,7 @@ export const useAdminStore = create((set, get) => ({
     };
 
     if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
-      set({ error: "Missing required filter data" });
-      set({ loading: false });
+      set({ error: "Missing required filter data", loading: false });
       return;
     }
 
@@ -180,13 +176,12 @@ export const useAdminStore = create((set, get) => ({
         "/teacher/academic-records/students-grade",
         { params }
       );
-
       set({
-        students: data.students,
-        subjects: data.subjects,
+        students: Array.isArray(data.students) ? data.students : [],
+        subjects: Array.isArray(data.subjects) ? data.subjects : [],
       });
-    } catch (error) {
-      console.error("Grades fetch failed:", error);
+    } catch (err) {
+      console.error("Grades fetch failed:", err);
       set({ error: "Failed to fetch grades" });
     } finally {
       set({ loading: false });
@@ -214,14 +209,14 @@ export const useAdminStore = create((set, get) => ({
       });
 
       set({ students: updatedStudents });
-    } catch (error) {
-      console.error("Failed to update grade:", error);
+    } catch (err) {
+      console.error("Failed to update grade:", err);
       set({ error: "Grade update failed" });
     }
   },
 
   fetchStatistics: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
 
     const params = {
       academic_year_id: getItem("academicYearId", false),
@@ -230,8 +225,7 @@ export const useAdminStore = create((set, get) => ({
     };
 
     if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
-      set({ error: "Missing required filter data" });
-      set({ loading: false });
+      set({ error: "Missing required filter data", loading: false });
       return null;
     }
 
@@ -241,8 +235,8 @@ export const useAdminStore = create((set, get) => ({
         { params }
       );
       return data;
-    } catch (error) {
-      console.error("Failed to fetch statistics:", error);
+    } catch (err) {
+      console.error("Failed to fetch statistics:", err);
       set({ error: "Unable to fetch grade statistics" });
       return null;
     } finally {
@@ -261,20 +255,21 @@ export const useAdminStore = create((set, get) => ({
 
   setPage: (page) => set({ currentPage: page }),
 
-  // === Promotion Reports ===
+  // Promotion
   promotionStudents: [],
   promotionCurrentPage: 1,
+  overallPromotionStats: null,
+  isPromotionAccessible: false,
+  promotionMessage: null,
 
   fetchPromotionData: async () => {
     set({ loading: true, error: null });
 
     const academicYearId = getItem("academicYearId", false);
-    const quarterId = getItem("quarterId", false);
     const sectionId = getItem("sectionId", false);
 
-    if (!academicYearId || !quarterId || !sectionId) {
-      set({ error: "Missing required filter data" });
-      set({ loading: false });
+    if (!academicYearId || !sectionId) {
+      set({ error: "Missing required filters", loading: false });
       return;
     }
 
@@ -282,21 +277,27 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         "/teacher/promotion-reports/statistics",
         {
-          params: {
-            academic_year_id: academicYearId,
-            quarter_id: quarterId,
-            section_id: sectionId,
-          },
+          params: { academic_year_id: academicYearId, section_id: sectionId },
         }
       );
 
-      const students = data?.students ?? [];
-      if (!Array.isArray(students)) throw new Error("Invalid students format");
-
-      set({ promotionStudents: students });
+      set({
+        promotionStudents: Array.isArray(data?.students) ? data.students : [],
+        overallPromotionStats: data.overall_statistics || null,
+        isPromotionAccessible: data.accessible ?? false,
+        promotionMessage: null,
+      });
     } catch (err) {
-      console.error("Promotion fetch failed:", err);
-      set({ error: "Failed to fetch promotions" });
+      const message =
+        err?.response?.data?.message || "Failed to fetch promotion data";
+      set({
+        error: message,
+        promotionMessage: {
+          title: "Promotion Report Unavailable",
+          content: message,
+        },
+        isPromotionAccessible: false,
+      });
     } finally {
       set({ loading: false });
     }
@@ -315,9 +316,9 @@ export const useAdminStore = create((set, get) => ({
   // === Certificates ===
   attendanceCertificates: [],
   honorCertificates: [],
-  currentPage: 1,
+  certificateCurrentPage: 1,
 
-  fetchCertificateData: async () => {
+  fetchAdminCertificateData: async () => {
     set({ loading: true, error: null });
 
     const sectionId = getItem("sectionId", false);
@@ -325,38 +326,34 @@ export const useAdminStore = create((set, get) => ({
     const quarterId = getItem("quarterId", false);
 
     if (!sectionId || !academicYearId || !quarterId) {
-      set({ error: "Missing certificate filter data" });
-      set({ loading: false });
+      set({ error: "Missing certificate filter data", loading: false });
       return;
     }
 
     try {
-      const [attendanceRes, honorRes] = await Promise.all([
-        axiosInstance.get(
-          `/teacher/sections/${sectionId}/certificates/attendance`,
-          {
-            params: { academic_year_id: academicYearId, quarter_id: quarterId },
-          }
-        ),
-        axiosInstance.get(`/teacher/sections/${sectionId}/certificates/honor`, {
-          params: { academic_year_id: academicYearId },
-        }),
-      ]);
+      const response = await axiosInstance.get("/teacher/certificate", {
+        params: {
+          academic_year_id: academicYearId,
+          section_id: sectionId,
+          quarter_id: quarterId,
+        },
+      });
 
       set({
-        attendanceCertificates: attendanceRes.data,
-        honorCertificates: honorRes.data,
+        attendanceCertificates: response.data.perfect_attendance || [],
+        honorCertificates: response.data.honor_roll || [],
       });
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch admin certificates:", err);
       set({ error: "Failed to fetch certificates" });
     } finally {
       set({ loading: false });
     }
   },
 
-  setCurrentPage: (page) => set({ currentPage: page }),
+  setCertificateCurrentPage: (page) => set({ certificateCurrentPage: page }),
 
-  totalPages: (type) => {
+  totalCertificatePages: (type) => {
     const certificates =
       type === "attendance"
         ? get().attendanceCertificates
@@ -364,13 +361,13 @@ export const useAdminStore = create((set, get) => ({
     return Math.ceil(certificates.length / RECORDS_PER_PAGE);
   },
 
-  paginatedRecords: (type) => {
-    const { currentPage } = get();
+  paginatedCertificateRecords: (type) => {
+    const { certificateCurrentPage } = get();
     const certificates =
       type === "attendance"
         ? get().attendanceCertificates
         : get().honorCertificates;
-    return paginate(certificates, currentPage, RECORDS_PER_PAGE);
+    return paginate(certificates, certificateCurrentPage, RECORDS_PER_PAGE);
   },
 
   // === Textbooks ===
@@ -380,22 +377,10 @@ export const useAdminStore = create((set, get) => ({
   fetchTextbooks: async () => {
     set({ loading: true, error: null });
 
-    const sectionId = getItem("sectionId", false);
-    const academicYearId = getItem("academicYearId", false);
-
-    if (!sectionId || !academicYearId) {
-      set({ error: "Missing textbook filter data" });
-      set({ loading: false });
-      return;
-    }
-
     try {
-      const response = await axiosInstance.get(
-        `/teacher/sections/${sectionId}/textbooks`,
-        { params: { academic_year_id: academicYearId } }
-      );
-
-      set({ textbooks: response.data || [] });
+      const response = await axiosInstance.get("/teacher/book-management");
+      const textbooks = response.data?.books?.data || [];
+      set({ textbooks });
     } catch (err) {
       console.error("Textbook fetch failed:", err);
       set({ error: "Failed to fetch textbooks" });
@@ -427,28 +412,31 @@ export const useAdminStore = create((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const res = await axiosInstance.get("/teacher/workload");
+      const { data } = await axiosInstance.get("/teacher/workload");
 
-      const {
-        data,
-        current_quarter,
-        current_academic_year,
-        available_quarters,
-      } = res.data;
+      const teachingLoadDetails = Array.isArray(
+        data?.data?.teaching_load_details
+      )
+        ? data.data.teaching_load_details
+        : [];
 
       set({
-        workloads: data?.teaching_load_details || [],
-        workloadSummary: data?.summary || null,
-        quarterComparison: data?.quarter_comparison || [],
-        currentQuarter: current_quarter || null,
-        currentAcademicYear: current_academic_year || null,
-        availableQuarters: available_quarters || [],
+        workloads: teachingLoadDetails,
+        workloadSummary: data?.data?.summary || null,
+        quarterComparison: Array.isArray(data?.data?.quarter_comparison)
+          ? data.data.quarter_comparison
+          : [],
+        currentQuarter: data?.current_quarter || null,
+        currentAcademicYear: data?.current_academic_year || null,
+        availableQuarters: Array.isArray(data?.available_quarters)
+          ? data.available_quarters
+          : [],
       });
-    } catch (err) {
-      console.error("Workload fetch failed:", err);
-      const message =
-        err.response?.data?.message || "Failed to fetch workload data";
-      set({ error: message });
+    } catch (error) {
+      console.error("Workload fetch failed:", error);
+      const errorMessage =
+        error?.response?.data?.message || "Failed to fetch workload data";
+      set({ error: errorMessage });
     } finally {
       set({ loading: false });
     }
@@ -456,10 +444,8 @@ export const useAdminStore = create((set, get) => ({
 
   setWorkloadCurrentPage: (page) => set({ workloadCurrentPage: page }),
 
-  totalWorkloadPages: () => {
-    const { workloads } = get();
-    return Math.ceil(workloads.length / RECORDS_PER_PAGE);
-  },
+  totalWorkloadPages: () =>
+    Math.ceil(get().workloads.length / RECORDS_PER_PAGE),
 
   paginatedWorkloadRecords: () => {
     const { workloads, workloadCurrentPage } = get();

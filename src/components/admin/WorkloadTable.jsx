@@ -17,12 +17,12 @@ const WorkloadTable = ({ searchTerm }) => {
   } = useAdminStore();
 
   const filteredRecords = paginatedWorkloadRecords().filter((record) =>
-    record.section?.toLowerCase().includes(searchTerm.toLowerCase())
+    record.section?.toLowerCase()?.includes(searchTerm.toLowerCase())
   );
 
   return (
     <>
-      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[200px]">
+      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[400px]">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

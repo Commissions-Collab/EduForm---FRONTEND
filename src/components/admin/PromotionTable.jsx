@@ -2,6 +2,7 @@ import React from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
 import { ClipLoader } from "react-spinners";
+import { LuBadgeAlert } from "react-icons/lu";
 import { useAdminStore } from "../../stores/useAdminStore";
 
 const PromotionTable = () => {
@@ -19,94 +20,103 @@ const PromotionTable = () => {
   const pages = totalPromotionPages();
   const hasRecords = Array.isArray(records) && records.length > 0;
 
-  const getPromotionStatus = (average) =>
-    average >= 75 ? "Promoted" : "Retained";
+  // === Alert Block ===
+  const renderAlert = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <ClipLoader color="#3730A3" size={30} />
+        </div>
+      );
+    }
 
-  const getAttendancePercentage = (student) => {
-    return student.attendanceRate || "0%";
+    if (error) {
+      return (
+        <div className="flex justify-center items-center h-64 text-red-600 font-medium">
+          Failed to fetch promotion data. Please try again.
+        </div>
+      );
+    }
+
+    if (!hasRecords) {
+      return (
+        <div className="mt-10 rounded-md border border-yellow-400 bg-yellow-50 px-6 py-4 flex items-start gap-3 shadow-sm">
+          <LuBadgeAlert className="w-6 h-6 text-yellow-500 mt-1" />
+          <div>
+            <h2 className="text-lg font-semibold text-yellow-800">
+              Promotion Report Not Available
+            </h2>
+            <p className="text-sm text-yellow-700 mt-1">
+              Promotion data may not be accessible because:
+            </p>
+            <ul className="list-disc pl-5 mt-1 text-sm text-yellow-700">
+              <li>
+                Some students have incomplete grades or attendance records.
+              </li>
+              <li>The grading or attendance period has not yet ended.</li>
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
     <>
-      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[200px]">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Student Name
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Grade Average
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Attendance %
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Promotion Status
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Actions
-              </th>
-            </tr>
-          </thead>
+      {/* Render alert messages (outside the table) */}
+      {renderAlert()}
 
-          <tbody className="divide-y divide-gray-200">
-            {loading ? (
+      {/* Only render table if there are records */}
+      {!loading && !error && hasRecords && (
+        <div className="mt-6 overflow-x-auto bg-white rounded-lg shadow-md min-h-[400px]">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={5}>
-                  <div className="flex justify-center items-center h-64">
-                    <ClipLoader color="#3730A3" size={30} />
-                  </div>
-                </td>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Student Name
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Grade Average
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Attendance %
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Honor Classification
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
               </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="flex justify-center items-center h-64 text-red-600 font-medium">
-                    Failed to fetch promotion data. Please try again.
-                  </div>
-                </td>
-              </tr>
-            ) : !hasRecords ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="flex justify-center items-center h-64 text-gray-600 font-medium">
-                    No promotion records available.
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              records.map((student) => {
-                const average = student.finalAverage?.toFixed(2) || "0.00";
-                const attendancePercent = getAttendancePercentage(student);
-                const promotionStatus =
-                  student.status || getPromotionStatus(Number(average));
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {records.map((student) => (
+                <tr key={student.student_id}>
+                  <td className="px-4 py-4 text-sm text-gray-900 font-medium">
+                    {student.student_name}
+                  </td>
+                  <td className="px-4 py-4 text-sm">
+                    {student.final_average?.toFixed(2) ?? "0.00"}
+                  </td>
+                  <td className="px-4 py-4 text-sm">
+                    {student.attendance_percentage?.toFixed(2) ?? "0.00"}%
+                  </td>
+                  <td className="px-4 py-4 text-sm">
+                    {student.honor_classification}
+                  </td>
+                  <td className="px-4 py-4">
+                    <StatusBadge status={student.promotion_status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-                return (
-                  <tr key={student.id}>
-                    <td className="px-4 py-4 text-sm text-gray-900">
-                      {student.name}
-                    </td>
-                    <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                      {average}
-                    </td>
-                    <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                      {attendancePercent}
-                    </td>
-                    <td className="px-4 py-4">
-                      <StatusBadge status={promotionStatus} />
-                    </td>
-                    <td className="px-4 py-4 text-sm text-blue-600 hover:underline cursor-pointer">
-                      View Record
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
+      {/* Pagination */}
       {!loading && hasRecords && (
         <PaginationControls
           currentPage={promotionCurrentPage}

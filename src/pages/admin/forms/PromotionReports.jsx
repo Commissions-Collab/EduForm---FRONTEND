@@ -1,51 +1,110 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
-import { LuCircleCheckBig } from "react-icons/lu";
+import { LuBadgeAlert, LuCircleCheckBig } from "react-icons/lu";
 import { useAdminStore } from "../../../stores/useAdminStore";
 
 const PromotionReport = () => {
-  const { fetchPromotionData } = useAdminStore();
+  const {
+    fetchPromotionData,
+    isPromotionAccessible,
+    promotionMessage,
+    overallPromotionStats,
+    loading,
+  } = useAdminStore();
+
+  const [sectionId, setSectionId] = useState(
+    localStorage.getItem("sectionId") || ""
+  );
+  const [academicYearId, setAcademicYearId] = useState(
+    localStorage.getItem("academicYearId") || ""
+  );
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
-    fetchPromotionData();
-  }, []);
+    if (sectionId && academicYearId) {
+      localStorage.setItem("sectionId", sectionId);
+      localStorage.setItem("academicYearId", academicYearId);
+      fetchPromotionData().finally(() => setHasFetched(true));
+    }
+  }, [sectionId, academicYearId]);
+
+  const filtersMissing = !sectionId || !academicYearId;
 
   return (
     <main className="p-4">
-      <div className="between">
-        <div className="page-title">Promotion Reports (SF5): Grade 10-A</div>
-        <div className="items-center">
-          <select className="px-3 py-2 text-sm border border-gray-300 rounded">
-            <option value="End of School Year">End of School Year</option>
-            <option value="1st Quarter">1st Quarter</option>
-            <option value="2nd Quarter">2nd Quarter</option>
-            <option value="3rd Quarter">3rd Quarter</option>
-            <option value="4th Quarter">4th Quarter</option>
+      <div className="between mb-4">
+        <div>
+          <div className="page-title">Promotion Reports (SF5)</div>
+          <div className="text-sm text-gray-500">
+            Based on final grades & attendance
+          </div>
+        </div>
+
+        <div className="flex space-x-3">
+          <select
+            value={sectionId}
+            onChange={(e) => setSectionId(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 rounded"
+          >
+            <option value="">Select Section</option>
+            <option value="1">Grade 10 - A</option>
+            <option value="2">Grade 10 - B</option>
+          </select>
+
+          <select
+            value={academicYearId}
+            onChange={(e) => setAcademicYearId(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 rounded"
+          >
+            <option value="">Select Year</option>
+            <option value="1">2024</option>
+            <option value="2">2025</option>
           </select>
         </div>
       </div>
 
-      <div className="mt-3">
-        <PromotionCards />
-      </div>
-
-      <div className="mt-3 blue-card">
-        <div className="flex items-center gap-5">
-          <LuCircleCheckBig className="blue-card-icon" />
-          <div className="flex flex-col">
-            <span className="text-md text-[#3730A3] font-semibold">
-              Data Completeness Check
-            </span>
-            <span className="text-sm text-[#3730A3]/80">
-              SF4 attendance records and SF9 grade data are complete. You may
-              now proceed with generating the SF5 reports.
-            </span>
+      {/* Missing Filters */}
+      {filtersMissing && (
+        <div className="mt-10 rounded-md border border-yellow-400 bg-yellow-50 px-6 py-4 flex items-start gap-3 shadow-sm">
+          <LuBadgeAlert className="w-6 h-6 text-yellow-500 mt-1" />
+          <div>
+            <h2 className="text-lg font-semibold text-yellow-800">
+              Filters Missing
+            </h2>
+            <p className="text-sm text-yellow-700 mt-1">
+              Please select both section and academic year to load promotion
+              report data.
+            </p>
           </div>
         </div>
-      </div>
+      )}
 
-      <PromotionTable />
+      {/* API Error Message */}
+      {promotionMessage && (
+        <div className="mt-10 rounded-md border border-yellow-400 bg-yellow-50 px-6 py-4 flex items-start gap-3 shadow-sm">
+          <LuBadgeAlert className="w-6 h-6 text-yellow-500 mt-1" />
+          <div>
+            <h2 className="text-lg font-semibold text-yellow-800">
+              Filters Missing
+            </h2>
+            <p className="text-sm text-yellow-700 mt-1">
+              Please select both section and academic year to load promotion
+              report data.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Promotion Table + Cards */}
+      {!filtersMissing && isPromotionAccessible && (
+        <>
+          <div className="mt-3">
+            <PromotionCards stats={overallPromotionStats} />
+          </div>
+          <PromotionTable />
+        </>
+      )}
     </main>
   );
 };

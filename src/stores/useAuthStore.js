@@ -10,9 +10,10 @@ export const useAuthStore = create((set, get) => ({
   isLoggingIn: false,
   isRegistering: false,
   isCheckingAuth: true,
+  authError: null,
 
   login: async ({ email, password }) => {
-    set({ isLoggingIn: true });
+    set({ isLoggingIn: true, authError: null });
 
     try {
       const { data } = await axiosInstance.post("/login", { email, password });
@@ -20,12 +21,13 @@ export const useAuthStore = create((set, get) => ({
 
       setItem("user", user);
       setItem("token", token);
-      set({ user, token });
+      set({ user, token, authError: null });
 
       toast.success("Logged in successfully!");
       return { success: true, user };
     } catch (error) {
       const message = error?.response?.data?.message || "Login failed";
+      set({ authError: message });
       toast.error(message);
       return { success: false, message };
     } finally {
@@ -34,7 +36,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   register: async (formData) => {
-    set({ isRegistering: true });
+    set({ isRegistering: true, authError: null });
 
     try {
       await axiosInstance.post("/register", formData);
@@ -42,6 +44,7 @@ export const useAuthStore = create((set, get) => ({
       return { success: true };
     } catch (error) {
       const message = error?.response?.data?.message || "Registration failed";
+      set({ authError: message });
       toast.error(message);
       return { success: false, message };
     } finally {
@@ -49,20 +52,21 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  isLoggingOut: false,
+
   logout: async () => {
+    set({ isLoggingOut: true });
     try {
       await axiosInstance.post("/logout");
       toast.success("Logged out successfully!");
     } catch (error) {
       const status = error?.response?.status;
       const message = error?.response?.data?.message || "Logout failed";
-      if (status !== 401) {
-        toast.error(message);
-      }
+      if (status !== 401) toast.error(message);
     } finally {
       removeItem("user");
       removeItem("token");
-      set({ user: null, token: null });
+      set({ user: null, token: null, isLoggingOut: false });
     }
   },
 
@@ -70,15 +74,17 @@ export const useAuthStore = create((set, get) => ({
     const token = getItem("token", false);
 
     if (!token) {
-      set({ user: null, isCheckingAuth: false });
+      set({ user: null, isCheckingAuth: false, authError: null });
       return;
     }
 
     try {
       const { data: user } = await axiosInstance.get("/auth/check");
       setItem("user", user);
-      set({ user });
-    } catch {
+      set({ user, authError: null });
+    } catch (error) {
+      const message = error?.response?.data?.message || "Authentication failed";
+      set({ authError: message });
       removeItem("user");
       removeItem("token");
       set({ user: null, token: null });

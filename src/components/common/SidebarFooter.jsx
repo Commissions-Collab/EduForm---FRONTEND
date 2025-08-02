@@ -1,16 +1,18 @@
 import { LuUser, LuLogOut } from "react-icons/lu";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import { ClipLoader } from "react-spinners";
 
 const SidebarFooter = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const isLoggingOut = useAuthStore((state) => state.isLoggingOut);
   const navigate = useNavigate();
 
   if (!user) return null;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/sign-in");
   };
 
@@ -28,9 +30,11 @@ const SidebarFooter = () => {
         )}
       </div>
 
-      <div className="flex-1 text-sm">
-        <p className="text-md text-gray-900 font-bold uppercase">{user.name}</p>
-        <p className="text-sm text-gray-600 font-medium uppercase">
+      <div className="flex-1 text-sm truncate">
+        <p className="text-md text-gray-900 font-bold uppercase truncate">
+          {user.name}
+        </p>
+        <p className="text-sm text-gray-600 font-medium uppercase truncate">
           {user.role}
         </p>
       </div>
@@ -38,9 +42,19 @@ const SidebarFooter = () => {
       <button
         onClick={handleLogout}
         title="Logout"
-        className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition"
+        aria-label="Logout"
+        aria-busy={isLoggingOut}
+        disabled={isLoggingOut}
+        className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition flex items-center gap-2"
       >
-        <LuLogOut className="w-5 h-5" />
+        {isLoggingOut ? (
+          <>
+            <ClipLoader size={16} color="#4B5563" />
+            <span className="text-sm text-gray-600">Logging out</span>
+          </>
+        ) : (
+          <LuLogOut className="w-5 h-5" />
+        )}
       </button>
     </div>
   );

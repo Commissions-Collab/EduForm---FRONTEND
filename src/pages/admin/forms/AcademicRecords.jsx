@@ -22,20 +22,6 @@ const Grades = () => {
         </div>
       </div>
 
-      <div className="mt-8 blue-card">
-        <div className="flex items-center gap-5">
-          <LuCalendar className="blue-card-icon" />
-          <div className="flex flex-col">
-            <span className="text-md text-[#3730A3] font-semibold">
-              Honor Roll Eligibility
-            </span>
-            <span className="text-sm text-[#3730A3]/80">
-              3 students qualify for "With High Honors"
-            </span>
-          </div>
-        </div>
-      </div>
-
       <GradesTable />
     </main>
   );

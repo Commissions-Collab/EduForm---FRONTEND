@@ -6,47 +6,21 @@ import { useAdminStore } from "../../stores/useAdminStore";
 const TextbookTable = ({ searchTerm }) => {
   const {
     textbooks,
-    paginatedRecords,
-    totalPages,
-    currentPage,
-    setCurrentPage,
+    paginatedTextbookRecords,
+    textbookCurrentPage,
+    totalTextbookPages,
+    setTextbookCurrentPage,
     loading,
     error,
   } = useAdminStore();
 
-  const [selectedSubject, setSelectedSubject] = React.useState("");
-
-  const uniqueSubjects = [
-    ...new Set(textbooks.map((book) => book.subject).filter(Boolean)),
-  ];
-
-  const filteredRecords = paginatedRecords().filter((book) => {
-    const matchesSearch = book.title
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesSubject =
-      selectedSubject === "" || book.subject === selectedSubject;
-    return matchesSearch && matchesSubject;
+  const filteredRecords = paginatedTextbookRecords().filter((book) => {
+    return book.title?.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   return (
     <>
-      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[200px]">
-        <div className="flex justify-end p-5">
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            className="w-full md:w-1/4 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-          >
-            <option value="">All Subjects</option>
-            {uniqueSubjects.map((subject) => (
-              <option key={subject} value={subject}>
-                {subject}
-              </option>
-            ))}
-          </select>
-        </div>
-
+      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[400px]">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -99,15 +73,19 @@ const TextbookTable = ({ searchTerm }) => {
                     {book.title}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
-                    {book.subject}
+                    {book.subject?.name || "N/A"}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900">
-                    {book.total}
+                    {book.total_copies}
                   </td>
-                  <td className="px-4 py-3">{book.issued}</td>
-                  <td className="px-4 py-3 text-red-600">{book.overdue}</td>
-                  <td className="px-4 py-3 text-green-600">{book.available}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4">
+                    {book.total_copies - book.available}
+                  </td>
+                  <td className="px-4 py-4 text-red-600">
+                    {book.overdue_count || 0}
+                  </td>
+                  <td className="px-4 py-4 text-green-600">{book.available}</td>
+                  <td className="px-4 py-4">
                     <button className="text-indigo-600 hover:underline text-sm">
                       View
                     </button>
@@ -121,10 +99,16 @@ const TextbookTable = ({ searchTerm }) => {
 
       {!loading && filteredRecords.length > 0 && (
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages()}
-          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-          onNext={() => setCurrentPage(Math.min(currentPage + 1, totalPages()))}
+          currentPage={textbookCurrentPage}
+          totalPages={totalTextbookPages()}
+          onPrevious={() =>
+            setTextbookCurrentPage(Math.max(textbookCurrentPage - 1, 1))
+          }
+          onNext={() =>
+            setTextbookCurrentPage(
+              Math.min(textbookCurrentPage + 1, totalTextbookPages())
+            )
+          }
         />
       )}
     </>

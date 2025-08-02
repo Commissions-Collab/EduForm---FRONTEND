@@ -24,11 +24,11 @@ const GradesTable = () => {
   const pages = totalPages();
   const hasRecords = Array.isArray(records) && records.length > 0;
 
-  const quarterId = getItem("quarterId", false);
+  const quarterId = selectedQuarter;
 
   return (
     <>
-      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md">
+      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md  min-h-[400px]">
         <div className="flex items-center justify-between p-5">
           <div>
             <h1 className="text-lg font-semibold mb-1">
@@ -39,6 +39,7 @@ const GradesTable = () => {
             </p>
           </div>
           <select
+            disabled={loading}
             value={selectedQuarter || ""}
             onChange={(e) => setSelectedQuarter(e.target.value)}
             className="px-3 py-2 text-sm border border-gray-300 rounded"
