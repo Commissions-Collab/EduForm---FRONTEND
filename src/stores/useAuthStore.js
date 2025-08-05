@@ -39,8 +39,14 @@ export const useAuthStore = create((set, get) => ({
     set({ isRegistering: true, authError: null });
 
     try {
-      await axiosInstance.post("/register", formData);
-      toast.success("Registration successful! You may now log in.");
+      await axiosInstance.post("/register", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success(
+        "Registration submitted! Please wait for teacher approval before you can log in."
+      );
       return { success: true };
     } catch (error) {
       const message = error?.response?.data?.message || "Registration failed";
