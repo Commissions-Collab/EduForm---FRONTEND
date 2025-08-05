@@ -1,15 +1,26 @@
 import React, { useState } from "react";
 import { LuCircleCheck, LuCircleX, LuClock } from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
+import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
 import PaginationControls from "./Pagination";
-import { getStatusButtonStyle } from "./ButtonStatus";
+import { useNavigate } from "react-router-dom";
+import { getItem } from "../../lib/utils";
 import { useAdminStore } from "../../stores/useAdminStore";
 
 const RECORDS_PER_PAGE = 5;
 
 const AttendanceTable = () => {
   const { records, setStatus, setReason, loading, error } = useAdminStore();
+  const navigate = useNavigate();
+
+  const handleViewHistory = (studentId) => {
+    const scheduleId = getItem("scheduleId", false);
+    if (scheduleId) {
+      navigate(`/teacher/attendance/history/${scheduleId}/${studentId}`);
+    }
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(records.length / RECORDS_PER_PAGE);
@@ -41,7 +52,6 @@ const AttendanceTable = () => {
               </th>
             </tr>
           </thead>
-
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
@@ -55,7 +65,7 @@ const AttendanceTable = () => {
               <tr>
                 <td colSpan={4}>
                   <div className="flex justify-center items-center h-64 text-red-600 font-medium">
-                    Failed to fetch attendance data. Please try again.
+                    {error}
                   </div>
                 </td>
               </tr>
@@ -115,7 +125,11 @@ const AttendanceTable = () => {
                     )}
                   </td>
                   <td className="px-4 py-4 text-sm text-center text-blue-600 hover:underline cursor-pointer">
-                    View History
+                    <button
+                      onClick={() => handleViewHistory(student.student_id)}
+                    >
+                      View History
+                    </button>
                   </td>
                 </tr>
               ))

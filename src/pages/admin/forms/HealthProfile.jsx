@@ -1,7 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useAdminStore } from "../../../stores/useAdminStore";
+import BmiStudentTable from "../../../components/admin/BMIStudentTable";
 
 const HealthProfile = () => {
-  return <div>HealthProfile</div>;
+  const { bmiStudents, bmiLoading, bmiError, fetchBmiStudents } =
+    useAdminStore();
+
+  useEffect(() => {
+    fetchBmiStudents();
+  }, []);
+
+  return (
+    <div className="p-6">
+      <h1 className="text-xl font-bold mb-4">Health Profile (BMI)</h1>
+      <BmiStudentTable
+        students={bmiStudents}
+        loading={bmiLoading}
+        error={bmiError}
+      />
+    </div>
+  );
 };
 
 export default HealthProfile;
