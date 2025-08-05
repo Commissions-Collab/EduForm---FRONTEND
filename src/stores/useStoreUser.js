@@ -1,339 +1,310 @@
 // src/stores/useStoreUser.js
 import { create } from "zustand";
-
-// --- GRADES DATA ---
-const allGradesData = {
-    "1st Quarter": [
-        { subject: "Mathematics", grade: 88, classAverage: 80, trend: "+2%", teacher: "Ms. Reyes", status: "above" },
-        { subject: "Science", grade: 75, classAverage: 78, trend: "-1%", teacher: "Mr. Santos", status: "below" },
-        { subject: "English", grade: 85, classAverage: 82, trend: "+1%", teacher: "Mrs. Lopez", status: "above" },
-    ],
-    "2nd Quarter": [
-        { subject: "Mathematics", grade: 92, classAverage: 84, trend: "+4%", teacher: "Ms. Reyes", status: "above" },
-        { subject: "Science", grade: 78, classAverage: 82, trend: "-3%", teacher: "Mr. Santos", status: "below" },
-        { subject: "English", grade: 90, classAverage: 85, trend: "+3%", teacher: "Mrs. Lopez", status: "above" },
-        { subject: "History", grade: 88, classAverage: 80, trend: "+3%", teacher: "Mr. Gonzales", status: "above" },
-        { subject: "Physical Education", grade: 95, classAverage: 88, trend: "+2%", teacher: "Ms. Torres", status: "above" },
-    ],
-    "3rd Quarter": [
-        { subject: "Mathematics", grade: 90, classAverage: 83, trend: "0%", teacher: "Ms. Reyes", status: "above" },
-        { subject: "Science", grade: 80, classAverage: 81, trend: "+2%", teacher: "Mr. Santos", status: "above" },
-        { subject: "English", grade: 87, classAverage: 84, trend: "-1%", teacher: "Mrs. Lopez", status: "above" },
-        { subject: "Art", grade: 93, classAverage: 89, trend: "+5%", teacher: "Mr. Dela Cruz", status: "above" },
-    ],
-    "4th Quarter": [], // Example of an empty quarter
-};
-
-const quarterlyAverages = {
-    "1st Quarter": 84.3,
-    "2nd Quarter": 89.4,
-    "3rd Quarter": 87.5,
-    "4th Quarter": 0, // Or null/undefined if no data
-};
-
-const honorsEligibilityStatus = {
-    "1st Quarter": false,
-    "2nd Quarter": true,
-    "3rd Quarter": true,
-    "4th Quarter": false,
-};
-
-// --- ACHIEVEMENTS DATA ---
-const achievementsData = {
-    academicAwards: [
-        {
-            id: 1,
-            title: "Honor Roll",
-            quarter: "Q3",
-            description: "For maintaining an average of 90% or above for the 3rd Quarter",
-            issuedDate: "March 15, 2023",
-            issuedBy: "Principal",
-            category: "Academic"
-        }
-    ],
-    attendanceAwards: [
-        {
-            id: 2,
-            title: "Perfect Attendance",
-            quarter: "Q2",
-            description: "For 100% attendance during the 2nd Quarter",
-            issuedDate: "December 20, 2022",
-            issuedBy: "Principal",
-            category: "Attendance"
-        }
-    ],
-    competitionAwards: [
-        {
-            id: 3,
-            title: "Science Fair Winner",
-            quarter: "Q2",
-            description: "1st Place in School Science Fair Competition",
-            issuedDate: "November 10, 2022",
-            issuedBy: "Science Department",
-            category: "Competition"
-        }
-    ]
-};
-
-const availableCertificates = [
-    {
-        id: 1,
-        title: "Honor Roll Certificate",
-        description: "For maintaining an average of 90% or above for the 3rd Quarter",
-        issuedDate: "March 15, 2023",
-        issuedBy: "Principal",
-        category: "Academic",
-        canDownload: true,
-        canShare: true
-    },
-    {
-        id: 2,
-        title: "Perfect Attendance Certificate",
-        description: "For 100% attendance during the 2nd Quarter",
-        issuedDate: "December 20, 2022",
-        issuedBy: "Principal",
-        category: "Attendance",
-        canDownload: true,
-        canShare: true
-    }
-];
-
-// --- ATTENDANCE DATA ---
-const allAttendanceData = {
-    "January 2023": {
-        attendanceRate: 95,
-        lateArrivals: 1,
-        lateArrivalsNote: "No specific pattern",
-        lateArrivalsDelay: "5 minutes average delay",
-        absences: 0,
-        absencesNote: "",
-    },
-    "February 2023": {
-        attendanceRate: 90,
-        lateArrivals: 2,
-        lateArrivalsNote: "Occasional delays",
-        lateArrivalsDelay: "8 minutes average delay",
-        absences: 1,
-        absencesNote: "Excused",
-    },
-    "March 2023": {
-        attendanceRate: 98,
-        lateArrivals: 0,
-        lateArrivalsNote: "",
-        lateArrivalsDelay: "0 minutes average delay",
-        absences: 0,
-        absencesNote: "",
-    },
-    "April 2023": {
-        attendanceRate: 88,
-        lateArrivals: 5,
-        lateArrivalsNote: "Pattern on Fridays",
-        lateArrivalsDelay: "15 minutes average delay",
-        absences: 2,
-        absencesNote: "1 Not excused",
-    },
-    "May 2023": {
-        attendanceRate: 93,
-        lateArrivals: 2,
-        lateArrivalsNote: "No specific pattern",
-        lateArrivalsDelay: "7 minutes average delay",
-        absences: 0,
-        absencesNote: "",
-    },
-    "June 2023": {
-        attendanceRate: 92,
-        lateArrivals: 3,
-        lateArrivalsNote: "Pattern on Mondays",
-        lateArrivalsDelay: "10 minutes average delay",
-        absences: 1,
-        absencesNote: "Not excused",
-    },
-    "July 2023": {
-        attendanceRate: 85,
-        lateArrivals: 4,
-        lateArrivalsNote: "Frequent delays",
-        lateArrivalsDelay: "12 minutes average delay",
-        absences: 3,
-        absencesNote: "2 Not excused",
-    },
-};
-
-const schoolYearOptions = [
-    "2022-2023",
-    "2021-2022",
-    "2020-2021"
-];
-
-// --- End Dummy Data ---
+import { axiosInstance } from "../lib/axios";
+import { getItem, setItem, removeItem } from "../lib/utils";
+import toast from "react-hot-toast";
 
 export const useStoreUser = create((set, get) => ({
     // =============
+    // AUTH STATE
+    // =============
+    user: getItem("user") || null,
+    token: getItem("token", false) || null,
+
+    // =============
+    // DASHBOARD STATE
+    // =============
+    dashboardData: {
+        grades: 0,
+        grade_change_percent: 0,
+        attendance_rate: {
+            present_percent: 0,
+            recent_absents: []
+        },
+        borrow_book: 0,
+        book_due_this_week: 0,
+        notifications: []
+    },
+    dashboardLoading: false,
+    dashboardError: null,
+
+    // =============
     // GRADES STATE
     // =============
-    quarterOptions: ["1st Quarter", "2nd Quarter", "3rd Quarter", "4th Quarter"],
-    selectedQuarter: "2nd Quarter", // Initial selected quarter
-    gradesData: allGradesData["2nd Quarter"] || [], // Initial grades data based on default selectedQuarter
-    quarterlyAverage: quarterlyAverages["2nd Quarter"] || 0, // Initial average
-    honorsEligibility: honorsEligibilityStatus["2nd Quarter"] || false, // Initial honors status
-    gradesLoading: false, // For potential future API calls
-    gradesError: null, // For potential future API calls
+    gradesData: {
+        quarter: "",
+        quarter_average: 0,
+        honors_eligibility: null,
+        grades: []
+    },
+    quarterOptions: [],
+    selectedQuarter: null,
+    gradesLoading: false,
+    gradesError: null,
 
-    // ===================
-    // ACHIEVEMENTS STATE
-    // ===================
-    schoolYearOptions,
-    selectedSchoolYear: "2022-2023",
-    academicAwards: achievementsData.academicAwards,
-    attendanceAwards: achievementsData.attendanceAwards,
-    competitionAwards: achievementsData.competitionAwards,
-    availableCertificates,
-    achievementsLoading: false,
-    achievementsError: null,
-
-    // ==================
+    // =============
     // ATTENDANCE STATE
-    // ==================
-    monthOptions: Object.keys(allAttendanceData), // Derived from dummy data keys
-    selectedMonth: "June 2023", // Initial selected month, matching the image
+    // =============
+    attendanceData: {
+        attendance_rate: 0,
+        late_arrivals: {
+            count: 0,
+            pattern: null
+        },
+        absences: {
+            count: 0
+        },
+        daily_status: [],
+        quarterly_summary: []
+    },
+    monthOptions: [],
+    selectedMonth: null,
     attendanceLoading: false,
     attendanceError: null,
 
     // =============
-    // GRADES ACTIONS
+    // HEALTH PROFILE STATE
     // =============
-    setSelectedQuarter: (quarter) => {
-        // Update the selected quarter and derive associated data
-        set({
-            selectedQuarter: quarter,
-            gradesData: allGradesData[quarter] || [], // Get grades for the new quarter
-            quarterlyAverage: quarterlyAverages[quarter] || 0, // Get average for the new quarter
-            honorsEligibility: honorsEligibilityStatus[quarter] || false, // Get honors status for the new quarter
-        });
+    healthProfileData: {
+        data: []
+    },
+    healthProfileLoading: false,
+    healthProfileError: null,
+
+    // =============
+    // ACHIEVEMENTS STATE
+    // =============
+    achievementsData: {
+        certificate_count: 0,
+        honor_roll_count: {
+            with_honors: 0,
+            with_high_honors: 0,
+            with_highest_honors: 0
+        },
+        attendance_awards_count: 0,
+        academic_awards: [],
+        attendance_awards: []
+    },
+    achievementsLoading: false,
+    achievementsError: null,
+
+    // =============
+    // DASHBOARD ACTIONS
+    // =============
+    fetchDashboard: async () => {
+        set({ dashboardLoading: true, dashboardError: null });
+        try {
+            const { data } = await axiosInstance.get('/student/dashboard');
+            set({ 
+                dashboardData: data,
+                dashboardLoading: false 
+            });
+        } catch (error) {
+            const message = error?.response?.data?.message || "Failed to fetch dashboard data";
+            set({ dashboardError: message, dashboardLoading: false });
+            toast.error(message);
+        }
     },
 
-    fetchGrades: async (quarter) => {
+    clearDashboardError: () => set({ dashboardError: null }),
+
+    // =============
+    // GRADES ACTIONS
+    // =============
+    fetchGrades: async () => {
         set({ gradesLoading: true, gradesError: null });
         try {
-            // This would be your API call
-            // const response = await api.getGrades(quarter);
-            // set({ 
-            //     gradesData: response.grades,
-            //     quarterlyAverage: response.average,
-            //     honorsEligibility: response.honorsEligibility,
-            //     gradesLoading: false 
-            // });
-            
-            // For now, simulate API delay
-            setTimeout(() => {
-                set({ gradesLoading: false });
-            }, 1000);
+            const { data } = await axiosInstance.get('/student/student-grade');
+            set({ 
+                gradesData: data,
+                gradesLoading: false 
+            });
         } catch (error) {
-            set({ gradesError: error.message, gradesLoading: false });
+            let message = "Failed to fetch grades";
+            
+            if (error?.response?.status === 404) {
+                message = "No active quarter found. Please contact your administrator.";
+            } else if (error?.response?.data?.message) {
+                message = error.response.data.message;
+            } else if (error?.response?.data?.error) {
+                message = error.response.data.error;
+            }
+            
+            set({ gradesError: message, gradesLoading: false });
+            toast.error(message);
         }
+    },
+
+    fetchQuarterOptions: async () => {
+        try {
+            const { data } = await axiosInstance.get('/student/student-grade/filter');
+            set({ quarterOptions: data.quarters });
+        } catch (error) {
+            console.error("Failed to fetch quarter options:", error);
+        }
+    },
+
+    setSelectedQuarter: (quarter) => {
+        set({ selectedQuarter: quarter });
     },
 
     clearGradesError: () => set({ gradesError: null }),
 
-    // ===================
-    // ACHIEVEMENTS ACTIONS
-    // ===================
-
-    // Computed values for achievements
-    get totalAcademicAwards() {
-        return get().academicAwards.length;
-    },
-    get totalAttendanceAwards() {
-        return get().attendanceAwards.length;
-    },
-    get totalCompetitionAwards() {
-        return get().competitionAwards.length;
-    },
-
-    setSelectedSchoolYear: (year) => {
-        set({ selectedSchoolYear: year });
-        // In a real app, this would trigger an API call to fetch data for the selected year
-        // For now, we'll just use the same dummy data
-    },
-
-    downloadCertificate: (certificateId) => {
-        // In a real app, this would trigger a download
-        console.log(`Downloading certificate with ID: ${certificateId}`);
-        // You could implement actual download logic here
-    },
-
-    shareCertificate: (certificateId) => {
-        // In a real app, this would open share options
-        console.log(`Sharing certificate with ID: ${certificateId}`);
-        // You could implement social sharing or copy link functionality here
-    },
-
-    fetchAchievements: async (schoolYear) => {
-        set({ achievementsLoading: true, achievementsError: null });
+    // =============
+    // ATTENDANCE ACTIONS
+    // =============
+    fetchAttendance: async (month = null) => {
+        set({ attendanceLoading: true, attendanceError: null });
         try {
-            // This would be your API call
-            // const response = await api.getAchievements(schoolYear);
-            // set({ 
-            //     academicAwards: response.academicAwards,
-            //     attendanceAwards: response.attendanceAwards,
-            //     competitionAwards: response.competitionAwards,
-            //     availableCertificates: response.certificates,
-            //     achievementsLoading: false 
-            // });
-            
-            // For now, simulate API delay
-            setTimeout(() => {
-                set({ achievementsLoading: false });
-            }, 1000);
+            // If no month is provided, use current month as default
+            const monthParam = month || new Date().toISOString().slice(0, 7); // Format: YYYY-MM
+            const { data } = await axiosInstance.get('/student/student-attendance', { 
+                params: { month: monthParam } 
+            });
+            set({ 
+                attendanceData: data,
+                attendanceLoading: false 
+            });
         } catch (error) {
-            set({ achievementsError: error.message, achievementsLoading: false });
+            const message = error?.response?.data?.message || "Failed to fetch attendance data";
+            set({ attendanceError: message, attendanceLoading: false });
+            toast.error(message);
         }
     },
 
-    clearAchievementsError: () => set({ achievementsError: null }),
-
-    // ==================
-    // ATTENDANCE ACTIONS
-    // ==================
-    
-    // Derived state (getter function) for current month's data
-    getCurrentMonthData: () => {
-        const { selectedMonth } = get();
-        return (
-            allAttendanceData[selectedMonth] || {
-                attendanceRate: 0,
-                lateArrivals: 0,
-                lateArrivalsNote: "",
-                lateArrivalsDelay: "",
-                absences: 0,
-                absencesNote: "",
-            }
-        );
+    fetchMonthOptions: async () => {
+        try {
+            const { data } = await axiosInstance.get('/student/student-attendance/filter');
+            set({ monthOptions: data.months });
+        } catch {
+            console.error("Failed to fetch month options");
+        }
     },
 
     setSelectedMonth: (month) => {
         set({ selectedMonth: month });
     },
 
-    fetchAttendanceData: async (month) => {
-        set({ attendanceLoading: true, attendanceError: null });
+    clearAttendanceError: () => set({ attendanceError: null }),
+
+    // =============
+    // HEALTH PROFILE ACTIONS
+    // =============
+    fetchHealthProfile: async () => {
+        set({ healthProfileLoading: true, healthProfileError: null });
         try {
-            // This would be your API call
-            // const response = await api.getAttendanceData(month);
-            // set({ 
-            //     selectedMonth: month,
-            //     attendanceLoading: false 
-            // });
-            
-            // For now, simulate API delay
-            setTimeout(() => {
-                set({ attendanceLoading: false });
-            }, 500);
+            const { data } = await axiosInstance.get('/student/health-profile');
+            set({ 
+                healthProfileData: data,
+                healthProfileLoading: false 
+            });
         } catch (error) {
-            set({ attendanceError: error.message, attendanceLoading: false });
+            const message = error?.response?.data?.message || "Failed to fetch health profile";
+            set({ healthProfileError: message, healthProfileLoading: false });
+            toast.error(message);
         }
     },
 
-    clearAttendanceError: () => set({ attendanceError: null }),
+    clearHealthProfileError: () => set({ healthProfileError: null }),
+
+    // =============
+    // ACHIEVEMENTS ACTIONS
+    // =============
+    fetchAchievements: async () => {
+        set({ achievementsLoading: true, achievementsError: null });
+        try {
+            const { data } = await axiosInstance.get('/student/certificates');
+            set({ 
+                achievementsData: data,
+                achievementsLoading: false 
+            });
+        } catch (error) {
+            const message = error?.response?.data?.message || "Failed to fetch achievements";
+            set({ achievementsError: message, achievementsLoading: false });
+            toast.error(message);
+        }
+    },
+
+    downloadCertificate: async (type, quarterId) => {
+        try {
+            const response = await axiosInstance.get('/student/certificate/download', {
+                params: { type, quarter_id: quarterId },
+                responseType: 'blob'
+            });
+
+            // Create download link
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `certificate-${type}-${quarterId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            toast.success("Certificate downloaded successfully!");
+        } catch (error) {
+            const message = error?.response?.data?.message || "Failed to download certificate";
+            toast.error(message);
+        }
+    },
+
+    clearAchievementsError: () => set({ achievementsError: null }),
+
+    // =============
+    // AUTH ACTIONS
+    // =============
+    login: async ({ email, password }) => {
+        try {
+            const { data } = await axiosInstance.post("/login", { email, password });
+            const { user, token } = data;
+
+            setItem("user", user);
+            setItem("token", token);
+            set({ user, token });
+
+            toast.success("Logged in successfully!");
+            return { success: true, user };
+        } catch (error) {
+            const message = error?.response?.data?.message || "Login failed";
+            toast.error(message);
+            return { success: false, message };
+        }
+    },
+
+    logout: async () => {
+        try {
+            await axiosInstance.post("/logout");
+            toast.success("Logged out successfully!");
+        } catch (error) {
+            const status = error?.response?.status;
+            const message = error?.response?.data?.message || "Logout failed";
+            if (status !== 401) toast.error(message);
+        } finally {
+            removeItem("user");
+            removeItem("token");
+            set({ user: null, token: null });
+        }
+    },
+
+    checkAuth: async () => {
+        const token = getItem("token", false);
+
+        if (!token) {
+            set({ user: null });
+            return;
+        }
+
+        try {
+            const { data: user } = await axiosInstance.get("/auth/check");
+            setItem("user", user);
+            set({ user });
+        } catch {
+            removeItem("user");
+            removeItem("token");
+            set({ user: null, token: null });
+        }
+    },
 
     // =================
     // UTILITY METHODS
@@ -342,62 +313,129 @@ export const useStoreUser = create((set, get) => ({
     // Reset all data (useful for logout or user switching)
     resetUserData: () => {
         set({
+            // Reset dashboard
+            dashboardData: {
+                grades: 0,
+                grade_change_percent: 0,
+                attendance_rate: {
+                    present_percent: 0,
+                    recent_absents: []
+                },
+                borrow_book: 0,
+                book_due_this_week: 0,
+                notifications: []
+            },
+            dashboardLoading: false,
+            dashboardError: null,
+
             // Reset grades
-            selectedQuarter: "2nd Quarter",
-            gradesData: allGradesData["2nd Quarter"] || [],
-            quarterlyAverage: quarterlyAverages["2nd Quarter"] || 0,
-            honorsEligibility: honorsEligibilityStatus["2nd Quarter"] || false,
+            gradesData: {
+                quarter: "",
+                quarter_average: 0,
+                honors_eligibility: null,
+                grades: []
+            },
+            quarterOptions: [],
+            selectedQuarter: null,
             gradesLoading: false,
             gradesError: null,
 
-            // Reset achievements
-            selectedSchoolYear: "2022-2023",
-            academicAwards: achievementsData.academicAwards,
-            attendanceAwards: achievementsData.attendanceAwards,
-            competitionAwards: achievementsData.competitionAwards,
-            availableCertificates,
-            achievementsLoading: false,
-            achievementsError: null,
-
             // Reset attendance
-            selectedMonth: "June 2023",
+            attendanceData: {
+                attendance_rate: 0,
+                late_arrivals: {
+                    count: 0,
+                    pattern: null
+                },
+                absences: {
+                    count: 0
+                },
+                daily_status: [],
+                quarterly_summary: []
+            },
+            monthOptions: [],
+            selectedMonth: null,
             attendanceLoading: false,
             attendanceError: null,
+
+            // Reset health profile
+            healthProfileData: {
+                data: []
+            },
+            healthProfileLoading: false,
+            healthProfileError: null,
+
+            // Reset achievements
+            achievementsData: {
+                certificate_count: 0,
+                honor_roll_count: {
+                    with_honors: 0,
+                    with_high_honors: 0,
+                    with_highest_honors: 0
+                },
+                attendance_awards_count: 0,
+                academic_awards: [],
+                attendance_awards: []
+            },
+            achievementsLoading: false,
+            achievementsError: null,
         });
     },
 
     // Initialize user data (useful for login or app start)
-    initializeUserData: async (userId) => {
+    initializeUserData: async () => {
         set({ 
+            dashboardLoading: true, 
             gradesLoading: true, 
-            achievementsLoading: true, 
-            attendanceLoading: true 
+            attendanceLoading: true,
+            healthProfileLoading: true,
+            achievementsLoading: true
         });
-        try {
-            // This would be your API calls
-            // const [gradesResponse, achievementsResponse, attendanceResponse] = await Promise.all([
-            //     api.getGrades(userId),
-            //     api.getAchievements(userId),
-            //     api.getAttendanceData(userId)
-            // ]);
 
-            // For now, just simulate loading
-            setTimeout(() => {
-                set({
-                    gradesLoading: false,
-                    achievementsLoading: false,
-                    attendanceLoading: false,
-                });
-            }, 1500);
+        try {
+            // Get current month for attendance
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            
+            // Fetch all data in parallel
+            await Promise.all([
+                get().fetchDashboard(),
+                get().fetchGrades(),
+                get().fetchAttendance(currentMonth),
+                get().fetchHealthProfile(),
+                get().fetchAchievements(),
+                get().fetchQuarterOptions(),
+                get().fetchMonthOptions()
+            ]);
         } catch (error) {
+            console.error("Failed to initialize user data:", error);
+        } finally {
             set({
-                gradesError: error.message,
-                achievementsError: error.message,
-                attendanceError: error.message,
+                dashboardLoading: false,
                 gradesLoading: false,
-                achievementsLoading: false,
                 attendanceLoading: false,
+                healthProfileLoading: false,
+                achievementsLoading: false,
             });
         }
+    },
+
+    // Getters for computed values
+    getUserRole: () => get().user?.role || null,
+    
+    get totalAcademicAwards() {
+        return get().achievementsData.academic_awards.length;
+    },
+    
+    get totalAttendanceAwards() {
+        return get().achievementsData.attendance_awards.length;
+    },
+    
+    get totalCertificates() {
+        return get().achievementsData.certificate_count;
+    },
+
+    get currentMonthData() {
+        const { attendanceData } = get();
+        return attendanceData;
     },
 }));

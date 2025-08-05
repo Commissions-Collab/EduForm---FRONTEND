@@ -1,11 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LuInfo } from "react-icons/lu";
+import { useStoreUser } from "../../stores/useStoreUser";
 
 const HealthProfile = () => {
+  const {
+    healthProfileData,
+    fetchHealthProfile,
+    healthProfileLoading,
+    healthProfileError,
+    clearHealthProfileError
+  } = useStoreUser();
+
   const [startHeight, setStartHeight] = useState(""); // cm
   const [startWeight, setStartWeight] = useState(""); // kg
   const [endHeight, setEndHeight] = useState("");
   const [endWeight, setEndWeight] = useState("");
+
+  useEffect(() => {
+    fetchHealthProfile();
+  }, [fetchHealthProfile]);
 
   const calculateBMI = (heightCm, weightKg) => {
     if (!heightCm || !weightKg) return "";
@@ -39,14 +52,41 @@ const HealthProfile = () => {
   const startClass = getClassification(startBmi);
   const endClass = getClassification(endBmi);
 
+  if (healthProfileLoading) {
+    return (
+      <main className="p-4">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      </main>
+    );
+  }
+
+  if (healthProfileError) {
+    return (
+      <main className="p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700">{healthProfileError}</p>
+          <button 
+            onClick={clearHealthProfileError}
+            className="mt-2 text-red-600 hover:text-red-800 underline"
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="p-4">
       <div className="between">
         <div className="page-title">Health Profile (SF8)</div>
         <div className="inline-flex items-center px-2 py-1 text-sm rounded-lg bg-[#E0E7FF] text-[#3730A3]">
-          <span className="ml-2">Last Checkup: July 23, 2025</span>
+          <span className="ml-2">Last Checkup: {new Date().toLocaleDateString()}</span>
         </div>
       </div>
+      
       <div className="shad-container p-4 mt-8">
         <div className="flex items-center gap-5">
           <LuInfo size={20} />
@@ -59,6 +99,63 @@ const HealthProfile = () => {
         </div>
       </div>
 
+      {/* BMI Data from API */}
+      {healthProfileData.data.length > 0 && (
+        <div className="shad-container p-5 mt-8">
+          <div className="text-xl font-medium mb-6">BMI Records</div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Height (cm)
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Weight (kg)
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    BMI
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Classification
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {healthProfileData.data.map((record, index) => {
+                  const bmi = calculateBMI(record.height, record.weight);
+                  const classification = getClassification(bmi);
+                  return (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(record.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.height}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.weight}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {bmi}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${classification.bg} ${classification.color}`}>
+                          {classification.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="shad-container p-5 mt-8">
         <div className="text-xl font-medium">BMI Tracker</div>
 
@@ -70,7 +167,7 @@ const HealthProfile = () => {
                 Beginning of the School Year
               </h1>
               <h1 className="text-sm font-medium text-gray-500">
-                July 23, 2025
+                {new Date().toLocaleDateString()}
               </h1>
             </div>
 
@@ -120,7 +217,7 @@ const HealthProfile = () => {
                 End of the School Year
               </h1>
               <h1 className="text-sm font-medium text-gray-500">
-                May 11, 2025
+                {new Date().toLocaleDateString()}
               </h1>
             </div>
 

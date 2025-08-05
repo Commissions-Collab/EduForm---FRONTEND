@@ -1,36 +1,83 @@
 // src/components/UserComponents/StudentGradesTable.jsx
 import React from "react";
 import { LuGauge, LuAward, LuArrowUp, LuArrowDown } from "react-icons/lu";
-import { useStoreUser } from "../../stores/useStoreUser"; // Still import the store for gradesData
+import { useStoreUser } from "../../stores/useStoreUser";
 
 const StudentGradesTable = () => {
     const {
         gradesData,
-        quarterlyAverage,
-        honorsEligibility,
-        loading,
-        error,
-    } = useStoreUser(); // These remain managed by Zustand internally within the hook
+        gradesLoading,
+        gradesError,
+    } = useStoreUser();
 
-    // The effect to fetch grades based on selectedQuarter would still be in useStoreUser
-    // but setSelectedQuarter is now called from a prop, which then updates the store.
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "above": return "bg-green-500";
-            case "below": return "bg-red-500";
-            default: return "bg-yellow-500";
-        }
+    const getStatusColor = (grade, classAverage) => {
+        if (!classAverage) return "bg-gray-500";
+        if (grade > classAverage) return "bg-green-500";
+        if (grade < classAverage) return "bg-red-500";
+        return "bg-yellow-500";
     };
 
     const getTrendColor = (trend) => {
-        if (trend.includes("+")) return "text-green-600";
-        if (trend.includes("-")) return "text-red-600";
+        if (trend > 0) return "text-green-600";
+        if (trend < 0) return "text-red-600";
         return "text-gray-600";
     };
 
+    if (gradesLoading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    if (gradesError) {
+        return (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <div className="flex items-center mb-4">
+                    <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                    </div>
+                    <div className="ml-3">
+                        <h3 className="text-sm font-medium text-yellow-800">
+                            No Grades Available
+                        </h3>
+                    </div>
+                </div>
+                <div className="text-sm text-yellow-700">
+                    <p>{gradesError}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Check if grades data is empty
+    if (!gradesData.grades || gradesData.grades.length === 0) {
+        return (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <div className="flex items-center mb-4">
+                    <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                    </div>
+                    <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">
+                            No Grades Recorded Yet
+                        </h3>
+                    </div>
+                </div>
+                <div className="text-sm text-blue-700">
+                    <p>Your grades will appear here once they are recorded by your teachers.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="mx-auto"> {/* Removed min-h-screen bg-gray-50 p-4 as header is now outside */}
+        <div className="mx-auto">
             {/* Main Content Container */}
             <div className="bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
                 <div className="p-6 sm:p-8 lg:p-10">
@@ -68,15 +115,15 @@ const StudentGradesTable = () => {
                                             Quarterly Average
                                         </span>
                                         <span className="text-2xl sm:text-3xl font-bold text-blue-900">
-                                            {quarterlyAverage}%
+                                            {gradesData.quarter_average}%
                                         </span>
                                     </div>
                                 </div>
-                                {honorsEligibility && (
+                                {gradesData.honors_eligibility && (
                                     <div className="flex items-center gap-3 bg-yellow-100 px-4 py-2 rounded-full border border-yellow-200">
                                         <LuAward className="w-5 h-5 text-yellow-600" />
                                         <span className="text-yellow-800 font-semibold text-sm sm:text-base">
-                                            With High Honors Eligibility
+                                            {gradesData.honors_eligibility} Eligibility
                                         </span>
                                     </div>
                                 )}
@@ -107,138 +154,87 @@ const StudentGradesTable = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-12 text-gray-500">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                                Loading grades...
+                                {gradesData.grades.map((grade, index) => (
+                                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                                        <td className="py-3 sm:py-4 px-2">
+                                            <div className="flex items-center gap-3">
+                                                <span className={`w-3 h-3 rounded-full ${getStatusColor(grade.grade, grade.class_average)}`}></span>
+                                                <span className="font-medium text-gray-900 text-sm lg:text-base">
+                                                    {grade.subject}
+                                                </span>
                                             </div>
                                         </td>
-                                    </tr>
-                                ) : error ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-12">
-                                            <div className="text-red-500 font-medium">
-                                                Error: {error}
+                                        <td className="py-3 sm:py-4 px-2">
+                                            <span className="font-semibold text-gray-900 text-sm lg:text-base">
+                                                {grade.grade}%
+                                            </span>
+                                        </td>
+                                        <td className="py-3 sm:py-4 px-2">
+                                            <span className="text-gray-600 text-sm lg:text-base">
+                                                {grade.class_average ? `${grade.class_average}%` : 'N/A'}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 sm:py-4 px-2">
+                                            <div className="flex items-center gap-1">
+                                                {grade.trend > 0 ? (
+                                                    <LuArrowUp className="w-4 h-4 text-green-600" />
+                                                ) : grade.trend < 0 ? (
+                                                    <LuArrowDown className="w-4 h-4 text-red-600" />
+                                                ) : null}
+                                                <span className={`font-medium text-sm lg:text-base ${getTrendColor(grade.trend)}`}>
+                                                    {grade.trend > 0 ? `+${grade.trend}%` : grade.trend < 0 ? `${grade.trend}%` : '0%'}
+                                                </span>
                                             </div>
                                         </td>
-                                    </tr>
-                                ) : gradesData.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-12">
-                                            <div className="text-gray-500 font-medium">
-                                                No grade data available for this quarter.
-                                            </div>
+                                        <td className="py-3 sm:py-4 px-2">
+                                            <span className="text-gray-600 text-sm lg:text-base">
+                                                {grade.teacher}
+                                            </span>
                                         </td>
                                     </tr>
-                                ) : (
-                                    gradesData.map((data, index) => (
-                                        <tr
-                                            key={index}
-                                            className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200"
-                                        >
-                                            <td className="py-3 sm:py-4 px-2">
-                                                <div className="flex items-center gap-2 sm:gap-3">
-                                                    <span className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${getStatusColor(data.status)}`}></span>
-                                                    <span className="font-medium text-gray-900 text-sm lg:text-base">
-                                                        {data.subject}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 sm:py-4 px-2">
-                                                <span className="font-bold text-gray-900 text-sm lg:text-base">
-                                                    {data.grade}%
-                                                </span>
-                                            </td>
-                                            <td className="py-3 sm:py-4 px-2">
-                                                <span className="text-gray-600 text-sm lg:text-base">
-                                                    {data.classAverage}%
-                                                </span>
-                                            </td>
-                                            <td className="py-3 sm:py-4 px-2">
-                                                <div className={`flex items-center gap-1 font-medium text-sm lg:text-base ${getTrendColor(data.trend)}`}>
-                                                    {data.trend.includes("+") && (
-                                                        <LuArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                                                    )}
-                                                    {data.trend.includes("-") && (
-                                                        <LuArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
-                                                    )}
-                                                    <span>{data.trend}</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 sm:py-4 px-2">
-                                                <span className="text-gray-600 text-sm lg:text-base">
-                                                    {data.teacher}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                ))}
                             </tbody>
                         </table>
                     </div>
 
-                    {/* Mobile Card Layout */}
+                    {/* Mobile Cards */}
                     <div className="md:hidden space-y-4">
-                        {loading ? (
-                            <div className="text-center py-12 text-gray-500">
-                                <div className="flex items-center justify-center gap-2">
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                    Loading grades...
+                        {gradesData.grades.map((grade, index) => (
+                            <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`w-3 h-3 rounded-full ${getStatusColor(grade.grade, grade.class_average)}`}></span>
+                                        <h4 className="font-semibold text-gray-900">{grade.subject}</h4>
+                                    </div>
+                                    <span className="font-bold text-lg text-gray-900">{grade.grade}%</span>
                                 </div>
-                            </div>
-                        ) : error ? (
-                            <div className="text-center py-12">
-                                <div className="text-red-500 font-medium">
-                                    Error: {error}
-                                </div>
-                            </div>
-                        ) : gradesData.length === 0 ? (
-                            <div className="text-center py-12">
-                                <div className="text-gray-500 font-medium">
-                                    No grade data available for this quarter.
-                                </div>
-                            </div>
-                        ) : (
-                            gradesData.map((data, index) => (
-                                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`w-3 h-3 rounded-full ${getStatusColor(data.status)}`}></span>
-                                            <span className="font-semibold text-gray-900 text-sm">
-                                                {data.subject}
+                                
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-gray-500">Class Average:</span>
+                                        <span className="ml-2 text-gray-700">{grade.class_average ? `${grade.class_average}%` : 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500">Trend:</span>
+                                        <div className="flex items-center gap-1 ml-2">
+                                            {grade.trend > 0 ? (
+                                                <LuArrowUp className="w-3 h-3 text-green-600" />
+                                            ) : grade.trend < 0 ? (
+                                                <LuArrowDown className="w-3 h-3 text-red-600" />
+                                            ) : null}
+                                            <span className={`font-medium ${getTrendColor(grade.trend)}`}>
+                                                {grade.trend > 0 ? `+${grade.trend}%` : grade.trend < 0 ? `${grade.trend}%` : '0%'}
                                             </span>
                                         </div>
-                                        <div className={`flex items-center gap-1 font-medium text-sm ${getTrendColor(data.trend)}`}>
-                                            {data.trend.includes("+") && (
-                                                <LuArrowUp className="h-3 w-3" />
-                                            )}
-                                            {data.trend.includes("-") && (
-                                                <LuArrowDown className="h-3 w-3" />
-                                            )}
-                                            <span>{data.trend}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-gray-600 block">Grade</span>
-                                            <span className="font-bold text-gray-900">{data.grade}%</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-600 block">Class Average</span>
-                                            <span className="text-gray-900">{data.classAverage}%</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-3 pt-3 border-t border-gray-200">
-                                        <span className="text-gray-600 text-xs">Teacher: </span>
-                                        <span className="text-gray-900 text-sm font-medium">{data.teacher}</span>
                                     </div>
                                 </div>
-                            ))
-                        )}
+                                
+                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                    <span className="text-gray-500 text-sm">Teacher: </span>
+                                    <span className="text-gray-700 text-sm">{grade.teacher}</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
