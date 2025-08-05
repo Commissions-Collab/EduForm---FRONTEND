@@ -9,12 +9,30 @@ export const useAdminStore = create((set, get) => ({
   error: null,
 
   // === Attendance ===
-  records: [],
+  scheduleAttendance: {},
+  studentAttendance: {},
+  attendancePDFBlob: null,
+  weeklySchedule: [],
 
-  fetchAttendanceData: async () => {
+  fetchWeeklySchedule: async () => {
     set({ loading: true, error: null });
-    const scheduleId = getItem("scheduleId", false);
 
+    try {
+      const { data } = await axiosInstance.get(`/teacher/schedule/weekly`);
+      set({ weeklySchedule: data?.data || [] });
+    } catch (err) {
+      console.error("Failed to fetch weekly schedule:", err);
+      set({ error: "Unable to fetch weekly schedule" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // === 2. Get list of students in a schedule
+  fetchScheduleStudents: async () => {
+    set({ loading: true, error: null });
+
+    const scheduleId = getItem("scheduleId", false);
     if (!scheduleId) {
       set({ error: "Schedule not selected", loading: false });
       return;
@@ -24,83 +42,153 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/teacher/schedule/${scheduleId}/students`
       );
-      set({ records: Array.isArray(data) ? data : [] });
+      set({ scheduleAttendance: data?.data || {} });
     } catch (err) {
-      console.error("Failed to fetch attendance:", err);
-      set({ error: "Failed to fetch attendance" });
+      console.error("Failed to fetch students:", err);
+      set({ error: "Unable to fetch students for schedule" });
     } finally {
       set({ loading: false });
     }
   },
 
-  setStatus: async (student_id, status) => {
-    const updated = get().records.map((student) =>
-      student.id === student_id
-        ? {
-            ...student,
-            status,
-            reason: status === "Present" ? "" : student.reason,
-          }
-        : student
-    );
-    set({ records: updated });
-
-    try {
-      await axiosInstance.post("/teacher/attendance/update-individual", {
-        student_id,
-        status,
-      });
-    } catch (err) {
-      console.error("Failed to update status:", err);
-      set({ error: "Failed to update status" });
-    }
-  },
-
-  setReason: async (student_id, reason) => {
-    const updated = get().records.map((student) =>
-      student.id === student_id ? { ...student, reason } : student
-    );
-    set({ records: updated });
-
-    try {
-      await axiosInstance.post("/teacher/attendance/update-individual", {
-        student_id,
-        reason,
-      });
-    } catch (err) {
-      console.error("Failed to update reason:", err);
-      set({ error: "Failed to update reason" });
-    }
-  },
-
-  attendanceSummary: () => {
-    const { records } = get();
-    const total = records.length || 1;
-
-    const count = (status) => records.filter((r) => r.status === status).length;
-
-    return {
-      present: {
-        count: count("Present"),
-        percent: ((count("Present") / total) * 100).toFixed(0),
-      },
-      absent: {
-        count: count("Absent"),
-        percent: ((count("Absent") / total) * 100).toFixed(0),
-      },
-      late: {
-        count: count("Late"),
-        percent: ((count("Late") / total) * 100).toFixed(0),
-      },
-    };
-  },
-
-  downloadAttendancePDF: async () => {
+  updateIndividualAttendance: async (payload) => {
     set({ loading: true, error: null });
-    const sectionId = getItem("sectionId", false);
 
-    if (!sectionId) {
-      set({ error: "Section not selected", loading: false });
+    try {
+      const { data } = await axiosInstance.post(
+        `/teacher/attendance/update-individual`,
+        payload
+      );
+
+      return data;
+    } catch (err) {
+      console.error("Failed to update individual attendance:", err);
+      set({ error: "Update failed" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // === 4. Bulk update attendance
+  updateBulkAttendance: async (payload) => {
+    set({ loading: true, error: null });
+
+    try {
+      const { data } = await axiosInstance.post(
+        `/teacher/attendance/update-bulk`,
+        payload
+      );
+
+      return data;
+    } catch (err) {
+      console.error("Failed to bulk update attendance:", err);
+      set({ error: "Bulk update failed" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // === 5. Update all students with same status (e.g., All Present)
+  updateAllStudentsAttendance: async (payload) => {
+    set({ loading: true, error: null });
+
+    try {
+      const { data } = await axiosInstance.post(
+        `/teacher/attendance/update-all`,
+        payload
+      );
+
+      return data;
+    } catch (err) {
+      console.error("Failed to update all students attendance:", err);
+      set({ error: "Update for all students failed" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // === 6. Fetch Schedule Attendance History
+  fetchScheduleAttendanceHistory: async () => {
+    set({ loading: true, error: null });
+
+    const scheduleId = getItem("scheduleId", false);
+    const startDate = getItem("startDate", false);
+    const endDate = getItem("endDate", false);
+
+    if (!scheduleId) {
+      set({ error: "Schedule not selected", loading: false });
+      return;
+    }
+
+    try {
+      const { data } = await axiosInstance.get(
+        `/teacher/schedule/${scheduleId}/attendance-history`,
+        {
+          params: {
+            start_date: startDate,
+            end_date: endDate,
+          },
+        }
+      );
+
+      set({ scheduleAttendance: data?.data || {} });
+    } catch (err) {
+      console.error("Failed to fetch schedule attendance history:", err);
+      set({ error: "Unable to fetch attendance history" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // === 7. Fetch Student Attendance History
+  fetchStudentAttendanceHistory: async () => {
+    set({ loading: true, error: null });
+
+    const studentId = getItem("studentId", false);
+    const scheduleId = getItem("scheduleId", false);
+    const academicYearId = getItem("academicYearId", false);
+    const startDate = getItem("startDate", false);
+    const endDate = getItem("endDate", false);
+
+    if (!studentId || !scheduleId) {
+      set({ error: "Student or schedule not selected", loading: false });
+      return;
+    }
+
+    try {
+      const { data } = await axiosInstance.get(
+        `/teacher/student/${studentId}/schedule/${scheduleId}/attendance-history`,
+        {
+          params: {
+            academic_year_id: academicYearId,
+            start_date: startDate,
+            end_date: endDate,
+          },
+        }
+      );
+
+      set({ studentAttendance: data?.data || {} });
+    } catch (err) {
+      console.error("Failed to fetch student attendance:", err);
+      set({ error: "Unable to fetch student attendance history" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // === 8. Download Quarterly Attendance PDF
+  downloadQuarterlyAttendancePDF: async () => {
+    set({ loading: true, error: null });
+
+    const sectionId = getItem("sectionId", false);
+    const academicYearId = getItem("academicYearId", false);
+    const quarterId = getItem("quarterId", false);
+
+    if (!sectionId || !academicYearId || !quarterId) {
+      set({
+        error: "Section, Academic Year, or Quarter is not selected",
+        loading: false,
+      });
       return;
     }
 
@@ -109,25 +197,58 @@ export const useAdminStore = create((set, get) => ({
         `/teacher/sections/${sectionId}/attendance/quarterly/pdf`,
         {
           responseType: "blob",
-          headers: { Accept: "application/pdf" },
+          params: {
+            academic_year_id: academicYearId,
+            quarter_id: quarterId,
+          },
+          headers: {
+            Accept: "application/pdf",
+          },
         }
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
+
+      const fileName = `Quarterly_Attendance_Summary_${sectionId}_${quarterId}.pdf`;
       link.href = url;
-      link.setAttribute("download", "Quarterly_Attendance_Summary.pdf");
+      link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
+
+      set({ attendancePDFBlob: blob });
     } catch (err) {
-      console.error("Failed to download PDF:", err);
-      set({ error: err.message || "PDF download failed" });
+      console.error("Failed to download attendance PDF:", err);
+
+      if (
+        err.response &&
+        err.response.data instanceof Blob &&
+        err.response.data.type === "application/json"
+      ) {
+        const text = await err.response.data.text();
+        const json = JSON.parse(text);
+        set({ error: json.message || "Failed to generate PDF" });
+      } else {
+        set({ error: err.message || "PDF download failed" });
+      }
     } finally {
       set({ loading: false });
     }
+  },
+
+  // === Reset
+  resetAttendanceStore: () => {
+    set({
+      loading: false,
+      error: null,
+      scheduleAttendance: {},
+      studentAttendance: {},
+      attendancePDFBlob: null,
+      weeklySchedule: [],
+    });
   },
 
   // === Grades ===
@@ -450,5 +571,212 @@ export const useAdminStore = create((set, get) => ({
   paginatedWorkloadRecords: () => {
     const { workloads, workloadCurrentPage } = get();
     return paginate(workloads, workloadCurrentPage, RECORDS_PER_PAGE);
+  },
+
+  // === Student Approval ===
+  studentRequests: {
+    approved: [],
+    pending: [],
+    rejected: [],
+  },
+  loadingStudentRequests: false,
+  studentRequestError: null,
+
+  fetchStudentRequests: async () => {
+    set({ loadingStudentRequests: true, studentRequestError: null });
+
+    try {
+      const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
+        axiosInstance.get("/teacher/students/pending"),
+        axiosInstance.get("/teacher/students/approved"),
+        axiosInstance.get("/teacher/students/rejected"),
+      ]);
+
+      set({
+        studentRequests: {
+          pending: pendingRes.data.requests?.data || [],
+          approved: approvedRes.data.requests?.data || [],
+          rejected: rejectedRes.data.requests?.data || [],
+        },
+      });
+    } catch (err) {
+      console.error("Failed to fetch student requests:", err);
+      set({ studentRequestError: "Failed to fetch student requests." });
+    } finally {
+      set({ loadingStudentRequests: false });
+    }
+  },
+
+  approveStudentRequest: async (id) => {
+    try {
+      await axiosInstance.put(`/teacher/student-requests/${id}/approve`);
+      // Refresh list after approval
+      get().fetchStudentRequests();
+    } catch (err) {
+      console.error("Approval failed:", err);
+    }
+  },
+
+  rejectStudentRequest: async (id) => {
+    try {
+      await axiosInstance.put(`/teacher/student-requests/${id}/reject`);
+      // Refresh list after rejection
+      get().fetchStudentRequests();
+    } catch (err) {
+      console.error("Rejection failed:", err);
+    }
+  },
+  studentRequestCurrentPage: 1,
+
+  setStudentRequestCurrentPage: (page) =>
+    set({ studentRequestCurrentPage: page }),
+
+  totalStudentRequestPages: () =>
+    Math.ceil(get().studentRequests.pending.length / RECORDS_PER_PAGE),
+
+  paginatedStudentRequests: () => {
+    const { studentRequests, studentRequestCurrentPage } = get();
+    return paginate(
+      studentRequests.pending,
+      studentRequestCurrentPage,
+      RECORDS_PER_PAGE
+    );
+  },
+
+  // === Parent Conference ===
+  conferenceStudents: [],
+  selectedConferenceStudent: null,
+  conferenceSection: "",
+  conferenceLoading: false,
+  conferenceError: null,
+
+  fetchConferenceDashboard: async () => {
+    set({ conferenceLoading: true, conferenceError: null });
+
+    try {
+      const { data } = await axiosInstance.get(
+        "/teacher/parents-conference/dashboard"
+      );
+      set({
+        conferenceSection: data.section || "",
+        conferenceStudents: Array.isArray(data.students) ? data.students : [],
+      });
+    } catch (err) {
+      console.error("Failed to fetch conference dashboard:", err);
+      set({ conferenceError: "Failed to load parent conference data." });
+    } finally {
+      set({ conferenceLoading: false });
+    }
+  },
+
+  fetchConferenceStudent: async (studentId) => {
+    set({ conferenceLoading: true, conferenceError: null });
+
+    try {
+      const { data } = await axiosInstance.get(
+        `/teacher/parents-conference/student-data/${studentId}`
+      );
+      set({ selectedConferenceStudent: data.student });
+    } catch (err) {
+      console.error("Failed to fetch student profile:", err);
+      set({ conferenceError: "Unable to load student profile." });
+    } finally {
+      set({ conferenceLoading: false });
+    }
+  },
+
+  downloadStudentReportCard: async (studentId) => {
+    set({ conferenceLoading: true, conferenceError: null });
+
+    try {
+      const response = await axiosInstance.get(
+        `/teacher/parents-conference/print-student-card/${studentId}`,
+        {
+          responseType: "blob",
+          headers: { Accept: "application/pdf" },
+        }
+      );
+
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Student_Report_Card_${studentId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download report card:", err);
+      set({ conferenceError: "Download failed." });
+    } finally {
+      set({ conferenceLoading: false });
+    }
+  },
+
+  downloadAllReportCards: async () => {
+    set({ conferenceLoading: true, conferenceError: null });
+
+    try {
+      const response = await axiosInstance.get(
+        "/teacher/parents-conference/print-all-student-cards",
+        {
+          responseType: "blob",
+          headers: { Accept: "application/pdf" },
+        }
+      );
+
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "All_Student_Report_Cards.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download all report cards:", err);
+      set({ conferenceError: "Download failed." });
+    } finally {
+      set({ conferenceLoading: false });
+    }
+  },
+
+  // === BMI / Health Profile ===
+  bmiStudents: [],
+  bmiLoading: false,
+  bmiError: null,
+
+  fetchBmiStudents: async (sectionId, academicYearId, quarterId) => {
+    set({ bmiLoading: true, bmiError: null });
+
+    try {
+      const { data } = await axiosInstance.get("/teacher/student-bmi", {
+        params: {
+          section_id: 1,
+          academic_year_id: 2,
+          quarter_id: 1,
+        },
+      });
+
+      set({ bmiStudents: data.students });
+    } catch (err) {
+      console.error("Failed to fetch BMI records:", err);
+      set({ bmiError: "Could not load BMI data." });
+    } finally {
+      set({ bmiLoading: false });
+    }
+  },
+  addStudentBmi: async (bmiData) => {
+    await axiosInstance.post("/teacher/student-bmi", bmiData);
+  },
+
+  updateStudentBmi: async (id, bmiData) => {
+    await axiosInstance.put(`/teacher/student-bmi/${id}`, bmiData);
+  },
+
+  deleteStudentBmi: async (id) => {
+    await axiosInstance.delete(`/teacher/student-bmi/${id}`);
   },
 }));

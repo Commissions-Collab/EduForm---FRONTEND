@@ -5,7 +5,6 @@ import {
   LuUsers,
   LuFileText,
   LuClipboardList,
-  LuSettings,
   LuGraduationCap,
   LuCalendarDays,
   LuHeart,
@@ -21,8 +20,8 @@ import {
   LuHourglass,
   LuUser,
   LuStar,
-  LuCircleAlert,
-  LuFileChartLine, // Add this for notification
+  LuFileChartLine,
+  LuHeartPulse,
 } from "react-icons/lu";
 
 export const superAdminNav = [
@@ -59,6 +58,7 @@ export const adminNav = [
     icon: MdOutlineSpaceDashboard,
     url: "/teacher/dashboard",
   },
+
   {
     name: "Daily Attendance (SF2)",
     icon: LuCalendarCheck,
@@ -67,7 +67,7 @@ export const adminNav = [
   {
     name: "Monthly Summary (SF4)",
     icon: LuCalendarDays,
-    url: "/teacher/monthlySummary",
+    url: "/teacher/attendanceMonthlySummary",
   },
   {
     name: "Academic Records (SF9)",
@@ -88,6 +88,16 @@ export const adminNav = [
     name: "Parent Conference",
     icon: LuUsers,
     url: "/teacher/parentConference",
+  },
+  {
+    name: "Student Approval",
+    icon: LuCircleCheck,
+    url: "/teacher/studentApproval",
+  },
+  {
+    name: "Health Profile",
+    icon: LuHeartPulse,
+    url: "/teacher/healthProfile",
   },
   {
     name: "Textbooks (SF3)",
