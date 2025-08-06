@@ -610,10 +610,10 @@ export const useAdminStore = create((set, get) => ({
   approveStudentRequest: async (id) => {
     try {
       await axiosInstance.put(`/teacher/student-requests/${id}/approve`);
-      // Refresh list after approval
-      get().fetchStudentRequests();
+      get().fetchStudentRequests(); // refresh
     } catch (err) {
       console.error("Approval failed:", err);
+      set({ studentRequestError: "Failed to approve student request." });
     }
   },
 
@@ -624,6 +624,7 @@ export const useAdminStore = create((set, get) => ({
       get().fetchStudentRequests();
     } catch (err) {
       console.error("Rejection failed:", err);
+      set({ studentRequestError: "Failed to reject student request." });
     }
   },
   studentRequestCurrentPage: 1,

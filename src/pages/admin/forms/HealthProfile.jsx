@@ -12,7 +12,7 @@ const HealthProfile = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Health Profile (BMI)</h1>
+      <h1 className="page-title">Health Profile (BMI)</h1>
       <BmiStudentTable
         students={bmiStudents}
         loading={bmiLoading}
