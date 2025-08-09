@@ -4,6 +4,8 @@ import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
 import { useAdminStore } from "../../stores/useAdminStore";
 import { getItem } from "../../lib/utils";
+import { LuLoader, LuUser } from "react-icons/lu";
+import { VscLayoutStatusbar } from "react-icons/vsc";
 
 const GradesTable = () => {
   const {
@@ -31,7 +33,7 @@ const GradesTable = () => {
       {/* Main Table Card */}
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
         {/* Header Section */}
-        <div className="px-4 sm:px-6 py-5 border-b border-gray-200 bg-gray-50">
+        <div className="px-4 sm:px-6 py-5 border-b border-gray-200 ">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
             <div>
               <h2 className="text-xl font-bold text-gray-900">
@@ -61,15 +63,7 @@ const GradesTable = () => {
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading ? (
-          <div className="py-20">
-            <div className="flex flex-col items-center space-y-3">
-              <ClipLoader color="#4F46E5" size={35} />
-              <p className="text-gray-500 text-sm">Loading grade records...</p>
-            </div>
-          </div>
-        ) : error ? (
+        {error ? (
           /* Error State */
           <div className="py-20">
             <div className="flex flex-col items-center space-y-3">
@@ -92,13 +86,13 @@ const GradesTable = () => {
                 <h3 className="text-red-900 font-medium">
                   Error Loading Grades
                 </h3>
-                <p className="text-red-600 text-sm mt-1">
+                <p className="text-red-900 text-sm mt-1">
                   Failed to fetch grades. Please try again.
                 </p>
               </div>
             </div>
           </div>
-        ) : !hasRecords ? (
+        ) : !hasRecords && !loading ? (
           /* Empty State */
           <div className="py-20">
             <div className="flex flex-col items-center space-y-3">
@@ -127,13 +121,16 @@ const GradesTable = () => {
           </div>
         ) : (
           <>
-            {/* Desktop Table View (hidden on mobile) */}
+            {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 min-w-[200px]">
-                      Student Name
+                      <div className="flex gap-2">
+                        <LuUser className="w-4 h-4" />
+                        Student Name
+                      </div>
                     </th>
                     {subjects.map((subject) => (
                       <th
@@ -144,30 +141,114 @@ const GradesTable = () => {
                       </th>
                     ))}
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider min-w-[120px]">
-                      Status
+                      <div className="flex justify-center gap-2">
+                        <VscLayoutStatusbar className="w-4 h-4" />
+                        Status
+                      </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {records.map((student, index) => (
-                    <tr
-                      key={student.id}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                      }`}
-                    >
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900 sticky left-0 bg-inherit z-10">
-                        {student.name}
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan={subjects.length + 2}
+                        className="py-10 text-center"
+                      >
+                        <div className="flex flex-col items-center space-y-3">
+                          <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
+                          <p className="text-gray-500 text-sm">
+                            Loading grade records...
+                          </p>
+                        </div>
                       </td>
+                    </tr>
+                  ) : (
+                    records.map((student, index) => (
+                      <tr
+                        key={student.id}
+                        className={`hover:bg-gray-50 transition-colors ${
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                        }`}
+                      >
+                        <td className="px-6 py-4 text-sm font-semibold text-gray-900 sticky left-0 bg-inherit z-10">
+                          {student.name}
+                        </td>
+                        {subjects.map((subject) => {
+                          const grade = student.grades.find(
+                            (g) => g.subject_id === subject.id
+                          );
+                          return (
+                            <td
+                              key={subject.id}
+                              className="px-4 py-4 text-center"
+                            >
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                disabled={!grade?.can_edit}
+                                value={grade?.grade ?? ""}
+                                onChange={(e) =>
+                                  updateGrade({
+                                    student_id: student.id,
+                                    subject_id: subject.id,
+                                    quarter_id: quarterId,
+                                    grade:
+                                      e.target.value === ""
+                                        ? null
+                                        : Number(e.target.value),
+                                  })
+                                }
+                                className="w-16 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                              />
+                            </td>
+                          );
+                        })}
+                        <td className="px-6 py-4 text-center">
+                          <StatusBadge status={student.status} />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden divide-y divide-gray-200">
+              {loading ? (
+                <div className="py-10 flex flex-col items-center space-y-3">
+                  <ClipLoader color="#4F46E5" size={35} />
+                  <p className="text-gray-500 text-sm">
+                    Loading grade records...
+                  </p>
+                </div>
+              ) : (
+                records.map((student) => (
+                  <div key={student.id} className="p-4 sm:p-6 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          {student.name}
+                        </h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Grade Entry
+                        </p>
+                      </div>
+                      <StatusBadge status={student.status} />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {subjects.map((subject) => {
                         const grade = student.grades.find(
                           (g) => g.subject_id === subject.id
                         );
                         return (
-                          <td
-                            key={subject.id}
-                            className="px-4 py-4 text-center"
-                          >
+                          <div key={subject.id} className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              {subject.name}
+                            </label>
                             <input
                               type="number"
                               min="0"
@@ -185,72 +266,16 @@ const GradesTable = () => {
                                       : Number(e.target.value),
                                 })
                               }
-                              className="w-16 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                              className="w-full p-3 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                              placeholder="Enter grade (0-100)"
                             />
-                          </td>
+                          </div>
                         );
                       })}
-                      <td className="px-6 py-4 text-center">
-                        <StatusBadge status={student.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Card View (shown on mobile and tablet) */}
-            <div className="lg:hidden divide-y divide-gray-200">
-              {records.map((student, index) => (
-                <div key={student.id} className="p-4 sm:p-6 space-y-4">
-                  {/* Student Header */}
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {student.name}
-                      </h4>
-                      <p className="text-sm text-gray-500 mt-1">Grade Entry</p>
                     </div>
-                    <StatusBadge status={student.status} />
                   </div>
-
-                  {/* Subjects Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {subjects.map((subject) => {
-                      const grade = student.grades.find(
-                        (g) => g.subject_id === subject.id
-                      );
-                      return (
-                        <div key={subject.id} className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
-                            {subject.name}
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            disabled={!grade?.can_edit}
-                            value={grade?.grade ?? ""}
-                            onChange={(e) =>
-                              updateGrade({
-                                student_id: student.id,
-                                subject_id: subject.id,
-                                quarter_id: quarterId,
-                                grade:
-                                  e.target.value === ""
-                                    ? null
-                                    : Number(e.target.value),
-                              })
-                            }
-                            className="w-full p-3 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                            placeholder="Enter grade (0-100)"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </>
         )}

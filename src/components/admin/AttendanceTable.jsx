@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LuCircleCheck, LuCircleX, LuClock } from "react-icons/lu";
+import { LuCircleCheck, LuCircleX, LuClock, LuLoader } from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
 import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
@@ -57,7 +57,7 @@ const AttendanceTable = () => {
               <tr>
                 <td colSpan={4}>
                   <div className="flex justify-center items-center h-64">
-                    <ClipLoader color="#3730A3" size={30} />
+                    <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
                   </div>
                 </td>
               </tr>

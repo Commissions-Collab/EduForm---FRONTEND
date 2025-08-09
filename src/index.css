@@ -127,7 +127,7 @@ input[type="number"] {
 /* ===== CSS Classes (add to your global CSS or Tailwind config) ===== */
 
 .page-title {
-    @apply text-2xl font-bold text-gray-900;
+    @apply text-3xl font-bold text-gray-900 mb-2;
 }
 
 .between {

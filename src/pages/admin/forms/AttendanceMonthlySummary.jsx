@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { LuPrinter, LuDownload, LuCalendar, LuUsers } from "react-icons/lu";
+import {
+  LuPrinter,
+  LuDownload,
+  LuCalendar,
+  LuUsers,
+  LuLoader,
+} from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
 
 import { useAdminStore } from "../../../stores/useAdminStore";
@@ -14,7 +20,6 @@ const AttendanceMonthlySummary = () => {
     error,
   } = useAdminStore();
 
-  const [sectionName, setSectionName] = useState("Grade 10-A");
   const [downloadLoading, setDownloadLoading] = useState(false);
 
   useEffect(() => {
@@ -105,8 +110,14 @@ const AttendanceMonthlySummary = () => {
     <main className="p-4">
       <div className="between mb-6">
         <div>
-          <h1 className="page-title">Monthly Attendance Summary (SF4)</h1>
-          <p className="text-gray-600 text-sm mt-1">{sectionName}</p>
+          <div>
+            <h1 className="page-title">Monthly Attendance Summary </h1>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="px-2 py-1 bg-blue-100 text-blue-800  rounded-full font-medium">
+                SF4
+              </span>
+            </div>
+          </div>
         </div>
         <div className="flex space-x-3">
           <button
@@ -124,7 +135,7 @@ const AttendanceMonthlySummary = () => {
             disabled={downloadLoading || loading}
           >
             {downloadLoading ? (
-              <ClipLoader color="#666666" size={15} />
+              <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
             ) : (
               <LuDownload size={15} />
             )}
@@ -300,8 +311,8 @@ const AttendanceMonthlySummary = () => {
       {/* Daily Attendance Overview */}
       {loading ? (
         <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="flex justify-center items-center">
-            <ClipLoader color="#3730A3" size={40} />
+          <div className="flex flex-col justify-center items-center">
+            <LuLoader className="w-9 h-9 text-blue-700 animate-spin" />
             <span className="ml-3 text-gray-600">
               Loading attendance data...
             </span>

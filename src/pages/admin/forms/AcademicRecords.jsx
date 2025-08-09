@@ -16,16 +16,12 @@ const Grades = () => {
         {/* Header Section */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-4 sm:space-y-0">
-            <div className="flex-1">
-              <h1 className="page-title">Quarterly Grade Encoding</h1>
-              <div className="mt-2 flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                <p className="text-sm sm:text-base text-gray-600">
-                  SF9: Grade 10-A
-                </p>
-                <div className="flex items-center px-3 py-1.5 text-sm font-medium rounded-lg bg-amber-50 text-amber-700 border border-amber-200 w-fit">
-                  <LuCalendar size={16} className="mr-2 flex-shrink-0" />
-                  <span>Locks in: 5 days</span>
-                </div>
+            <div>
+              <h1 className="page-title">Grades </h1>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="px-2 py-1 bg-blue-100 text-blue-800  rounded-full font-medium">
+                  SF9
+                </span>
               </div>
             </div>
 

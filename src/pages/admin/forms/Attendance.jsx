@@ -95,10 +95,14 @@ const DailyAttendance = () => {
     <main className="p-4">
       <div className="between mb-6">
         <div>
-          <h1 className="page-title">Daily Attendance (SF2)</h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Mark attendance for: {new Date(selectedDate).toLocaleDateString()}
-          </p>
+          <div>
+            <h1 className="page-title">Daily Attendance </h1>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="px-2 py-1 bg-blue-100 text-blue-800  rounded-full font-medium">
+                SF2
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex space-x-3">

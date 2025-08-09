@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { getItem, paginate } from "../lib/utils";
+import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 10;
 
@@ -611,20 +612,23 @@ export const useAdminStore = create((set, get) => ({
     try {
       await axiosInstance.put(`/teacher/student-requests/${id}/approve`);
       get().fetchStudentRequests(); // refresh
+      toast.success("Student request approved successfully!");
     } catch (err) {
       console.error("Approval failed:", err);
       set({ studentRequestError: "Failed to approve student request." });
+      toast.error("Failed to approve student request.");
     }
   },
 
   rejectStudentRequest: async (id) => {
     try {
       await axiosInstance.put(`/teacher/student-requests/${id}/reject`);
-      // Refresh list after rejection
-      get().fetchStudentRequests();
+      get().fetchStudentRequests(); // refresh
+      toast.success("Student request rejected successfully!");
     } catch (err) {
       console.error("Rejection failed:", err);
       set({ studentRequestError: "Failed to reject student request." });
+      toast.error("Failed to reject student request.");
     }
   },
   studentRequestCurrentPage: 1,

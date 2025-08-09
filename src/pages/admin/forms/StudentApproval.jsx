@@ -1,5 +1,18 @@
 import React, { useEffect } from "react";
-import { ClipLoader } from "react-spinners";
+import {
+  LuUserPlus,
+  LuUsers,
+  LuCalendar,
+  LuUser,
+  LuFileText,
+  LuCheck,
+  LuX,
+  LuClock,
+  LuTriangleAlert,
+  LuMenu,
+  LuLoader,
+  LuIdCard,
+} from "react-icons/lu";
 import { useAdminStore } from "../../../stores/useAdminStore";
 import Pagination from "../../../components/admin/Pagination";
 
@@ -14,6 +27,7 @@ const StudentApproval = () => {
     studentRequestCurrentPage,
     totalStudentRequestPages,
     setStudentRequestCurrentPage,
+    studentRequests,
   } = useAdminStore();
 
   useEffect(() => {
@@ -21,355 +35,238 @@ const StudentApproval = () => {
   }, []);
 
   const currentRequests = paginatedStudentRequests();
+  const totalRequests = studentRequests?.length || 0;
+
+  const getInitials = (firstName, lastName) =>
+    `${firstName?.charAt(0) || ""}${lastName?.charAt(0) || ""}`.toUpperCase() ||
+    "?";
+
+  const indexOfLast = studentRequestCurrentPage * 10;
+  const indexOfFirst = indexOfLast - 10;
 
   return (
-    <div className="bg-gray-50">
-      <main className="p-4">
-        {/* Header Section */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-            <div>
-              <h1 className="page-title">Student Approval</h1>
-              <p className="mt-2 text-sm text-gray-600 hidden sm:block">
-                Review and approve pending student registration requests
-              </p>
-            </div>
-            <div className="flex items-center justify-start sm:justify-end">
-              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                {currentRequests.length} pending
-              </div>
+    <main className=" bg-gray-50/50 p-4 lg:p-6">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="page-title">Student Approval</h1>
+            <p className="text-sm text-gray-600">
+              Review and process pending student registration requests
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+              <LuClock className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {totalRequests} Pending Request{totalRequests !== 1 ? "s" : ""}
+              </span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="bg-white shadow-xl rounded-xl border border-gray-200 overflow-hidden">
-          {/* Table Header - Hidden on mobile */}
-          <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 hidden sm:block">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Pending Requests
-            </h3>
+      {/* Main Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Pending Registration Requests
+              </h2>
+              <p className="text-sm text-gray-600">
+                Review student information and approve or reject applications
+              </p>
+            </div>
+            {!loadingStudentRequests && currentRequests.length > 0 && (
+              <div className="text-sm text-gray-500">
+                Showing {indexOfFirst + 1} to{" "}
+                {Math.min(indexOfLast, totalRequests)} of {totalRequests}{" "}
+                requests
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Loading State */}
-          {loadingStudentRequests ? (
-            <div className="py-16 sm:py-20">
-              <div className="flex flex-col items-center space-y-3">
-                <ClipLoader size={35} color="#4F46E5" />
-                <p className="text-gray-500 text-sm">
-                  Loading student requests...
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50/50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <LuUser className="w-4 h-4" />
+                    Student Information
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <LuFileText className="w-4 h-4" />
+                    LRN
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <div className="flex items-center justify-center gap-2">
+                    <LuIdCard className="w-4 h-4" />
+                    Gender
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Parent/Guardian
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loadingStudentRequests ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
+                      <p className="text-sm text-gray-500">
+                        Loading student requests...
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : currentRequests.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                        <LuUsers className="w-6 h-6 text-gray-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          No pending requests
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          All student registration requests have been processed
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                currentRequests.map((request) => (
+                  <tr
+                    key={request.id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                          {getInitials(request.first_name, request.last_name)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {request.first_name} {request.middle_name}{" "}
+                            {request.last_name}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Student Registration
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-mono font-medium text-gray-900 bg-gray-50 px-2 py-1 rounded">
+                        {request.LRN}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="space-y-1">
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            request.gender?.toLowerCase() === "male"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-pink-100 text-pink-800"
+                          }`}
+                        >
+                          {request.gender}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {request.parents_fullname || (
+                          <span className="text-gray-400 italic">
+                            Not provided
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => approveStudentRequest(request.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors"
+                        >
+                          <LuCheck className="w-3.5 h-3.5" />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => rejectStudentRequest(request.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors"
+                        >
+                          <LuX className="w-3.5 h-3.5" />
+                          Reject
+                        </button>
+                        <button className="inline-flex items-center gap-1 px-2 py-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                          <LuMenu className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Error Display */}
+        {studentRequestError && (
+          <div className="px-6 py-4 border-t border-red-200 bg-red-50">
+            <div className="flex items-center gap-3">
+              <LuTriangleAlert className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-red-800">
+                  Processing Error
+                </p>
+                <p className="text-xs text-red-600 mt-1">
+                  {studentRequestError}
                 </p>
               </div>
             </div>
-          ) : currentRequests.length === 0 ? (
-            /* Empty State */
-            <div className="py-16 sm:py-20">
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                </div>
-                <div className="text-center">
-                  <h3 className="text-gray-900 font-medium">
-                    No pending requests
-                  </h3>
-                  <p className="text-gray-500 text-sm mt-1">
-                    All student requests have been processed.
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table View (hidden on mobile) */}
-              <div className="hidden lg:block overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        LRN
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Student Name
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Birthday
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Gender
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Parent's Name
-                      </th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentRequests.map((request, index) => (
-                      <tr
-                        key={request.id}
-                        className={`hover:bg-gray-50 transition-colors ${
-                          index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                        }`}
-                      >
-                        <td className="px-6 py-5">
-                          <div className="text-sm font-medium text-gray-900">
-                            {request.LRN}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="text-sm font-medium text-gray-900">
-                            {request.first_name} {request.middle_name}{" "}
-                            {request.last_name}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="text-sm text-gray-700">
-                            {request.birthday}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full uppercase ${
-                              request.gender === "male"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-pink-100 text-pink-800"
-                            }`}
-                          >
-                            {request.gender}
-                          </span>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="text-sm text-gray-700">
-                            {request.parents_fullname || "N/A"}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex justify-center space-x-2">
-                            <button
-                              onClick={() => approveStudentRequest(request.id)}
-                              className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                            >
-                              <svg
-                                className="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => rejectStudentRequest(request.id)}
-                              className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                            >
-                              <svg
-                                className="w-4 h-4 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                              Reject
-                            </button>
-                          </div>
-                          {/* Display error */}
-                          {studentRequestError && (
-                            <div className="mt-2 text-center">
-                              <div className="inline-flex items-center px-2 py-1 bg-red-50 border border-red-200 rounded-md">
-                                <svg
-                                  className="w-4 h-4 text-red-500 mr-1"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                                  />
-                                </svg>
-                                <span className="text-xs text-red-700">
-                                  {studentRequestError}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          </div>
+        )}
 
-              {/* Mobile Card View (shown on mobile and tablet) */}
-              <div className="lg:hidden divide-y divide-gray-200">
-                {currentRequests.map((request, index) => (
-                  <div key={request.id} className="p-4 sm:p-6 space-y-4">
-                    {/* Student Info Header */}
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-2 sm:space-y-0">
-                      <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          {request.first_name} {request.middle_name}{" "}
-                          {request.last_name}
-                        </h4>
-                        <p className="text-sm text-gray-600 mt-1">
-                          LRN: {request.LRN}
-                        </p>
-                      </div>
-                      <span
-                        className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${
-                          request.gender === "Male"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-pink-100 text-pink-800"
-                        }`}
-                      >
-                        {request.gender}
-                      </span>
-                    </div>
-
-                    {/* Student Details Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Birthday
-                        </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {request.birthday}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Parent's Name
-                        </dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {request.parents_fullname || "N/A"}
-                        </dd>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
-                      <button
-                        onClick={() => approveStudentRequest(request.id)}
-                        className="flex-1 inline-flex justify-center items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                      >
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => rejectStudentRequest(request.id)}
-                        className="flex-1 inline-flex justify-center items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                      >
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                        Reject
-                      </button>
-                    </div>
-
-                    {/* Error Message for Mobile */}
-                    {studentRequestError && (
-                      <div className="mt-3">
-                        <div className="flex items-center p-3 bg-red-50 border border-red-200 rounded-md">
-                          <svg
-                            className="w-4 h-4 text-red-500 mr-2 flex-shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                            />
-                          </svg>
-                          <span className="text-sm text-red-700">
-                            {studentRequestError}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Pagination */}
-          {!loadingStudentRequests && currentRequests.length > 0 && (
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <Pagination
-                currentPage={studentRequestCurrentPage}
-                totalPages={totalStudentRequestPages()}
-                onPrevious={() =>
-                  setStudentRequestCurrentPage(
-                    Math.max(studentRequestCurrentPage - 1, 1)
+        {/* Pagination */}
+        {!loadingStudentRequests && currentRequests.length > 0 && (
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <Pagination
+              currentPage={studentRequestCurrentPage}
+              totalPages={totalStudentRequestPages()}
+              onPrevious={() =>
+                setStudentRequestCurrentPage(
+                  Math.max(studentRequestCurrentPage - 1, 1)
+                )
+              }
+              onNext={() =>
+                setStudentRequestCurrentPage(
+                  Math.min(
+                    studentRequestCurrentPage + 1,
+                    totalStudentRequestPages()
                   )
-                }
-                onNext={() =>
-                  setStudentRequestCurrentPage(
-                    Math.min(
-                      studentRequestCurrentPage + 1,
-                      totalStudentRequestPages()
-                    )
-                  )
-                }
-              />
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+                )
+              }
+            />
+          </div>
+        )}
+      </div>
+    </main>
   );
 };
 

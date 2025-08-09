@@ -45,9 +45,7 @@ const ParentConference = () => {
   return (
     <main className="p-4">
       <div className="between">
-        <div className="page-title">
-          Parent-Teacher Conference Prep: {conferenceSection}
-        </div>
+        <div className="page-title">Parent-Teacher Conference</div>
         <div className="items-center">
           <div className="flex space-x-3">
             <button
