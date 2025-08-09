@@ -28,46 +28,59 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar h-screen flex flex-col max-h-screen overflow-hidden">
-      <h2 className="text-3xl font-bold mb-6 text-[#3730A3]">AcadFlow</h2>
+      <div className="px-7 py-5 gap-4 flex items-center border-b border-gray-200">
+        <div className="w-13 h-13 bg-indigo-100  rounded-full flex items-center justify-center">
+          <img
+            src="/logo/acadflow.png"
+            alt="AcadFlow Logo"
+            className="w-10 h-10 object-contain"
+          />
+        </div>
 
-      {/* Scrollable menu area */}
-      <div className="flex-1 overflow-y-auto pr-1">
-        <ul className="flex flex-col gap-1.5">
-          {navItems.length > 0 ? (
-            <ul className="flex flex-col mt-10 gap-1.5">
+        <h2 className="text-2xl font-bold text-[#3730A3] hidden lg:block">
+          AcadFlow
+        </h2>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6">
+        {navItems.length > 0 ? (
+          <nav>
+            <ul className="space-y-2">
               {navItems.map(({ name, url, icon: Icon }) => (
                 <li key={name}>
                   <Link
                     to={url}
-                    className={`flex items-center gap-3 p-3 rounded-lg transition ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
                       pathname === url
-                        ? "bg-[#3730A3] font-semibold text-white"
-                        : "text-gray-700 font-medium hover:bg-gray-100"
+                        ? "bg-[#3730A3] text-white shadow-sm"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     {Icon && (
                       <Icon
-                        size={21}
-                        className={`${
-                          pathname === url ? "text-white" : "text-gray-700"
+                        size={20}
+                        className={`flex-shrink-0 ${
+                          pathname === url ? "text-white" : "text-gray-500 ]"
                         }`}
                       />
                     )}
-                    <p className="hidden lg:block text-[14px]">{name}</p>
+                    <span className="hidden lg:block text-sm font-medium truncate">
+                      {name}
+                    </span>
                   </Link>
                 </li>
               ))}
             </ul>
-          ) : (
-            <div className="text-sm text-gray-500 mt-10 px-3">
-              No navigation available for your role.
-            </div>
-          )}
-        </ul>
+          </nav>
+        ) : (
+          <div className="text-sm text-gray-500 px-3 py-4 text-center">
+            No navigation available for your role.
+          </div>
+        )}
       </div>
 
-      {/* Footer sticks to bottom inside sidebar */}
-      <div className="py-1">
+      {/* Footer */}
+      <div className="border-t border-gray-100 p-6">
         <SidebarFooter />
       </div>
     </aside>
