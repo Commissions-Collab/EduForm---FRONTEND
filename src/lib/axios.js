@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getItem } from "./utils";
 
 export const axiosInstance = axios.create({
   baseURL: "http://127.0.0.1:8000/api",
@@ -9,11 +10,22 @@ export const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = getItem("token", false);
   if (token) {
-    // Handle both string and parsed token formats
-    const tokenValue = typeof token === 'string' ? token : JSON.stringify(token);
-    config.headers.Authorization = `Bearer ${tokenValue}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+// Optional: Add response interceptor for better error handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle 401 errors globally if needed
+    if (error.response?.status === 401) {
+      // Token might be expired - could dispatch logout here if needed
+      // Note: Avoid circular imports with auth store
+    }
+    return Promise.reject(error);
+  }
+);

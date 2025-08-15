@@ -5,6 +5,26 @@ import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 10;
 
+// Helper function to handle errors consistently
+const handleError = (err, defaultMessage, set) => {
+  console.error(defaultMessage, err);
+  const message = err?.response?.data?.message || defaultMessage;
+  set({ error: message, loading: false });
+  return message;
+};
+
+// Helper function for PDF downloads
+const downloadPDF = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
 export const useAdminStore = create((set, get) => ({
   loading: false,
   error: null,
@@ -20,16 +40,12 @@ export const useAdminStore = create((set, get) => ({
 
     try {
       const { data } = await axiosInstance.get(`/teacher/schedule/weekly`);
-      set({ weeklySchedule: data?.data || [] });
+      set({ weeklySchedule: data?.data || [], loading: false });
     } catch (err) {
-      console.error("Failed to fetch weekly schedule:", err);
-      set({ error: "Unable to fetch weekly schedule" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Unable to fetch weekly schedule", set);
     }
   },
 
-  // === 2. Get list of students in a schedule
   fetchScheduleStudents: async () => {
     set({ loading: true, error: null });
 
@@ -43,12 +59,9 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/teacher/schedule/${scheduleId}/students`
       );
-      set({ scheduleAttendance: data?.data || {} });
+      set({ scheduleAttendance: data?.data || {}, loading: false });
     } catch (err) {
-      console.error("Failed to fetch students:", err);
-      set({ error: "Unable to fetch students for schedule" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Unable to fetch students for schedule", set);
     }
   },
 
@@ -60,17 +73,13 @@ export const useAdminStore = create((set, get) => ({
         `/teacher/attendance/update-individual`,
         payload
       );
-
+      set({ loading: false });
       return data;
     } catch (err) {
-      console.error("Failed to update individual attendance:", err);
-      set({ error: "Update failed" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Update failed", set);
     }
   },
 
-  // === 4. Bulk update attendance
   updateBulkAttendance: async (payload) => {
     set({ loading: true, error: null });
 
@@ -79,17 +88,13 @@ export const useAdminStore = create((set, get) => ({
         `/teacher/attendance/update-bulk`,
         payload
       );
-
+      set({ loading: false });
       return data;
     } catch (err) {
-      console.error("Failed to bulk update attendance:", err);
-      set({ error: "Bulk update failed" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Bulk update failed", set);
     }
   },
 
-  // === 5. Update all students with same status (e.g., All Present)
   updateAllStudentsAttendance: async (payload) => {
     set({ loading: true, error: null });
 
@@ -98,17 +103,13 @@ export const useAdminStore = create((set, get) => ({
         `/teacher/attendance/update-all`,
         payload
       );
-
+      set({ loading: false });
       return data;
     } catch (err) {
-      console.error("Failed to update all students attendance:", err);
-      set({ error: "Update for all students failed" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Update for all students failed", set);
     }
   },
 
-  // === 6. Fetch Schedule Attendance History
   fetchScheduleAttendanceHistory: async () => {
     set({ loading: true, error: null });
 
@@ -131,17 +132,12 @@ export const useAdminStore = create((set, get) => ({
           },
         }
       );
-
-      set({ scheduleAttendance: data?.data || {} });
+      set({ scheduleAttendance: data?.data || {}, loading: false });
     } catch (err) {
-      console.error("Failed to fetch schedule attendance history:", err);
-      set({ error: "Unable to fetch attendance history" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Unable to fetch attendance history", set);
     }
   },
 
-  // === 7. Fetch Student Attendance History
   fetchStudentAttendanceHistory: async () => {
     set({ loading: true, error: null });
 
@@ -167,17 +163,12 @@ export const useAdminStore = create((set, get) => ({
           },
         }
       );
-
-      set({ studentAttendance: data?.data || {} });
+      set({ studentAttendance: data?.data || {}, loading: false });
     } catch (err) {
-      console.error("Failed to fetch student attendance:", err);
-      set({ error: "Unable to fetch student attendance history" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Unable to fetch student attendance history", set);
     }
   },
 
-  // === 8. Download Quarterly Attendance PDF
   downloadQuarterlyAttendancePDF: async () => {
     set({ loading: true, error: null });
 
@@ -209,38 +200,34 @@ export const useAdminStore = create((set, get) => ({
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
       const fileName = `Quarterly_Attendance_Summary_${sectionId}_${quarterId}.pdf`;
-      link.href = url;
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      downloadPDF(blob, fileName);
 
-      set({ attendancePDFBlob: blob });
+      set({ attendancePDFBlob: blob, loading: false });
     } catch (err) {
       console.error("Failed to download attendance PDF:", err);
 
-      if (
-        err.response &&
-        err.response.data instanceof Blob &&
-        err.response.data.type === "application/json"
-      ) {
-        const text = await err.response.data.text();
-        const json = JSON.parse(text);
-        set({ error: json.message || "Failed to generate PDF" });
-      } else {
-        set({ error: err.message || "PDF download failed" });
+      try {
+        if (
+          err.response &&
+          err.response.data instanceof Blob &&
+          err.response.data.type === "application/json"
+        ) {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          set({
+            error: json.message || "Failed to generate PDF",
+            loading: false,
+          });
+        } else {
+          set({ error: err.message || "PDF download failed", loading: false });
+        }
+      } catch {
+        set({ error: "PDF download failed", loading: false });
       }
-    } finally {
-      set({ loading: false });
     }
   },
 
-  // === Reset
   resetAttendanceStore: () => {
     set({
       loading: false,
@@ -270,12 +257,9 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         "/teacher/academic-records/filter-options"
       );
-      set({ filters: data });
+      set({ filters: data, loading: false });
     } catch (err) {
-      console.error("Failed to fetch filter options:", err);
-      set({ error: "Unable to load filter options" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Unable to load filter options", set);
     }
   },
 
@@ -301,12 +285,10 @@ export const useAdminStore = create((set, get) => ({
       set({
         students: Array.isArray(data.students) ? data.students : [],
         subjects: Array.isArray(data.subjects) ? data.subjects : [],
+        loading: false,
       });
     } catch (err) {
-      console.error("Grades fetch failed:", err);
-      set({ error: "Failed to fetch grades" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Failed to fetch grades", set);
     }
   },
 
@@ -332,8 +314,7 @@ export const useAdminStore = create((set, get) => ({
 
       set({ students: updatedStudents });
     } catch (err) {
-      console.error("Failed to update grade:", err);
-      set({ error: "Grade update failed" });
+      handleError(err, "Grade update failed", set);
     }
   },
 
@@ -356,13 +337,11 @@ export const useAdminStore = create((set, get) => ({
         "/teacher/academic-records/statistics",
         { params }
       );
+      set({ loading: false });
       return data;
     } catch (err) {
-      console.error("Failed to fetch statistics:", err);
-      set({ error: "Unable to fetch grade statistics" });
+      handleError(err, "Unable to fetch grade statistics", set);
       return null;
-    } finally {
-      set({ loading: false });
     }
   },
 
@@ -408,6 +387,7 @@ export const useAdminStore = create((set, get) => ({
         overallPromotionStats: data.overall_statistics || null,
         isPromotionAccessible: data.accessible ?? false,
         promotionMessage: null,
+        loading: false,
       });
     } catch (err) {
       const message =
@@ -419,9 +399,8 @@ export const useAdminStore = create((set, get) => ({
           content: message,
         },
         isPromotionAccessible: false,
+        loading: false,
       });
-    } finally {
-      set({ loading: false });
     }
   },
 
@@ -464,12 +443,10 @@ export const useAdminStore = create((set, get) => ({
       set({
         attendanceCertificates: response.data.perfect_attendance || [],
         honorCertificates: response.data.honor_roll || [],
+        loading: false,
       });
     } catch (err) {
-      console.error("Failed to fetch admin certificates:", err);
-      set({ error: "Failed to fetch certificates" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Failed to fetch certificates", set);
     }
   },
 
@@ -502,12 +479,9 @@ export const useAdminStore = create((set, get) => ({
     try {
       const response = await axiosInstance.get("/teacher/book-management");
       const textbooks = response.data?.books?.data || [];
-      set({ textbooks });
+      set({ textbooks, loading: false });
     } catch (err) {
-      console.error("Textbook fetch failed:", err);
-      set({ error: "Failed to fetch textbooks" });
-    } finally {
-      set({ loading: false });
+      handleError(err, "Failed to fetch textbooks", set);
     }
   },
 
@@ -553,14 +527,10 @@ export const useAdminStore = create((set, get) => ({
         availableQuarters: Array.isArray(data?.available_quarters)
           ? data.available_quarters
           : [],
+        loading: false,
       });
     } catch (error) {
-      console.error("Workload fetch failed:", error);
-      const errorMessage =
-        error?.response?.data?.message || "Failed to fetch workload data";
-      set({ error: errorMessage });
-    } finally {
-      set({ loading: false });
+      handleError(error, "Failed to fetch workload data", set);
     }
   },
 
@@ -599,38 +569,43 @@ export const useAdminStore = create((set, get) => ({
           approved: approvedRes.data.requests?.data || [],
           rejected: rejectedRes.data.requests?.data || [],
         },
+        loadingStudentRequests: false,
       });
     } catch (err) {
       console.error("Failed to fetch student requests:", err);
-      set({ studentRequestError: "Failed to fetch student requests." });
-    } finally {
-      set({ loadingStudentRequests: false });
+      set({
+        studentRequestError: "Failed to fetch student requests.",
+        loadingStudentRequests: false,
+      });
     }
   },
 
   approveStudentRequest: async (id) => {
     try {
       await axiosInstance.put(`/teacher/student-requests/${id}/approve`);
-      get().fetchStudentRequests(); // refresh
+      await get().fetchStudentRequests(); // refresh
       toast.success("Student request approved successfully!");
     } catch (err) {
       console.error("Approval failed:", err);
-      set({ studentRequestError: "Failed to approve student request." });
-      toast.error("Failed to approve student request.");
+      const message = "Failed to approve student request.";
+      set({ studentRequestError: message });
+      toast.error(message);
     }
   },
 
   rejectStudentRequest: async (id) => {
     try {
       await axiosInstance.put(`/teacher/student-requests/${id}/reject`);
-      get().fetchStudentRequests(); // refresh
+      await get().fetchStudentRequests(); // refresh
       toast.success("Student request rejected successfully!");
     } catch (err) {
       console.error("Rejection failed:", err);
-      set({ studentRequestError: "Failed to reject student request." });
-      toast.error("Failed to reject student request.");
+      const message = "Failed to reject student request.";
+      set({ studentRequestError: message });
+      toast.error(message);
     }
   },
+
   studentRequestCurrentPage: 1,
 
   setStudentRequestCurrentPage: (page) =>
@@ -665,12 +640,14 @@ export const useAdminStore = create((set, get) => ({
       set({
         conferenceSection: data.section || "",
         conferenceStudents: Array.isArray(data.students) ? data.students : [],
+        conferenceLoading: false,
       });
     } catch (err) {
       console.error("Failed to fetch conference dashboard:", err);
-      set({ conferenceError: "Failed to load parent conference data." });
-    } finally {
-      set({ conferenceLoading: false });
+      set({
+        conferenceError: "Failed to load parent conference data.",
+        conferenceLoading: false,
+      });
     }
   },
 
@@ -681,12 +658,16 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/teacher/parents-conference/student-data/${studentId}`
       );
-      set({ selectedConferenceStudent: data.student });
+      set({
+        selectedConferenceStudent: data.student,
+        conferenceLoading: false,
+      });
     } catch (err) {
       console.error("Failed to fetch student profile:", err);
-      set({ conferenceError: "Unable to load student profile." });
-    } finally {
-      set({ conferenceLoading: false });
+      set({
+        conferenceError: "Unable to load student profile.",
+        conferenceLoading: false,
+      });
     }
   },
 
@@ -703,19 +684,14 @@ export const useAdminStore = create((set, get) => ({
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Student_Report_Card_${studentId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      downloadPDF(blob, `Student_Report_Card_${studentId}.pdf`);
+      set({ conferenceLoading: false });
     } catch (err) {
       console.error("Failed to download report card:", err);
-      set({ conferenceError: "Download failed." });
-    } finally {
-      set({ conferenceLoading: false });
+      set({
+        conferenceError: "Download failed.",
+        conferenceLoading: false,
+      });
     }
   },
 
@@ -732,19 +708,14 @@ export const useAdminStore = create((set, get) => ({
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "All_Student_Report_Cards.pdf");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      downloadPDF(blob, "All_Student_Report_Cards.pdf");
+      set({ conferenceLoading: false });
     } catch (err) {
       console.error("Failed to download all report cards:", err);
-      set({ conferenceError: "Download failed." });
-    } finally {
-      set({ conferenceLoading: false });
+      set({
+        conferenceError: "Download failed.",
+        conferenceLoading: false,
+      });
     }
   },
 
@@ -759,29 +730,31 @@ export const useAdminStore = create((set, get) => ({
     try {
       const { data } = await axiosInstance.get("/teacher/student-bmi", {
         params: {
-          section_id: 1,
-          academic_year_id: 2,
-          quarter_id: 1,
+          section_id: sectionId,
+          academic_year_id: academicYearId,
+          quarter_id: quarterId,
         },
       });
 
-      set({ bmiStudents: data.students });
+      set({ bmiStudents: data.students, bmiLoading: false });
     } catch (err) {
       console.error("Failed to fetch BMI records:", err);
-      set({ bmiError: "Could not load BMI data." });
-    } finally {
-      set({ bmiLoading: false });
+      set({
+        bmiError: "Could not load BMI data.",
+        bmiLoading: false,
+      });
     }
   },
+
   addStudentBmi: async (bmiData) => {
-    await axiosInstance.post("/teacher/student-bmi", bmiData);
+    return await axiosInstance.post("/teacher/student-bmi", bmiData);
   },
 
   updateStudentBmi: async (id, bmiData) => {
-    await axiosInstance.put(`/teacher/student-bmi/${id}`, bmiData);
+    return await axiosInstance.put(`/teacher/student-bmi/${id}`, bmiData);
   },
 
   deleteStudentBmi: async (id) => {
-    await axiosInstance.delete(`/teacher/student-bmi/${id}`);
+    return await axiosInstance.delete(`/teacher/student-bmi/${id}`);
   },
 }));
