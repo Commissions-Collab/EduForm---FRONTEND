@@ -1,16 +1,25 @@
 import React, { useState } from "react";
-import { LuCircleCheck, LuCircleX, LuClock } from "react-icons/lu";
+import { LuCircleCheck, LuCircleX, LuClock, LuLoader } from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
-import { reasons } from "../../constants";
-import { useAttendanceStore } from "../../stores/useAttendanceStore";
-import PaginationControls from "./Pagination";
 import { getStatusButtonStyle } from "./ButtonStatus";
+import { reasons } from "../../constants";
+import PaginationControls from "./Pagination";
+import { useNavigate } from "react-router-dom";
+import { getItem } from "../../lib/utils";
+import { useAdminStore } from "../../stores/useAdminStore";
 
 const RECORDS_PER_PAGE = 5;
 
 const AttendanceTable = () => {
-  const { records, setStatus, setReason, loading, error } =
-    useAttendanceStore();
+  const { records, setStatus, setReason, loading, error } = useAdminStore();
+  const navigate = useNavigate();
+
+  const handleViewHistory = (studentId) => {
+    const scheduleId = getItem("scheduleId", false);
+    if (scheduleId) {
+      navigate(`/teacher/attendance/history/${scheduleId}/${studentId}`);
+    }
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -25,7 +34,7 @@ const AttendanceTable = () => {
 
   return (
     <>
-      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[200px]">
+      <div className="mt-8 overflow-x-auto bg-white rounded-lg shadow-md min-h-[400px]">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -43,13 +52,12 @@ const AttendanceTable = () => {
               </th>
             </tr>
           </thead>
-
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
                 <td colSpan={4}>
                   <div className="flex justify-center items-center h-64">
-                    <ClipLoader color="#3730A3" size={30} />
+                    <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
                   </div>
                 </td>
               </tr>
@@ -57,7 +65,7 @@ const AttendanceTable = () => {
               <tr>
                 <td colSpan={4}>
                   <div className="flex justify-center items-center h-64 text-red-600 font-medium">
-                    Failed to fetch attendance data. Please try again.
+                    {error}
                   </div>
                 </td>
               </tr>
@@ -71,7 +79,7 @@ const AttendanceTable = () => {
               </tr>
             ) : (
               paginatedRecords.map((student) => (
-                <tr key={student.id}>
+                <tr key={student.student_id}>
                   <td className="px-4 py-4 text-sm text-gray-900">
                     {student.name}
                   </td>
@@ -79,7 +87,7 @@ const AttendanceTable = () => {
                     {["Present", "Absent", "Late"].map((status) => (
                       <button
                         key={status}
-                        onClick={() => setStatus(student.id, status)}
+                        onClick={() => setStatus(student.student_id, status)}
                         className={`p-1 rounded-full ${getStatusButtonStyle(
                           student.status,
                           status
@@ -99,8 +107,10 @@ const AttendanceTable = () => {
                   <td className="px-4 py-4 text-sm text-center">
                     {student.status === "Absent" ? (
                       <select
-                        value={student.reason}
-                        onChange={(e) => setReason(student.id, e.target.value)}
+                        value={student.reason || ""}
+                        onChange={(e) =>
+                          setReason(student.student_id, e.target.value)
+                        }
                         className="w-36 p-1 border border-gray-300 rounded text-sm"
                       >
                         <option value="">Select Reason</option>
@@ -115,7 +125,11 @@ const AttendanceTable = () => {
                     )}
                   </td>
                   <td className="px-4 py-4 text-sm text-center text-blue-600 hover:underline cursor-pointer">
-                    View History
+                    <button
+                      onClick={() => handleViewHistory(student.student_id)}
+                    >
+                      View History
+                    </button>
                   </td>
                 </tr>
               ))

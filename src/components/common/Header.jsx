@@ -1,15 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import MobileNavigation from "./MobileNavigation";
-import { useAuth } from "../../context/AuthContext";
-import { useLocation } from "react-router-dom";
+
 import { LuUsers, LuMenu, LuSettings, LuBell } from "react-icons/lu";
 
 const Header = () => {
-  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifDropdownRef = useRef();
-  const { pathname } = useLocation();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -27,10 +24,10 @@ const Header = () => {
 
   return (
     <>
-      <header className="header  w-full border-gray-100 bg-white">
+      <header className="header w-full border-gray-100 bg-white">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="text-3xl text-[#3730A3] hover:scale-105 transition-transform duration-300 cursor-pointer focus:outline-none lg:hidden"
+          className="text-3xl text-[#3730A3] hover:scale-105 transition-transform duration-300 cursor-pointer focus:outline-none xl:hidden"
         >
           {menuOpen ? <LuMenu /> : <LuMenu />}
         </button>
