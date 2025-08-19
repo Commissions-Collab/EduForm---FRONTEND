@@ -14,15 +14,10 @@ const SignIn = () => {
   const {
     register,
     handleSubmit,
-    setError,
+    setValue,
     clearErrors,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  } = useForm();
 
   const onSubmit = async (formData) => {
     // Clear any existing API errors before attempting login
@@ -41,14 +36,11 @@ const SignIn = () => {
   };
 
   // Clear API errors when user starts typing in either field
-  const handleInputChange = (fieldName) => {
-    return (e) => {
-      if (errors.api) {
-        clearErrors("api");
-      }
-      // Return the original onChange handler for react-hook-form
-      return register(fieldName).onChange(e);
-    };
+  const handleInputChange = (fieldName) => (e) => {
+    if (errors.api) {
+      clearErrors("api");
+    }
+    setValue(fieldName, e.target.value, { shouldValidate: true });
   };
 
   useEffect(() => {
@@ -85,8 +77,8 @@ const SignIn = () => {
                   value: /^\S+@\S+\.\S+$/,
                   message: "Enter a valid email address",
                 },
-                onChange: handleInputChange("email"),
               })}
+              onChange={handleInputChange("email")}
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
@@ -106,8 +98,8 @@ const SignIn = () => {
                   value: 6,
                   message: "Password must be at least 6 characters",
                 },
-                onChange: handleInputChange("password"),
               })}
+              onChange={handleInputChange("password")}
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
