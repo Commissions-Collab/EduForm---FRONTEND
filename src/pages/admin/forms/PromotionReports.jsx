@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
-import {
-  LuBadgeAlert,
-  LuCircleCheckBig,
-  LuFilter,
-  LuCalendar,
-  LuLoader,
-} from "react-icons/lu";
+import { LuBadgeAlert, LuFilter, LuLoader } from "react-icons/lu";
 import { useAdminStore } from "../../../stores/useAdminStore";
+import { getItem } from "../../../lib/utils";
 
 const PromotionReport = () => {
   const {
@@ -19,112 +14,86 @@ const PromotionReport = () => {
     loading,
   } = useAdminStore();
 
-  const [sectionId, setSectionId] = useState(
-    localStorage.getItem("sectionId") || ""
-  );
-  const [academicYearId, setAcademicYearId] = useState(
-    localStorage.getItem("academicYearId") || ""
-  );
-  const [hasFetched, setHasFetched] = useState(false);
+  const [academicYearId, setAcademicYearId] = useState("");
+  const [quarterId, setQuarterId] = useState("");
+  const [sectionId, setSectionId] = useState("");
 
+  // Get saved filters on mount
   useEffect(() => {
-    if (sectionId && academicYearId) {
-      localStorage.setItem("sectionId", sectionId);
-      localStorage.setItem("academicYearId", academicYearId);
-      fetchPromotionData().finally(() => setHasFetched(true));
-    }
-  }, [sectionId, academicYearId]);
+    const savedAcademicYear = getItem("academicYearId", false);
+    const savedQuarter = getItem("quarterId", false);
+    const savedSection = getItem("sectionId", false);
 
-  const filtersMissing = !sectionId || !academicYearId;
+    if (savedAcademicYear) setAcademicYearId(savedAcademicYear);
+    if (savedQuarter) setQuarterId(savedQuarter);
+    if (savedSection) setSectionId(savedSection);
+
+    if (savedAcademicYear && savedQuarter && savedSection) {
+      fetchPromotionData(savedAcademicYear, savedQuarter, savedSection);
+    }
+  }, [fetchPromotionData]);
+
+  // Listen for global filter changes
+  useEffect(() => {
+    const handleGlobalFiltersChanged = (event) => {
+      const { academicYearId, quarterId, sectionId } = event.detail;
+
+      setAcademicYearId(academicYearId || "");
+      setQuarterId(quarterId || "");
+      setSectionId(sectionId || "");
+
+      if (academicYearId && quarterId && sectionId) {
+        fetchPromotionData(academicYearId, quarterId, sectionId);
+      }
+    };
+
+    window.addEventListener("globalFiltersChanged", handleGlobalFiltersChanged);
+    return () =>
+      window.removeEventListener(
+        "globalFiltersChanged",
+        handleGlobalFiltersChanged
+      );
+  }, [fetchPromotionData]);
+
+  const hasAllFilters = academicYearId && quarterId && sectionId;
 
   return (
-    <div className=" bg-gray-50">
+    <div className="bg-gray-50">
       <main className="p-4">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-4 sm:space-y-0">
             <div>
               <h1 className="page-title">Promotion Reports</h1>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
                   SF5
                 </span>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-              <div className="relative">
-                <label className="block text-xs font-medium text-gray-700 mb-1 sm:hidden">
-                  Section
-                </label>
-                <select
-                  value={sectionId}
-                  onChange={(e) => setSectionId(e.target.value)}
-                  className="w-full sm:w-40 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                >
-                  <option value="">Select Section</option>
-                  <option value="1">Grade 10 - A</option>
-                  <option value="2">Grade 10 - B</option>
-                </select>
-              </div>
-
-              <div className="relative">
-                <label className="block text-xs font-medium text-gray-700 mb-1 sm:hidden">
-                  Academic Year
-                </label>
-                <select
-                  value={academicYearId}
-                  onChange={(e) => setAcademicYearId(e.target.value)}
-                  className="w-full sm:w-40 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                >
-                  <option value="">Select Year</option>
-                  <option value="1">2024</option>
-                  <option value="2">2025</option>
-                </select>
+                {!hasAllFilters && (
+                  <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full font-medium text-xs">
+                    Please select filters from header
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Missing Filters Alert */}
-        {filtersMissing && (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6 shadow-lg mb-8">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <LuFilter className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-blue-800 mb-2">
-                  Select Filters to Continue
-                </h3>
-                <p className="text-blue-700 mb-4">
-                  Please select both section and academic year to load promotion
-                  report data.
-                </p>
-                <div className="bg-white/60 rounded-lg p-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm text-blue-700">
-                      Choose the section you want to view
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm text-blue-700">
-                      Select the academic year for the report
-                    </span>
-                  </div>
-                </div>
-              </div>
+        {/* Missing Filters */}
+        {!hasAllFilters && (
+          <div className="mt-6 bg-white rounded-lg p-8 border border-gray-200 shadow-sm text-center">
+            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <LuFilter className="w-6 h-6 text-gray-400" />
             </div>
+            <h3 className="text-gray-700 font-medium">
+              Please select Academic Year, Quarter, and Section to view
+              Promotion Reports
+            </h3>
           </div>
         )}
 
-        {/* API Error Message */}
-        {promotionMessage && !filtersMissing && (
+        {/* API Error */}
+        {promotionMessage && hasAllFilters && (
           <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border-2 border-amber-200 p-6 shadow-lg mb-8">
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
@@ -143,26 +112,23 @@ const PromotionReport = () => {
           </div>
         )}
 
-        {/* Success State - Show Cards and Table */}
-        {!filtersMissing && isPromotionAccessible && (
+        {/* Success State */}
+        {hasAllFilters && isPromotionAccessible && (
           <div className="space-y-8">
-            {/* Promotion Summary Cards */}
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Promotion Summary
               </h2>
               <PromotionCards stats={overallPromotionStats} />
             </div>
-
-            {/* Promotion Table */}
             <div>
               <PromotionTable />
             </div>
           </div>
         )}
 
-        {/* Loading State for Initial Load */}
-        {loading && !filtersMissing && (
+        {/* Loading */}
+        {loading && hasAllFilters && (
           <div
             className="flex justify-center items-center"
             style={{ height: "70vh" }}

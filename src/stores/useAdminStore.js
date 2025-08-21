@@ -251,25 +251,30 @@ export const useAdminStore = create((set, get) => ({
     assignments_by_year: [],
   },
 
+  // Fixed to match AcademicRecordsController@getFilterOptions
   fetchFilterOptions: async () => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
         "/teacher/academic-records/filter-options"
       );
-      set({ filters: data, loading: false });
+      set({
+        filters: data || { academic_years: [], assignments_by_year: [] },
+        loading: false,
+      });
     } catch (err) {
       handleError(err, "Unable to load filter options", set);
     }
   },
 
-  fetchGrades: async () => {
+  // Fixed to match AcademicRecordsController@getStudentsGrade
+  fetchGrades: async (academicYearId, quarterId, sectionId) => {
     set({ loading: true, error: null });
 
     const params = {
-      academic_year_id: 3,
-      quarter_id: 1,
-      section_id: 5,
+      academic_year_id: academicYearId || getItem("academicYearId", false),
+      quarter_id: quarterId || getItem("quarterId", false),
+      section_id: sectionId || getItem("sectionId", false),
     };
 
     if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
@@ -292,6 +297,7 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  // Fixed to match AcademicRecordsController@updateGrade
   updateGrade: async ({ student_id, subject_id, quarter_id, grade }) => {
     try {
       const payload = { student_id, subject_id, quarter_id, grade };
@@ -313,18 +319,21 @@ export const useAdminStore = create((set, get) => ({
       });
 
       set({ students: updatedStudents });
+      return data;
     } catch (err) {
       handleError(err, "Grade update failed", set);
+      throw err;
     }
   },
 
-  fetchStatistics: async () => {
+  // Fixed to match AcademicRecordsController@getGradeStatistics
+  fetchStatistics: async (academicYearId, quarterId, sectionId) => {
     set({ loading: true, error: null });
 
     const params = {
-      academic_year_id: getItem("academicYearId", false),
-      quarter_id: getItem("quarterId", false),
-      section_id: getItem("sectionId", false),
+      academic_year_id: academicYearId || getItem("academicYearId", false),
+      quarter_id: quarterId || getItem("quarterId", false),
+      section_id: sectionId || getItem("sectionId", false),
     };
 
     if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
@@ -356,20 +365,23 @@ export const useAdminStore = create((set, get) => ({
 
   setPage: (page) => set({ currentPage: page }),
 
-  // Promotion
+  // === Promotion ===
   promotionStudents: [],
   promotionCurrentPage: 1,
   overallPromotionStats: null,
   isPromotionAccessible: false,
   promotionMessage: null,
 
-  fetchPromotionData: async () => {
+  // Fixed to match PromotionReportController@getPromotionReportStatistics
+  fetchPromotionData: async (academicYearId, sectionId) => {
     set({ loading: true, error: null });
 
-    const academicYearId = getItem("academicYearId", false);
-    const sectionId = getItem("sectionId", false);
+    const params = {
+      academic_year_id: academicYearId || getItem("academicYearId", false),
+      section_id: sectionId || getItem("sectionId", false),
+    };
 
-    if (!academicYearId || !sectionId) {
+    if (!params.academic_year_id || !params.section_id) {
       set({ error: "Missing required filters", loading: false });
       return;
     }
@@ -377,9 +389,7 @@ export const useAdminStore = create((set, get) => ({
     try {
       const { data } = await axiosInstance.get(
         "/teacher/promotion-reports/statistics",
-        {
-          params: { academic_year_id: academicYearId, section_id: sectionId },
-        }
+        { params }
       );
 
       set({
@@ -419,25 +429,23 @@ export const useAdminStore = create((set, get) => ({
   honorCertificates: [],
   certificateCurrentPage: 1,
 
-  fetchAdminCertificateData: async () => {
+  fetchAdminCertificateData: async (academicYearId, sectionId, quarterId) => {
     set({ loading: true, error: null });
 
-    const sectionId = getItem("sectionId", false);
-    const academicYearId = getItem("academicYearId", false);
-    const quarterId = getItem("quarterId", false);
+    const params = {
+      academic_year_id: academicYearId || getItem("academicYearId", false),
+      section_id: sectionId || getItem("sectionId", false),
+      quarter_id: quarterId || getItem("quarterId", false),
+    };
 
-    if (!sectionId || !academicYearId || !quarterId) {
+    if (!params.academic_year_id || !params.section_id || !params.quarter_id) {
       set({ error: "Missing certificate filter data", loading: false });
       return;
     }
 
     try {
       const response = await axiosInstance.get("/teacher/certificate", {
-        params: {
-          academic_year_id: academicYearId,
-          section_id: sectionId,
-          quarter_id: quarterId,
-        },
+        params,
       });
 
       set({
@@ -472,7 +480,13 @@ export const useAdminStore = create((set, get) => ({
   // === Textbooks ===
   textbooks: [],
   textbookCurrentPage: 1,
+  bookFilters: {
+    sections: [],
+    students: [],
+    books: [],
+  },
 
+  // Fixed to match BookManagementController@index
   fetchTextbooks: async () => {
     set({ loading: true, error: null });
 
@@ -482,6 +496,62 @@ export const useAdminStore = create((set, get) => ({
       set({ textbooks, loading: false });
     } catch (err) {
       handleError(err, "Failed to fetch textbooks", set);
+    }
+  },
+
+  // Fixed to match BookManagementController@getFilterOptions
+  fetchBookFilters: async (sectionId) => {
+    set({ loading: true, error: null });
+
+    try {
+      const params = sectionId ? { section_id: sectionId } : {};
+      const response = await axiosInstance.get(
+        "/teacher/book-management/filter-options",
+        { params }
+      );
+
+      set({
+        bookFilters: {
+          sections: response.data.sections || [],
+          students: response.data.students || [],
+          books: response.data.books || [],
+        },
+        loading: false,
+      });
+    } catch (err) {
+      handleError(err, "Failed to fetch book filters", set);
+    }
+  },
+
+  // Fixed to match BookManagementController@distributeBooks
+  distributeBook: async (bookData) => {
+    set({ loading: true, error: null });
+
+    try {
+      await axiosInstance.post("/teacher/book-management/distribute", bookData);
+      set({ loading: false });
+      toast.success("Book distributed successfully!");
+      // Refresh textbooks after distribution
+      await get().fetchTextbooks();
+    } catch (err) {
+      handleError(err, "Failed to distribute book", set);
+      toast.error("Failed to distribute book");
+    }
+  },
+
+  // Fixed to match BookManagementController@returnBook
+  returnBook: async (borrowId) => {
+    set({ loading: true, error: null });
+
+    try {
+      await axiosInstance.put(`/teacher/book-management/return/${borrowId}`);
+      set({ loading: false });
+      toast.success("Book returned successfully!");
+      // Refresh textbooks after return
+      await get().fetchTextbooks();
+    } catch (err) {
+      handleError(err, "Failed to return book", set);
+      toast.error("Failed to return book");
     }
   },
 
@@ -583,7 +653,7 @@ export const useAdminStore = create((set, get) => ({
   approveStudentRequest: async (id) => {
     try {
       await axiosInstance.put(`/teacher/student-requests/${id}/approve`);
-      await get().fetchStudentRequests(); // refresh
+      await get().fetchStudentRequests();
       toast.success("Student request approved successfully!");
     } catch (err) {
       console.error("Approval failed:", err);
@@ -596,7 +666,7 @@ export const useAdminStore = create((set, get) => ({
   rejectStudentRequest: async (id) => {
     try {
       await axiosInstance.put(`/teacher/student-requests/${id}/reject`);
-      await get().fetchStudentRequests(); // refresh
+      await get().fetchStudentRequests();
       toast.success("Student request rejected successfully!");
     } catch (err) {
       console.error("Rejection failed:", err);
@@ -724,19 +794,29 @@ export const useAdminStore = create((set, get) => ({
   bmiLoading: false,
   bmiError: null,
 
+  // Fixed to match StudentBmiController@index
   fetchBmiStudents: async (sectionId, academicYearId, quarterId) => {
     set({ bmiLoading: true, bmiError: null });
 
+    const params = {
+      section_id: sectionId || getItem("sectionId", false),
+      academic_year_id: academicYearId || getItem("academicYearId", false),
+      quarter_id: quarterId || getItem("quarterId", false),
+    };
+
+    if (!params.section_id || !params.academic_year_id || !params.quarter_id) {
+      set({
+        bmiError: "Missing required parameters for BMI data",
+        bmiLoading: false,
+      });
+      return;
+    }
+
     try {
       const { data } = await axiosInstance.get("/teacher/student-bmi", {
-        params: {
-          section_id: sectionId,
-          academic_year_id: academicYearId,
-          quarter_id: quarterId,
-        },
+        params,
       });
-
-      set({ bmiStudents: data.students, bmiLoading: false });
+      set({ bmiStudents: data.students || [], bmiLoading: false });
     } catch (err) {
       console.error("Failed to fetch BMI records:", err);
       set({
@@ -746,15 +826,45 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  // Fixed to match StudentBmiController@store
   addStudentBmi: async (bmiData) => {
-    return await axiosInstance.post("/teacher/student-bmi", bmiData);
+    try {
+      const response = await axiosInstance.post(
+        "/teacher/student-bmi",
+        bmiData
+      );
+      toast.success("BMI record added successfully!");
+      return response.data;
+    } catch (err) {
+      toast.error("Failed to add BMI record");
+      throw err;
+    }
   },
 
+  // Fixed to match StudentBmiController@update
   updateStudentBmi: async (id, bmiData) => {
-    return await axiosInstance.put(`/teacher/student-bmi/${id}`, bmiData);
+    try {
+      const response = await axiosInstance.put(
+        `/teacher/student-bmi/${id}`,
+        bmiData
+      );
+      toast.success("BMI record updated successfully!");
+      return response.data;
+    } catch (err) {
+      toast.error("Failed to update BMI record");
+      throw err;
+    }
   },
 
+  // Fixed to match StudentBmiController@destroy
   deleteStudentBmi: async (id) => {
-    return await axiosInstance.delete(`/teacher/student-bmi/${id}`);
+    try {
+      const response = await axiosInstance.delete(`/teacher/student-bmi/${id}`);
+      toast.success("BMI record deleted successfully!");
+      return response.data;
+    } catch (err) {
+      toast.error("Failed to delete BMI record");
+      throw err;
+    }
   },
 }));

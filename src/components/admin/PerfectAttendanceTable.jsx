@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   LuPrinter,
   LuEye,
@@ -26,9 +26,14 @@ const PerfectAttendanceTable = () => {
 
   const [searchName, setSearchName] = useState("");
 
-  const filteredRecords = attendanceCertificates.filter((record) =>
-    (record.student_name || "").toLowerCase().includes(searchName.toLowerCase())
-  );
+  // Filter logic (memoized for performance)
+  const filteredRecords = useMemo(() => {
+    return attendanceCertificates.filter((record) =>
+      (record.student_name || "")
+        .toLowerCase()
+        .includes(searchName.toLowerCase())
+    );
+  }, [attendanceCertificates, searchName]);
 
   const indexOfLast = certificateCurrentPage * 5;
   const indexOfFirst = indexOfLast - 5;

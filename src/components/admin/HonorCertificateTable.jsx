@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   LuPrinter,
   LuEye,
@@ -14,7 +14,12 @@ import {
 import PaginationControls from "./Pagination";
 import { useAdminStore } from "../../stores/useAdminStore";
 
-const HonorsCertificateTable = () => {
+const HonorsCertificateTable = ({
+  searchName,
+  filterType,
+  setSearchName,
+  setFilterType,
+}) => {
   const {
     honorCertificates,
     certificateCurrentPage,
@@ -23,9 +28,7 @@ const HonorsCertificateTable = () => {
     error,
   } = useAdminStore();
 
-  const [searchName, setSearchName] = useState("");
-  const [filterType, setFilterType] = useState("All");
-
+  // --- Filtering ---
   const filteredRecords = honorCertificates.filter((record) => {
     const matchesName = (record.student_name || "")
       .toLowerCase()
@@ -35,10 +38,12 @@ const HonorsCertificateTable = () => {
     return matchesName && matchesHonor;
   });
 
-  const indexOfLast = certificateCurrentPage * 5;
-  const indexOfFirst = indexOfLast - 5;
+  // --- Pagination ---
+  const pageSize = 5;
+  const indexOfLast = certificateCurrentPage * pageSize;
+  const indexOfFirst = indexOfLast - pageSize;
   const records = filteredRecords.slice(indexOfFirst, indexOfLast);
-  const total = Math.ceil(filteredRecords.length / 5);
+  const total = Math.ceil(filteredRecords.length / pageSize);
 
   const honorTypeColors = {
     "With Honors": "bg-blue-100 text-blue-800 border-blue-200",

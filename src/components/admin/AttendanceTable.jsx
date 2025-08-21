@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { LuCircleCheck, LuCircleX, LuClock, LuLoader } from "react-icons/lu";
-import { ClipLoader } from "react-spinners";
 import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
 import PaginationControls from "./Pagination";
@@ -10,9 +9,35 @@ import { useAdminStore } from "../../stores/useAdminStore";
 
 const RECORDS_PER_PAGE = 5;
 
-const AttendanceTable = () => {
-  const { records, setStatus, setReason, loading, error } = useAdminStore();
+const AttendanceTable = ({ selectedDate }) => {
+  const {
+    scheduleAttendance,
+    updateIndividualAttendance,
+    fetchScheduleStudents,
+    loading,
+    error,
+  } = useAdminStore();
+
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [localAttendanceState, setLocalAttendanceState] = useState({});
+
+  // Extract students from scheduleAttendance and create records
+  const records = useMemo(() => {
+    const students = scheduleAttendance?.students || [];
+    return students.map((student) => ({
+      student_id: student.id,
+      name: student.name || `${student.first_name} ${student.last_name}`.trim(),
+      status:
+        localAttendanceState[student.id]?.status ||
+        student.attendance_status ||
+        "Present",
+      reason:
+        localAttendanceState[student.id]?.reason ||
+        student.attendance_reason ||
+        "",
+    }));
+  }, [scheduleAttendance, localAttendanceState]);
 
   const handleViewHistory = (studentId) => {
     const scheduleId = getItem("scheduleId", false);
@@ -21,7 +46,105 @@ const AttendanceTable = () => {
     }
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const setStatus = async (studentId, status) => {
+    const scheduleId = getItem("scheduleId", false);
+    const attendanceDate =
+      selectedDate ||
+      getItem("attendanceDate", false) ||
+      new Date().toISOString().split("T")[0];
+
+    if (!scheduleId) {
+      console.error("Schedule not selected");
+      return;
+    }
+
+    // Update local state immediately for better UX
+    setLocalAttendanceState((prev) => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        status,
+        reason: status === "Absent" ? prev[studentId]?.reason || "" : "",
+      },
+    }));
+
+    try {
+      // Call the API to update attendance
+      await updateIndividualAttendance({
+        student_id: studentId,
+        schedule_id: scheduleId,
+        status: status,
+        date: attendanceDate,
+        reason:
+          status === "Absent"
+            ? localAttendanceState[studentId]?.reason || ""
+            : "",
+      });
+
+      // Optionally refresh data from server
+      // fetchScheduleStudents();
+    } catch (error) {
+      console.error("Failed to update attendance status:", error);
+      // Revert local state on error
+      setLocalAttendanceState((prev) => ({
+        ...prev,
+        [studentId]: {
+          ...prev[studentId],
+          status:
+            records.find((r) => r.student_id === studentId)?.status ||
+            "Present",
+        },
+      }));
+    }
+  };
+
+  const setReason = async (studentId, reason) => {
+    const scheduleId = getItem("scheduleId", false);
+    const attendanceDate =
+      selectedDate ||
+      getItem("attendanceDate", false) ||
+      new Date().toISOString().split("T")[0];
+
+    if (!scheduleId) {
+      console.error("Schedule not selected");
+      return;
+    }
+
+    // Update local state immediately
+    setLocalAttendanceState((prev) => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        reason,
+      },
+    }));
+
+    try {
+      // Call the API to update attendance reason
+      const currentStatus =
+        localAttendanceState[studentId]?.status ||
+        records.find((r) => r.student_id === studentId)?.status ||
+        "Present";
+
+      await updateIndividualAttendance({
+        student_id: studentId,
+        schedule_id: scheduleId,
+        status: currentStatus,
+        date: attendanceDate,
+        reason: reason,
+      });
+    } catch (error) {
+      console.error("Failed to update attendance reason:", error);
+      // Revert local state on error
+      setLocalAttendanceState((prev) => ({
+        ...prev,
+        [studentId]: {
+          ...prev[studentId],
+          reason: records.find((r) => r.student_id === studentId)?.reason || "",
+        },
+      }));
+    }
+  };
 
   const totalPages = Math.ceil(records.length / RECORDS_PER_PAGE);
   const paginatedRecords = records.slice(

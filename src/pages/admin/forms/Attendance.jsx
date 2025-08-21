@@ -28,6 +28,12 @@ const DailyAttendance = () => {
     if (savedSchedule) {
       setSelectedSchedule(savedSchedule);
     }
+
+    // Get previously selected date from localStorage
+    const savedDate = getItem("attendanceDate", false);
+    if (savedDate) {
+      setSelectedDate(savedDate);
+    }
   }, [fetchWeeklySchedule]);
 
   useEffect(() => {
@@ -209,7 +215,7 @@ const DailyAttendance = () => {
 
       {/* Attendance Table - Only show if schedule is selected */}
       {selectedSchedule ? (
-        <AttendanceTable />
+        <AttendanceTable selectedDate={selectedDate} />
       ) : (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
           <p className="text-gray-600 font-medium">

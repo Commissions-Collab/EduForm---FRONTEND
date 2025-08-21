@@ -1,12 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
 import { useAdminStore } from "../../stores/useAdminStore";
-import { LuBadgeAlert, LuFilter, LuX } from "react-icons/lu";
+import { LuBadgeAlert, LuFilter, LuX, LuLoader } from "react-icons/lu";
 
 const Certificates = () => {
-  const { fetchAdminCertificateData, error, loading } = useAdminStore();
+  const {
+    fetchAdminCertificateData,
+    fetchFilterOptions,
+    filters,
+    loading,
+    error,
+  } = useAdminStore();
 
+  // State for filters
   const [sectionId, setSectionId] = useState(
     localStorage.getItem("sectionId") || ""
   );
@@ -18,15 +25,39 @@ const Certificates = () => {
   );
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch certificates when all filters are selected
+  // Fetch filter options on mount
   useEffect(() => {
-    if (sectionId && academicYearId && quarterId) {
-      localStorage.setItem("sectionId", sectionId);
-      localStorage.setItem("academicYearId", academicYearId);
-      localStorage.setItem("quarterId", quarterId);
-      fetchAdminCertificateData();
+    fetchFilterOptions();
+  }, [fetchFilterOptions]);
+
+  // Get available sections dynamically based on academic year
+  const availableSections = useMemo(() => {
+    if (!academicYearId || !filters.assignments_by_year) return [];
+    const yearData = filters.assignments_by_year.find(
+      (y) => y.id == academicYearId
+    );
+    return yearData ? yearData.sections : [];
+  }, [academicYearId, filters.assignments_by_year]);
+
+  // Reset section if not valid for new year
+  useEffect(() => {
+    if (
+      availableSections.length > 0 &&
+      !availableSections.find((s) => s.id == sectionId)
+    ) {
+      setSectionId("");
     }
-  }, [sectionId, academicYearId, quarterId]);
+  }, [availableSections, sectionId]);
+
+  // Fetch certificate data only when all filters are selected
+  useEffect(() => {
+    if (academicYearId && sectionId && quarterId) {
+      localStorage.setItem("academicYearId", academicYearId);
+      localStorage.setItem("sectionId", sectionId);
+      localStorage.setItem("quarterId", quarterId);
+      fetchAdminCertificateData(academicYearId, sectionId, quarterId);
+    }
+  }, [academicYearId, sectionId, quarterId, fetchAdminCertificateData]);
 
   const clearFilters = () => {
     setSectionId("");
@@ -37,11 +68,11 @@ const Certificates = () => {
     localStorage.removeItem("quarterId");
   };
 
-  const hasActiveFilters = sectionId || academicYearId || quarterId;
+  const filtersMissing = !sectionId || !academicYearId || !quarterId;
 
   return (
-    <main className=" bg-gray-50/50 p-4 lg:p-6">
-      {/* Header Section */}
+    <main className="bg-gray-50/50 p-4 lg:p-6">
+      {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -51,60 +82,53 @@ const Certificates = () => {
             </p>
           </div>
 
-          {/* Mobile Filter Toggle */}
-          <div className="sm:hidden">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-            >
-              <LuFilter className="w-4 h-4" />
-              <span className="text-sm font-medium">Filters</span>
-              {hasActiveFilters && (
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
-                  {
-                    [sectionId, academicYearId, quarterId].filter(Boolean)
-                      .length
-                  }
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Desktop Filters */}
-          <div className="hidden sm:flex items-center gap-3">
-            <select
-              value={sectionId}
-              onChange={(e) => setSectionId(e.target.value)}
-              className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[140px]"
-            >
-              <option value="">Select Section</option>
-              <option value="1">Grade 10 - A</option>
-              <option value="2">Grade 10 - B</option>
-            </select>
-
+          {/* Filters */}
+          <div className="flex items-center gap-3">
+            {/* Academic Year */}
             <select
               value={academicYearId}
               onChange={(e) => setAcademicYearId(e.target.value)}
               className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[120px]"
             >
               <option value="">Select Year</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
+              {filters.academic_years?.map((year) => (
+                <option key={year.id} value={year.id}>
+                  {year.year}
+                </option>
+              ))}
             </select>
 
+            {/* Section */}
+            <select
+              value={sectionId}
+              onChange={(e) => setSectionId(e.target.value)}
+              disabled={!academicYearId}
+              className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[140px] disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="">Select Section</option>
+              {availableSections.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Quarter */}
             <select
               value={quarterId}
               onChange={(e) => setQuarterId(e.target.value)}
               className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[130px]"
             >
               <option value="">Select Quarter</option>
-              <option value="1">1st Quarter</option>
-              <option value="2">2nd Quarter</option>
-              <option value="3">3rd Quarter</option>
-              <option value="4">4th Quarter</option>
+              {filters.quarters?.map((q) => (
+                <option key={q.id} value={q.id}>
+                  {q.name}
+                </option>
+              ))}
             </select>
 
-            {hasActiveFilters && (
+            {/* Clear Button */}
+            {!filtersMissing && (
               <button
                 onClick={clearFilters}
                 className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
@@ -115,85 +139,45 @@ const Certificates = () => {
             )}
           </div>
         </div>
-
-        {/* Mobile Filters Dropdown */}
-        {showFilters && (
-          <div className="sm:hidden mt-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3">
-            <select
-              value={sectionId}
-              onChange={(e) => setSectionId(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select Section</option>
-              <option value="1">Grade 10 - A</option>
-              <option value="2">Grade 10 - B</option>
-            </select>
-
-            <select
-              value={academicYearId}
-              onChange={(e) => setAcademicYearId(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select Year</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-            </select>
-
-            <select
-              value={quarterId}
-              onChange={(e) => setQuarterId(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select Quarter</option>
-              <option value="1">1st Quarter</option>
-              <option value="2">2nd Quarter</option>
-              <option value="3">3rd Quarter</option>
-              <option value="4">4th Quarter</option>
-            </select>
-
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-              >
-                <LuX className="w-4 h-4" />
-                Clear Filters
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Warning Message */}
-      {(!sectionId || !academicYearId || !quarterId) && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-6 shadow-sm">
+      {/* Missing Filters Alert */}
+      {filtersMissing && (
+        <div className="mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0">
-              <LuBadgeAlert className="w-6 h-6 text-amber-500" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-amber-800 mb-2">
-                Certificate Data Not Available
+            <LuBadgeAlert className="w-6 h-6 text-blue-600" />
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                Select Filters to Continue
               </h3>
-              <p className="text-sm text-amber-700 leading-relaxed">
-                Please select a valid section, academic year, and quarter to
-                view or generate certificate records. All filters are required
-                to load attendance and honor certificates.
+              <p className="text-sm text-blue-700 leading-relaxed">
+                Please select an academic year, section, and quarter to load
+                certificate records.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
 
-      {/* Certificate Tables */}
-      {sectionId && academicYearId && quarterId && (
+      {/* Loading */}
+      {loading && !filtersMissing && (
+        <div className="flex justify-center items-center py-40">
+          <div className="flex flex-col items-center space-y-4">
+            <LuLoader className="w-11 h-11 text-blue-700 animate-spin" />
+            <p className="text-gray-600">Loading certificate data...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Tables */}
+      {!loading && !filtersMissing && (
         <div className="space-y-8">
           <PerfectAttendanceTable />
           <HonorsCertificateTable />
