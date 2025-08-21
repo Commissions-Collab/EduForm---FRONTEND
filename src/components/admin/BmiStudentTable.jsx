@@ -21,7 +21,7 @@ const BmiStudentTable = ({ students, loading, error }) => {
         icon: LuTrendingDown,
         color: "text-yellow-600",
       },
-      Normal: {
+      "Normal weight": {
         bg: "bg-green-50",
         text: "text-green-800",
         border: "border-green-200",
@@ -43,7 +43,7 @@ const BmiStudentTable = ({ students, loading, error }) => {
         color: "text-red-600",
       },
     };
-    return configs[status] || configs["Normal"];
+    return configs[status] || configs["Normal weight"];
   };
 
   const getInitials = (name) => {

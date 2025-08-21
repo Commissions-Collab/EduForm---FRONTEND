@@ -169,6 +169,43 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  monthlyAttendanceData: null,
+  loading: false,
+  error: null,
+  fetchMonthlyAttendance: async (params) => {
+    set({ loading: true, error: null });
+
+    const sectionId = getItem("sectionId", false) || 1; // Remove 1, this is just for testing: make filters for this
+    const academicYearId = getItem("academicYearId", false) || 1; // Remove 1, this is just for testing: make filters for this
+
+    if (!sectionId || !academicYearId) {
+      set({ error: "Missing section or academic year ID", loading: false });
+      return;
+    }
+
+    // Use passed-in params or default to the current month and year
+    const now = new Date();
+    const filterParams = {
+      month: params?.month || now.getMonth() + 1, // this is just for testing: make filters for this
+      year: params?.year || now.getFullYear(), // this is just for testing: make filters for this
+      academic_year_id: academicYearId,
+    };
+
+    try {
+      const { data } = await axiosInstance.get(
+        `/teacher/sections/${sectionId}/monthly-attendance`,
+        { params: filterParams }
+      );
+
+      set({
+        monthlyAttendanceData: data?.data || null, // Store the full 'data' object from the response
+        loading: false,
+      });
+    } catch (err) {
+      handleError(err, "Unable to fetch monthly attendance", set);
+    }
+  },
+
   downloadQuarterlyAttendancePDF: async () => {
     set({ loading: true, error: null });
 
