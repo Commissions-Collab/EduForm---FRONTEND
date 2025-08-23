@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import MobileNavigation from "./MobileNavigation";
 import GlobalFilterDropdown from "../admin/GlobalFilterDropdown";
-import { LuUsers, LuMenu, LuSettings, LuBell } from "react-icons/lu";
+import { LuMenu, LuBell } from "react-icons/lu";
+import { useAuthStore } from "../../stores/useAuthStore";
 
-const Header = ({ userRole = "teacher" }) => {
-  // Add userRole prop
+const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifDropdownRef = useRef();
+
+  // ✅ Get role directly from auth store
+  const userRole = useAuthStore((state) => state.user?.role);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -30,11 +33,13 @@ const Header = ({ userRole = "teacher" }) => {
           onClick={() => setMenuOpen(!menuOpen)}
           className="text-3xl text-[#3730A3] hover:scale-105 transition-transform duration-300 cursor-pointer focus:outline-none xl:hidden"
         >
-          {menuOpen ? <LuMenu /> : <LuMenu />}
+          <LuMenu />
         </button>
+
         <div className="flex w-full items-center justify-between">
-          {/* Global Filter Dropdown - Left side */}
+          {/* ✅ Pass real role to dropdown */}
           <GlobalFilterDropdown userRole={userRole} />
+          <div></div>
 
           {/* Right side controls */}
           <div className="flex items-center space-x-3">
@@ -44,7 +49,6 @@ const Header = ({ userRole = "teacher" }) => {
                 className="relative text-[17px] p-2 bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] rounded-full transition"
               >
                 <LuBell />
-
                 <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white">
                   3
                 </span>

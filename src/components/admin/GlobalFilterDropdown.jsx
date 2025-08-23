@@ -12,10 +12,16 @@ const GlobalFilterDropdown = ({ userRole }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Only show for admin/teacher roles
-  if (!["teacher"].includes(userRole?.toLowerCase())) {
+  if (!["admin", "teacher"].includes(userRole?.toLowerCase())) {
     return null;
   }
 
+  const normalizedRole = (userRole || "").toLowerCase();
+
+  // ✅ Only show for admin/teacher roles
+  if (normalizedRole !== "admin" && normalizedRole !== "teacher") {
+    return null;
+  }
   useEffect(() => {
     // Fetch filter options when component mounts
     fetchFilterOptions();
