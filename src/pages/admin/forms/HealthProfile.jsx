@@ -1,9 +1,10 @@
 // src/pages/admin/health/HealthProfile.jsx
 import React, { useEffect, useState } from "react";
 import { useAdminStore } from "../../../stores/useAdminStore";
-import BmiStudentTable from "../../../components/admin/BMIStudentTable";
+
 import { LuActivity } from "react-icons/lu";
 import { getItem } from "../../../lib/utils";
+import BmiStudentTable from "../../../components/admin/BmiStudentTable";
 
 const HealthProfile = () => {
   const { bmiStudents, bmiLoading, bmiError, fetchBmiStudents } =
@@ -14,7 +15,6 @@ const HealthProfile = () => {
   const [selectedSection, setSelectedSection] = useState("");
 
   useEffect(() => {
-    // Load saved filters from localStorage
     const savedAcademicYear = getItem("academicYearId", false);
     const savedQuarter = getItem("quarterId", false);
     const savedSection = getItem("sectionId", false);
@@ -24,7 +24,7 @@ const HealthProfile = () => {
     if (savedSection) setSelectedSection(savedSection);
 
     if (savedAcademicYear && savedQuarter && savedSection) {
-      fetchBmiStudents(savedAcademicYear, savedQuarter, savedSection);
+      fetchBmiStudents(savedSection, savedAcademicYear, savedQuarter);
     }
   }, [fetchBmiStudents]);
 
@@ -38,7 +38,7 @@ const HealthProfile = () => {
       setSelectedSection(sectionId || "");
 
       if (academicYearId && quarterId && sectionId) {
-        fetchBmiStudents(academicYearId);
+        fetchBmiStudents(sectionId, academicYearId, quarterId);
       }
     };
 
@@ -51,6 +51,17 @@ const HealthProfile = () => {
       );
     };
   }, [fetchBmiStudents]);
+
+  useEffect(() => {
+    if (selectedAcademicYear && selectedQuarter && selectedSection) {
+      fetchBmiStudents(selectedSection, selectedAcademicYear, selectedQuarter);
+    }
+  }, [
+    selectedAcademicYear,
+    selectedQuarter,
+    selectedSection,
+    fetchBmiStudents,
+  ]);
 
   const hasAllFilters =
     selectedAcademicYear && selectedQuarter && selectedSection;

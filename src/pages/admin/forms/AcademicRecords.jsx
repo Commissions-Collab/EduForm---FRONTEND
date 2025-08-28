@@ -5,7 +5,14 @@ import { useAdminStore } from "../../../stores/useAdminStore";
 import { getItem } from "../../../lib/utils";
 
 const Grades = () => {
-  const { fetchGrades, students, subjects, loading } = useAdminStore();
+  const {
+    fetchGrades,
+    students,
+    subjects,
+    loading,
+    initializeGlobalFilters,
+    fetchGlobalFilterOptions,
+  } = useAdminStore();
 
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
   const [selectedQuarter, setSelectedQuarter] = useState("");
@@ -20,6 +27,11 @@ const Grades = () => {
       )
     ).length || 0;
   const pendingStudents = totalStudents - completedStudents;
+
+  useEffect(() => {
+    initializeGlobalFilters();
+    fetchGlobalFilterOptions();
+  }, []);
 
   useEffect(() => {
     // Get saved filter values from localStorage on component mount

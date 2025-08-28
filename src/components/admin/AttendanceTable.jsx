@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+// src/components/admin/AttendanceTable.jsx
+import React, { useState, useMemo, useEffect } from "react";
 import { LuCircleCheck, LuCircleX, LuClock, LuLoader } from "react-icons/lu";
 import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
@@ -13,16 +14,49 @@ const AttendanceTable = ({ selectedDate }) => {
   const {
     scheduleAttendance,
     updateIndividualAttendance,
-    fetchScheduleStudents,
+    fetchScheduleAttendance, // <-- make sure this exists in your store
     loading,
     error,
+    selectedSection,
+    selectedAcademicYear,
+    selectedQuarter,
   } = useAdminStore();
 
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [localAttendanceState, setLocalAttendanceState] = useState({});
 
-  // Extract students from scheduleAttendance and create records
+  // 🔹 Refetch whenever global filters change
+  useEffect(() => {
+    const scheduleId = getItem("scheduleId", false);
+    const attendanceDate =
+      selectedDate ||
+      getItem("attendanceDate", false) ||
+      new Date().toISOString().split("T")[0];
+
+    if (
+      scheduleId &&
+      selectedSection &&
+      selectedAcademicYear &&
+      selectedQuarter
+    ) {
+      fetchScheduleAttendance({
+        scheduleId,
+        sectionId: selectedSection,
+        academicYearId: selectedAcademicYear,
+        quarterId: selectedQuarter,
+        date: attendanceDate,
+      });
+    }
+  }, [
+    selectedDate,
+    selectedSection,
+    selectedAcademicYear,
+    selectedQuarter,
+    fetchScheduleAttendance,
+  ]);
+
+  // Extract students into records
   const records = useMemo(() => {
     const students = scheduleAttendance?.students || [];
     return students.map((student) => ({
@@ -53,12 +87,8 @@ const AttendanceTable = ({ selectedDate }) => {
       getItem("attendanceDate", false) ||
       new Date().toISOString().split("T")[0];
 
-    if (!scheduleId) {
-      console.error("Schedule not selected");
-      return;
-    }
+    if (!scheduleId) return;
 
-    // Update local state immediately for better UX
     setLocalAttendanceState((prev) => ({
       ...prev,
       [studentId]: {
@@ -69,32 +99,18 @@ const AttendanceTable = ({ selectedDate }) => {
     }));
 
     try {
-      // Call the API to update attendance
       await updateIndividualAttendance({
         student_id: studentId,
         schedule_id: scheduleId,
-        status: status,
+        status,
         date: attendanceDate,
         reason:
           status === "Absent"
             ? localAttendanceState[studentId]?.reason || ""
             : "",
       });
-
-      // Optionally refresh data from server
-      // fetchScheduleStudents();
     } catch (error) {
-      console.error("Failed to update attendance status:", error);
-      // Revert local state on error
-      setLocalAttendanceState((prev) => ({
-        ...prev,
-        [studentId]: {
-          ...prev[studentId],
-          status:
-            records.find((r) => r.student_id === studentId)?.status ||
-            "Present",
-        },
-      }));
+      console.error("Failed to update status:", error);
     }
   };
 
@@ -105,12 +121,8 @@ const AttendanceTable = ({ selectedDate }) => {
       getItem("attendanceDate", false) ||
       new Date().toISOString().split("T")[0];
 
-    if (!scheduleId) {
-      console.error("Schedule not selected");
-      return;
-    }
+    if (!scheduleId) return;
 
-    // Update local state immediately
     setLocalAttendanceState((prev) => ({
       ...prev,
       [studentId]: {
@@ -120,7 +132,6 @@ const AttendanceTable = ({ selectedDate }) => {
     }));
 
     try {
-      // Call the API to update attendance reason
       const currentStatus =
         localAttendanceState[studentId]?.status ||
         records.find((r) => r.student_id === studentId)?.status ||
@@ -131,18 +142,10 @@ const AttendanceTable = ({ selectedDate }) => {
         schedule_id: scheduleId,
         status: currentStatus,
         date: attendanceDate,
-        reason: reason,
+        reason,
       });
     } catch (error) {
-      console.error("Failed to update attendance reason:", error);
-      // Revert local state on error
-      setLocalAttendanceState((prev) => ({
-        ...prev,
-        [studentId]: {
-          ...prev[studentId],
-          reason: records.find((r) => r.student_id === studentId)?.reason || "",
-        },
-      }));
+      console.error("Failed to update reason:", error);
     }
   };
 
@@ -152,8 +155,7 @@ const AttendanceTable = ({ selectedDate }) => {
     currentPage * RECORDS_PER_PAGE
   );
 
-  const hasRecords =
-    Array.isArray(paginatedRecords) && paginatedRecords.length > 0;
+  const hasRecords = paginatedRecords.length > 0;
 
   return (
     <>
@@ -237,8 +239,8 @@ const AttendanceTable = ({ selectedDate }) => {
                         className="w-36 p-1 border border-gray-300 rounded text-sm"
                       >
                         <option value="">Select Reason</option>
-                        {reasons.map((reason, index) => (
-                          <option key={index} value={reason}>
+                        {reasons.map((reason, idx) => (
+                          <option key={idx} value={reason}>
                             {reason}
                           </option>
                         ))}

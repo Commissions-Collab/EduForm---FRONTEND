@@ -1,74 +1,64 @@
-import React, { useEffect, useState, useMemo } from "react";
+// src/pages/admin/Certificates.jsx
+import React, { useEffect, useState } from "react";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
 import { useAdminStore } from "../../stores/useAdminStore";
-import { LuBadgeAlert, LuFilter, LuX, LuLoader } from "react-icons/lu";
+import { LuBadgeAlert, LuLoader } from "react-icons/lu";
+import { getItem } from "../../lib/utils";
 
 const Certificates = () => {
-  const {
-    fetchAdminCertificateData,
-    fetchFilterOptions,
-    filters,
-    loading,
-    error,
-  } = useAdminStore();
+  const { fetchAdminCertificateData, loading, error } = useAdminStore();
 
-  // State for filters
-  const [sectionId, setSectionId] = useState(
-    localStorage.getItem("sectionId") || ""
-  );
-  const [academicYearId, setAcademicYearId] = useState(
-    localStorage.getItem("academicYearId") || ""
-  );
-  const [quarterId, setQuarterId] = useState(
-    localStorage.getItem("quarterId") || ""
-  );
-  const [showFilters, setShowFilters] = useState(false);
+  // Local state synced from store/global events
+  const [academicYearId, setAcademicYearId] = useState("");
+  const [quarterId, setQuarterId] = useState("");
+  const [sectionId, setSectionId] = useState("");
 
-  // Fetch filter options on mount
+  // Load saved filters on mount
   useEffect(() => {
-    fetchFilterOptions();
-  }, [fetchFilterOptions]);
+    const savedAcademicYear = getItem("academicYearId", false);
+    const savedQuarter = getItem("quarterId", false);
+    const savedSection = getItem("sectionId", false);
 
-  // Get available sections dynamically based on academic year
-  const availableSections = useMemo(() => {
-    if (!academicYearId || !filters.assignments_by_year) return [];
-    const yearData = filters.assignments_by_year.find(
-      (y) => y.id == academicYearId
-    );
-    return yearData ? yearData.sections : [];
-  }, [academicYearId, filters.assignments_by_year]);
+    if (savedAcademicYear) setAcademicYearId(savedAcademicYear);
+    if (savedQuarter) setQuarterId(savedQuarter);
+    if (savedSection) setSectionId(savedSection);
 
-  // Reset section if not valid for new year
-  useEffect(() => {
-    if (
-      availableSections.length > 0 &&
-      !availableSections.find((s) => s.id == sectionId)
-    ) {
-      setSectionId("");
+    if (savedAcademicYear && savedQuarter && savedSection) {
+      fetchAdminCertificateData(savedSection, savedAcademicYear, savedQuarter);
     }
-  }, [availableSections, sectionId]);
+  }, [fetchAdminCertificateData]);
 
-  // Fetch certificate data only when all filters are selected
+  // Listen to global filters
   useEffect(() => {
-    if (academicYearId && sectionId && quarterId) {
-      localStorage.setItem("academicYearId", academicYearId);
-      localStorage.setItem("sectionId", sectionId);
-      localStorage.setItem("quarterId", quarterId);
-      fetchAdminCertificateData(academicYearId, sectionId, quarterId);
+    const handleGlobalFiltersChanged = (event) => {
+      const { academicYearId, quarterId, sectionId } = event.detail;
+
+      setAcademicYearId(academicYearId || "");
+      setQuarterId(quarterId || "");
+      setSectionId(sectionId || "");
+
+      if (academicYearId && quarterId && sectionId) {
+        fetchAdminCertificateData(sectionId, academicYearId, quarterId);
+      }
+    };
+
+    window.addEventListener("globalFiltersChanged", handleGlobalFiltersChanged);
+    return () =>
+      window.removeEventListener(
+        "globalFiltersChanged",
+        handleGlobalFiltersChanged
+      );
+  }, [fetchAdminCertificateData]);
+
+  // Ensure fresh fetch when filters change
+  useEffect(() => {
+    if (academicYearId && quarterId && sectionId) {
+      fetchAdminCertificateData(sectionId, academicYearId, quarterId);
     }
-  }, [academicYearId, sectionId, quarterId, fetchAdminCertificateData]);
+  }, [academicYearId, quarterId, sectionId, fetchAdminCertificateData]);
 
-  const clearFilters = () => {
-    setSectionId("");
-    setAcademicYearId("");
-    setQuarterId("");
-    localStorage.removeItem("sectionId");
-    localStorage.removeItem("academicYearId");
-    localStorage.removeItem("quarterId");
-  };
-
-  const filtersMissing = !sectionId || !academicYearId || !quarterId;
+  const hasAllFilters = academicYearId && quarterId && sectionId;
 
   return (
     <main className="bg-gray-50/50 p-4 lg:p-6">
@@ -81,68 +71,11 @@ const Certificates = () => {
               Generate and manage student certificates
             </p>
           </div>
-
-          {/* Filters */}
-          <div className="flex items-center gap-3">
-            {/* Academic Year */}
-            <select
-              value={academicYearId}
-              onChange={(e) => setAcademicYearId(e.target.value)}
-              className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[120px]"
-            >
-              <option value="">Select Year</option>
-              {filters.academic_years?.map((year) => (
-                <option key={year.id} value={year.id}>
-                  {year.year}
-                </option>
-              ))}
-            </select>
-
-            {/* Section */}
-            <select
-              value={sectionId}
-              onChange={(e) => setSectionId(e.target.value)}
-              disabled={!academicYearId}
-              className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[140px] disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-              <option value="">Select Section</option>
-              {availableSections.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Quarter */}
-            <select
-              value={quarterId}
-              onChange={(e) => setQuarterId(e.target.value)}
-              className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[130px]"
-            >
-              <option value="">Select Quarter</option>
-              {filters.quarters?.map((q) => (
-                <option key={q.id} value={q.id}>
-                  {q.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Clear Button */}
-            {!filtersMissing && (
-              <button
-                onClick={clearFilters}
-                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-              >
-                <LuX className="w-4 h-4" />
-                Clear
-              </button>
-            )}
-          </div>
         </div>
       </div>
 
       {/* Missing Filters Alert */}
-      {filtersMissing && (
+      {!hasAllFilters && (
         <div className="mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-sm">
           <div className="flex items-start gap-4">
             <LuBadgeAlert className="w-6 h-6 text-blue-600" />
@@ -151,8 +84,8 @@ const Certificates = () => {
                 Select Filters to Continue
               </h3>
               <p className="text-sm text-blue-700 leading-relaxed">
-                Please select an academic year, section, and quarter to load
-                certificate records.
+                Please select an academic year, section, and quarter from the
+                header to load certificate records.
               </p>
             </div>
           </div>
@@ -167,7 +100,7 @@ const Certificates = () => {
       )}
 
       {/* Loading */}
-      {loading && !filtersMissing && (
+      {loading && hasAllFilters && (
         <div className="flex justify-center items-center py-40">
           <div className="flex flex-col items-center space-y-4">
             <LuLoader className="w-11 h-11 text-blue-700 animate-spin" />
@@ -177,7 +110,7 @@ const Certificates = () => {
       )}
 
       {/* Tables */}
-      {!loading && !filtersMissing && (
+      {!loading && hasAllFilters && (
         <div className="space-y-8">
           <PerfectAttendanceTable />
           <HonorsCertificateTable />

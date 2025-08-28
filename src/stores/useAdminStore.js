@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
-import { getItem, paginate } from "../lib/utils";
+import { getItem, setItem, paginate } from "../lib/utils";
 import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 10;
@@ -29,17 +29,164 @@ export const useAdminStore = create((set, get) => ({
   loading: false,
   error: null,
 
+  // === GLOBAL FILTERS ===
+  globalFilters: {
+    academicYearId: null,
+    quarterId: null,
+    sectionId: null,
+  },
+
+  filterOptions: {
+    academicYears: [],
+    quarters: [
+      { id: 1, name: "1st Quarter" },
+      { id: 2, name: "2nd Quarter" },
+      { id: 3, name: "3rd Quarter" },
+      { id: 4, name: "4th Quarter" },
+    ],
+    sections: [],
+  },
+
+  // Initialize global filters from localStorage
+  initializeGlobalFilters: () => {
+    const academicYearId = getItem("academicYearId", false);
+    const quarterId = getItem("quarterId", false);
+    const sectionId = getItem("sectionId", false);
+
+    set({
+      globalFilters: {
+        academicYearId: academicYearId || null,
+        quarterId: quarterId ? parseInt(quarterId) : null,
+        sectionId: sectionId ? parseInt(sectionId) : null,
+      },
+    });
+  },
+
+  // Set global filters and save to localStorage
+  setGlobalFilters: (filters) => {
+    const newFilters = { ...get().globalFilters, ...filters };
+
+    // Save to localStorage
+    if (newFilters.academicYearId) {
+      setItem("academicYearId", newFilters.academicYearId);
+    }
+    if (newFilters.quarterId) {
+      setItem("quarterId", newFilters.quarterId);
+    }
+    if (newFilters.sectionId) {
+      setItem("sectionId", newFilters.sectionId);
+    }
+
+    set({ globalFilters: newFilters });
+
+    // Dispatch event for components to listen to
+    window.dispatchEvent(
+      new CustomEvent("globalFiltersChanged", {
+        detail: newFilters,
+      })
+    );
+  },
+
+  // Clear all global filters
+  clearGlobalFilters: () => {
+    setItem("academicYearId", "");
+    setItem("quarterId", "");
+    setItem("sectionId", "");
+
+    set({
+      globalFilters: {
+        academicYearId: null,
+        quarterId: null,
+        sectionId: null,
+      },
+    });
+
+    window.dispatchEvent(
+      new CustomEvent("globalFiltersChanged", {
+        detail: {
+          academicYearId: null,
+          quarterId: null,
+          sectionId: null,
+        },
+      })
+    );
+  },
+
+  // Fetch filter options - CORRECTED based on actual routes
+  fetchGlobalFilterOptions: async () => {
+    set({ loading: true, error: null });
+    try {
+      // Get academic years from the existing endpoint
+      const academicResponse = await axiosInstance.get(
+        "/teacher/academic-records/filter-options"
+      );
+
+      // Get sections from book management filter options (since this exists in your routes)
+      const sectionsResponse = await axiosInstance.get(
+        "/teacher/book-management/filter-options"
+      );
+
+      set({
+        filterOptions: {
+          academicYears: academicResponse.data?.academic_years || [],
+          quarters: get().filterOptions.quarters, // Keep static quarters
+          sections: sectionsResponse.data?.sections || [],
+        },
+        loading: false,
+      });
+    } catch (err) {
+      console.error("Filter fetch error:", err);
+
+      // Fallback: Try to get data from any available endpoint
+      try {
+        const fallbackResponse = await axiosInstance.get(
+          "/teacher/academic-records/filter-options"
+        );
+        set({
+          filterOptions: {
+            academicYears: fallbackResponse.data?.academic_years || [],
+            quarters: get().filterOptions.quarters,
+            sections: [], // Will be empty but won't break
+          },
+          loading: false,
+        });
+      } catch (fallbackErr) {
+        handleError(fallbackErr, "Unable to load filter options", set);
+      }
+    }
+  },
+
+  // Get current filter values (with fallback to localStorage)
+  getCurrentFilters: () => {
+    const { globalFilters } = get();
+    return {
+      academicYearId:
+        globalFilters.academicYearId || getItem("academicYearId", false),
+      quarterId: globalFilters.quarterId || getItem("quarterId", false),
+      sectionId: globalFilters.sectionId || getItem("sectionId", false),
+    };
+  },
+
   // === Attendance ===
   scheduleAttendance: {},
   studentAttendance: {},
   attendancePDFBlob: null,
   weeklySchedule: [],
 
-  fetchWeeklySchedule: async () => {
+  fetchWeeklySchedule: async (sectionId, academicYearId, quarterId) => {
     set({ loading: true, error: null });
 
     try {
-      const { data } = await axiosInstance.get(`/teacher/schedule/weekly`);
+      const { data } = await axiosInstance.get(`/teacher/schedule/weekly`, {
+        params: {
+          section_id: sectionId,
+          academic_year_id: academicYearId,
+          quarter_id: quarterId,
+        },
+      });
+
+      console.log("✅ Weekly Schedule Response:", data);
+
       set({ weeklySchedule: data?.data || [], loading: false });
     } catch (err) {
       handleError(err, "Unable to fetch weekly schedule", set);
@@ -141,9 +288,9 @@ export const useAdminStore = create((set, get) => ({
   fetchStudentAttendanceHistory: async () => {
     set({ loading: true, error: null });
 
+    const filters = get().getCurrentFilters();
     const studentId = getItem("studentId", false);
     const scheduleId = getItem("scheduleId", false);
-    const academicYearId = getItem("academicYearId", false);
     const startDate = getItem("startDate", false);
     const endDate = getItem("endDate", false);
 
@@ -157,7 +304,7 @@ export const useAdminStore = create((set, get) => ({
         `/teacher/student/${studentId}/schedule/${scheduleId}/attendance-history`,
         {
           params: {
-            academic_year_id: academicYearId,
+            academic_year_id: filters.academicYearId,
             start_date: startDate,
             end_date: endDate,
           },
@@ -170,35 +317,30 @@ export const useAdminStore = create((set, get) => ({
   },
 
   monthlyAttendanceData: null,
-  loading: false,
-  error: null,
   fetchMonthlyAttendance: async (params) => {
     set({ loading: true, error: null });
 
-    const sectionId = getItem("sectionId", false) || 1; // Remove 1, this is just for testing: make filters for this
-    const academicYearId = getItem("academicYearId", false) || 1; // Remove 1, this is just for testing: make filters for this
+    const filters = get().getCurrentFilters();
 
-    if (!sectionId || !academicYearId) {
-      set({ error: "Missing section or academic year ID", loading: false });
+    if (!filters.sectionId) {
+      set({ error: "Missing section ID", loading: false });
       return;
     }
 
-    // Use passed-in params or default to the current month and year
     const now = new Date();
     const filterParams = {
-      month: params?.month || now.getMonth() + 1, // this is just for testing: make filters for this
-      year: params?.year || now.getFullYear(), // this is just for testing: make filters for this
-      academic_year_id: academicYearId,
+      month: params?.month || now.getMonth() + 1,
+      year: params?.year || now.getFullYear(),
     };
 
     try {
       const { data } = await axiosInstance.get(
-        `/teacher/sections/${sectionId}/monthly-attendance`,
+        `/teacher/sections/${filters.sectionId}/monthly-attendance`,
         { params: filterParams }
       );
 
       set({
-        monthlyAttendanceData: data?.data || null, // Store the full 'data' object from the response
+        monthlyAttendanceData: data?.data || null,
         loading: false,
       });
     } catch (err) {
@@ -209,11 +351,9 @@ export const useAdminStore = create((set, get) => ({
   downloadQuarterlyAttendancePDF: async () => {
     set({ loading: true, error: null });
 
-    const sectionId = getItem("sectionId", false);
-    const academicYearId = getItem("academicYearId", false);
-    const quarterId = getItem("quarterId", false);
+    const filters = get().getCurrentFilters();
 
-    if (!sectionId || !academicYearId || !quarterId) {
+    if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
       set({
         error: "Section, Academic Year, or Quarter is not selected",
         loading: false,
@@ -223,12 +363,12 @@ export const useAdminStore = create((set, get) => ({
 
     try {
       const response = await axiosInstance.get(
-        `/teacher/sections/${sectionId}/attendance/quarterly/pdf`,
+        `/teacher/sections/${filters.sectionId}/attendance/quarterly/pdf`,
         {
           responseType: "blob",
           params: {
-            academic_year_id: academicYearId,
-            quarter_id: quarterId,
+            academic_year_id: filters.academicYearId,
+            quarter_id: filters.quarterId,
           },
           headers: {
             Accept: "application/pdf",
@@ -237,31 +377,13 @@ export const useAdminStore = create((set, get) => ({
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const fileName = `Quarterly_Attendance_Summary_${sectionId}_${quarterId}.pdf`;
+      const fileName = `Quarterly_Attendance_Summary_${filters.sectionId}_${filters.quarterId}.pdf`;
       downloadPDF(blob, fileName);
 
       set({ attendancePDFBlob: blob, loading: false });
     } catch (err) {
       console.error("Failed to download attendance PDF:", err);
-
-      try {
-        if (
-          err.response &&
-          err.response.data instanceof Blob &&
-          err.response.data.type === "application/json"
-        ) {
-          const text = await err.response.data.text();
-          const json = JSON.parse(text);
-          set({
-            error: json.message || "Failed to generate PDF",
-            loading: false,
-          });
-        } else {
-          set({ error: err.message || "PDF download failed", loading: false });
-        }
-      } catch {
-        set({ error: "PDF download failed", loading: false });
-      }
+      handleError(err, "PDF download failed", set);
     }
   },
 
@@ -279,39 +401,16 @@ export const useAdminStore = create((set, get) => ({
   // === Grades ===
   students: [],
   subjects: [],
-  selectedQuarter: null,
-  selectedAcademicYear: null,
-  selectedSection: null,
   currentPage: 1,
-  filters: {
-    academic_years: [],
-    assignments_by_year: [],
-  },
 
-  // Fixed to match AcademicRecordsController@getFilterOptions
-  fetchFilterOptions: async () => {
-    set({ loading: true, error: null });
-    try {
-      const { data } = await axiosInstance.get(
-        "/teacher/academic-records/filter-options"
-      );
-      set({
-        filters: data || { academic_years: [], assignments_by_year: [] },
-        loading: false,
-      });
-    } catch (err) {
-      handleError(err, "Unable to load filter options", set);
-    }
-  },
-
-  // Fixed to match AcademicRecordsController@getStudentsGrade
   fetchGrades: async (academicYearId, quarterId, sectionId) => {
     set({ loading: true, error: null });
 
+    const filters = get().getCurrentFilters();
     const params = {
-      academic_year_id: academicYearId || getItem("academicYearId", false),
-      quarter_id: quarterId || getItem("quarterId", false),
-      section_id: sectionId || getItem("sectionId", false),
+      academic_year_id: academicYearId || filters.academicYearId,
+      quarter_id: quarterId || filters.quarterId,
+      section_id: sectionId || filters.sectionId,
     };
 
     if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
@@ -334,7 +433,6 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Fixed to match AcademicRecordsController@updateGrade
   updateGrade: async ({ student_id, subject_id, quarter_id, grade }) => {
     try {
       const payload = { student_id, subject_id, quarter_id, grade };
@@ -363,14 +461,14 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Fixed to match AcademicRecordsController@getGradeStatistics
   fetchStatistics: async (academicYearId, quarterId, sectionId) => {
     set({ loading: true, error: null });
 
+    const filters = get().getCurrentFilters();
     const params = {
-      academic_year_id: academicYearId || getItem("academicYearId", false),
-      quarter_id: quarterId || getItem("quarterId", false),
-      section_id: sectionId || getItem("sectionId", false),
+      academic_year_id: academicYearId || filters.academicYearId,
+      quarter_id: quarterId || filters.quarterId,
+      section_id: sectionId || filters.sectionId,
     };
 
     if (!params.academic_year_id || !params.quarter_id || !params.section_id) {
@@ -391,8 +489,6 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  setSelectedQuarter: (quarterId) => set({ selectedQuarter: quarterId }),
-
   totalPages: () => Math.ceil(get().students.length / RECORDS_PER_PAGE),
 
   paginatedGradeRecords: () => {
@@ -409,13 +505,13 @@ export const useAdminStore = create((set, get) => ({
   isPromotionAccessible: false,
   promotionMessage: null,
 
-  // Fixed to match PromotionReportController@getPromotionReportStatistics
   fetchPromotionData: async (academicYearId, sectionId) => {
     set({ loading: true, error: null });
 
+    const filters = get().getCurrentFilters();
     const params = {
-      academic_year_id: academicYearId || getItem("academicYearId", false),
-      section_id: sectionId || getItem("sectionId", false),
+      academic_year_id: academicYearId || filters.academicYearId,
+      section_id: sectionId || filters.sectionId,
     };
 
     if (!params.academic_year_id || !params.section_id) {
@@ -469,10 +565,11 @@ export const useAdminStore = create((set, get) => ({
   fetchAdminCertificateData: async (academicYearId, sectionId, quarterId) => {
     set({ loading: true, error: null });
 
+    const filters = get().getCurrentFilters();
     const params = {
-      academic_year_id: academicYearId || getItem("academicYearId", false),
-      section_id: sectionId || getItem("sectionId", false),
-      quarter_id: quarterId || getItem("quarterId", false),
+      academic_year_id: academicYearId || filters.academicYearId,
+      section_id: sectionId || filters.sectionId,
+      quarter_id: quarterId || filters.quarterId,
     };
 
     if (!params.academic_year_id || !params.section_id || !params.quarter_id) {
@@ -514,7 +611,7 @@ export const useAdminStore = create((set, get) => ({
     return paginate(certificates, certificateCurrentPage, RECORDS_PER_PAGE);
   },
 
-  // === Textbooks ===
+  // === Textbooks === CORRECTED ENDPOINTS
   textbooks: [],
   textbookCurrentPage: 1,
   bookFilters: {
@@ -523,25 +620,30 @@ export const useAdminStore = create((set, get) => ({
     books: [],
   },
 
-  // Fixed to match BookManagementController@index
   fetchTextbooks: async () => {
     set({ loading: true, error: null });
 
     try {
       const response = await axiosInstance.get("/teacher/book-management");
-      const textbooks = response.data?.books?.data || [];
+      const textbooks =
+        response.data?.books?.data ||
+        response.data?.data ||
+        response.data ||
+        [];
       set({ textbooks, loading: false });
     } catch (err) {
       handleError(err, "Failed to fetch textbooks", set);
     }
   },
 
-  // Fixed to match BookManagementController@getFilterOptions
   fetchBookFilters: async (sectionId) => {
     set({ loading: true, error: null });
 
+    const filters = get().getCurrentFilters();
+    const targetSectionId = sectionId || filters.sectionId;
+
     try {
-      const params = sectionId ? { section_id: sectionId } : {};
+      const params = targetSectionId ? { section_id: targetSectionId } : {};
       const response = await axiosInstance.get(
         "/teacher/book-management/filter-options",
         { params }
@@ -560,15 +662,17 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Fixed to match BookManagementController@distributeBooks
+  // CORRECTED: Fixed endpoint names based on routes
   distributeBook: async (bookData) => {
     set({ loading: true, error: null });
 
     try {
-      await axiosInstance.post("/teacher/book-management/distribute", bookData);
+      await axiosInstance.post(
+        "/teacher/book-management/distribute-books",
+        bookData
+      );
       set({ loading: false });
       toast.success("Book distributed successfully!");
-      // Refresh textbooks after distribution
       await get().fetchTextbooks();
     } catch (err) {
       handleError(err, "Failed to distribute book", set);
@@ -576,15 +680,16 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Fixed to match BookManagementController@returnBook
+  // CORRECTED: Fixed endpoint name based on routes
   returnBook: async (borrowId) => {
     set({ loading: true, error: null });
 
     try {
-      await axiosInstance.put(`/teacher/book-management/return/${borrowId}`);
+      await axiosInstance.put(
+        `/teacher/book-management/return-book/${borrowId}`
+      );
       set({ loading: false });
       toast.success("Book returned successfully!");
-      // Refresh textbooks after return
       await get().fetchTextbooks();
     } catch (err) {
       handleError(err, "Failed to return book", set);
@@ -672,9 +777,9 @@ export const useAdminStore = create((set, get) => ({
 
       set({
         studentRequests: {
-          pending: pendingRes.data.requests?.data || [],
-          approved: approvedRes.data.requests?.data || [],
-          rejected: rejectedRes.data.requests?.data || [],
+          pending: pendingRes.data.requests?.data || pendingRes.data || [],
+          approved: approvedRes.data.requests?.data || approvedRes.data || [],
+          rejected: rejectedRes.data.requests?.data || rejectedRes.data || [],
         },
         loadingStudentRequests: false,
       });
@@ -744,21 +849,30 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         "/teacher/parents-conference/dashboard"
       );
+
       set({
         conferenceSection: data.section || "",
         conferenceStudents: Array.isArray(data.students) ? data.students : [],
         conferenceLoading: false,
       });
     } catch (err) {
-      console.error("Failed to fetch conference dashboard:", err);
-      set({
-        conferenceError: "Failed to load parent conference data.",
-        conferenceLoading: false,
-      });
+      console.error("Conference dashboard error:", err.response);
+
+      if (err.response?.status === 403) {
+        const message =
+          err.response?.data?.message ||
+          "Access denied. You may not be assigned as a section advisor for the current academic year.";
+        set({
+          conferenceError: message,
+          conferenceLoading: false,
+        });
+      } else {
+        handleError(err, "Failed to load parent conference data", set);
+      }
     }
   },
 
-  fetchConferenceStudent: async (studentId) => {
+  fetchConferenceStudentProfile: async (studentId) => {
     set({ conferenceLoading: true, conferenceError: null });
 
     try {
@@ -767,14 +881,11 @@ export const useAdminStore = create((set, get) => ({
       );
       set({
         selectedConferenceStudent: data.student,
+        conferenceSection: data.section || "",
         conferenceLoading: false,
       });
     } catch (err) {
-      console.error("Failed to fetch student profile:", err);
-      set({
-        conferenceError: "Unable to load student profile.",
-        conferenceLoading: false,
-      });
+      handleError(err, "Unable to load student profile", set);
     }
   },
 
@@ -791,18 +902,18 @@ export const useAdminStore = create((set, get) => ({
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      downloadPDF(blob, `Student_Report_Card_${studentId}.pdf`);
+      const fileName = `Student_Report_Card_${studentId}.pdf`;
+      downloadPDF(blob, fileName);
+
       set({ conferenceLoading: false });
+      toast.success("Report card downloaded successfully!");
     } catch (err) {
-      console.error("Failed to download report card:", err);
-      set({
-        conferenceError: "Download failed.",
-        conferenceLoading: false,
-      });
+      handleError(err, "Failed to download student report card", set);
+      toast.error("Download failed");
     }
   },
 
-  downloadAllReportCards: async () => {
+  downloadAllStudentReportCards: async () => {
     set({ conferenceLoading: true, conferenceError: null });
 
     try {
@@ -815,15 +926,24 @@ export const useAdminStore = create((set, get) => ({
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      downloadPDF(blob, "All_Student_Report_Cards.pdf");
+      const fileName = "All_Student_Report_Cards.pdf";
+      downloadPDF(blob, fileName);
+
       set({ conferenceLoading: false });
+      toast.success("All report cards downloaded successfully!");
     } catch (err) {
-      console.error("Failed to download all report cards:", err);
-      set({
-        conferenceError: "Download failed.",
-        conferenceLoading: false,
-      });
+      handleError(err, "Failed to download all report cards", set);
+      toast.error("Download failed");
     }
+  },
+
+  clearConferenceData: () => {
+    set({
+      conferenceStudents: [],
+      selectedConferenceStudent: null,
+      conferenceSection: "",
+      conferenceError: null,
+    });
   },
 
   // === BMI / Health Profile ===
@@ -831,14 +951,14 @@ export const useAdminStore = create((set, get) => ({
   bmiLoading: false,
   bmiError: null,
 
-  // Fixed to match StudentBmiController@index
   fetchBmiStudents: async (sectionId, academicYearId, quarterId) => {
     set({ bmiLoading: true, bmiError: null });
 
+    const filters = get().getCurrentFilters();
     const params = {
-      section_id: sectionId || getItem("sectionId", false),
-      academic_year_id: academicYearId || getItem("academicYearId", false),
-      quarter_id: quarterId || getItem("quarterId", false),
+      section_id: sectionId || filters.sectionId,
+      academic_year_id: academicYearId || filters.academicYearId,
+      quarter_id: quarterId || filters.quarterId,
     };
 
     if (!params.section_id || !params.academic_year_id || !params.quarter_id) {
@@ -853,7 +973,7 @@ export const useAdminStore = create((set, get) => ({
       const { data } = await axiosInstance.get("/teacher/student-bmi", {
         params,
       });
-      set({ bmiStudents: data.students || [], bmiLoading: false });
+      set({ bmiStudents: data.students || data || [], bmiLoading: false });
     } catch (err) {
       console.error("Failed to fetch BMI records:", err);
       set({
@@ -863,7 +983,6 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Fixed to match StudentBmiController@store
   addStudentBmi: async (bmiData) => {
     try {
       const response = await axiosInstance.post(
@@ -878,7 +997,6 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Fixed to match StudentBmiController@update
   updateStudentBmi: async (id, bmiData) => {
     try {
       const response = await axiosInstance.put(
@@ -893,7 +1011,6 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Fixed to match StudentBmiController@destroy
   deleteStudentBmi: async (id) => {
     try {
       const response = await axiosInstance.delete(`/teacher/student-bmi/${id}`);
@@ -902,6 +1019,29 @@ export const useAdminStore = create((set, get) => ({
     } catch (err) {
       toast.error("Failed to delete BMI record");
       throw err;
+    }
+  },
+
+  // === GLOBAL ACTIONS ===
+  // Refresh data based on current global filters
+  refreshAllData: async () => {
+    const filters = get().getCurrentFilters();
+
+    if (!filters.academicYearId || !filters.quarterId || !filters.sectionId) {
+      console.log("Cannot refresh data - missing required filters");
+      return;
+    }
+
+    try {
+      // Refresh all relevant data
+      await Promise.all([
+        get().fetchGrades(),
+        get().fetchAdminCertificateData(),
+        get().fetchBmiStudents(),
+        get().fetchMonthlyAttendance(),
+      ]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
     }
   },
 }));

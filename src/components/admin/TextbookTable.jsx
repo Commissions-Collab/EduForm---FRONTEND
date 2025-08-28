@@ -145,7 +145,7 @@ const TextbookTable = ({ searchTerm }) => {
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <LuAlertTriangle className="w-6 h-6 text-red-600" />
+                      <LuTriangleAlert className="w-6 h-6 text-red-600" />
                     </div>
                     <div>
                       <p className="font-medium text-red-900">
