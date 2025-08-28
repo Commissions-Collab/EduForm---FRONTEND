@@ -321,9 +321,20 @@ export const useAdminStore = create((set, get) => ({
     set({ loading: true, error: null });
 
     const filters = get().getCurrentFilters();
+    const advisorySectionId = get().teacherProfile?.advisory_section_id;
 
     if (!filters.sectionId) {
       set({ error: "Missing section ID", loading: false });
+      return;
+    }
+
+    if (advisorySectionId && filters.sectionId !== advisorySectionId) {
+      set({
+        error:
+          "This section is not your advisory class. You cannot access its attendance.",
+        loading: false,
+        monthlyAttendanceData: null,
+      });
       return;
     }
 
@@ -347,7 +358,6 @@ export const useAdminStore = create((set, get) => ({
       handleError(err, "Unable to fetch monthly attendance", set);
     }
   },
-
   downloadQuarterlyAttendancePDF: async () => {
     set({ loading: true, error: null });
 

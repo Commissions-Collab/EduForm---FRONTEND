@@ -1,6 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAdminStore } from "../../stores/useAdminStore";
-import { LuChevronDown, LuSettings, LuCheck, LuX } from "react-icons/lu";
+import {
+  LuChevronDown,
+  LuFilter,
+  LuCheck,
+  LuX,
+  LuCalendar,
+  LuBookOpen,
+  LuUsers,
+} from "react-icons/lu";
 
 const GlobalFilterDropdown = ({ userRole }) => {
   const {
@@ -14,6 +22,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
   } = useAdminStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [draftFilters, setDraftFilters] = useState(globalFilters); // ✅ local draft state
   const dropdownRef = useRef();
 
   // Only show for admin/teacher roles
@@ -23,11 +32,14 @@ const GlobalFilterDropdown = ({ userRole }) => {
   }
 
   useEffect(() => {
-    // Initialize filters from localStorage on mount
     initializeGlobalFilters();
-    // Fetch filter options
     fetchGlobalFilterOptions();
   }, [initializeGlobalFilters, fetchGlobalFilterOptions]);
+
+  useEffect(() => {
+    // Keep draft in sync when global filters change externally
+    setDraftFilters(globalFilters);
+  }, [globalFilters]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -36,65 +48,66 @@ const GlobalFilterDropdown = ({ userRole }) => {
         setIsExpanded(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ✅ Update draft only
   const handleAcademicYearChange = (value) => {
-    setGlobalFilters({
+    setDraftFilters((prev) => ({
+      ...prev,
       academicYearId: value || null,
-      // Reset dependent filters when academic year changes
       quarterId: null,
       sectionId: null,
-    });
+    }));
   };
 
   const handleQuarterChange = (value) => {
-    setGlobalFilters({
+    setDraftFilters((prev) => ({
+      ...prev,
       quarterId: value ? parseInt(value) : null,
-    });
+    }));
   };
 
   const handleSectionChange = (value) => {
-    setGlobalFilters({
+    setDraftFilters((prev) => ({
+      ...prev,
       sectionId: value ? parseInt(value) : null,
-    });
+    }));
   };
 
   const hasFiltersSelected =
-    globalFilters.academicYearId ||
-    globalFilters.quarterId ||
-    globalFilters.sectionId;
+    draftFilters.academicYearId ||
+    draftFilters.quarterId ||
+    draftFilters.sectionId;
 
   const hasCompleteFilters =
-    globalFilters.academicYearId &&
-    globalFilters.quarterId &&
-    globalFilters.sectionId;
+    draftFilters.academicYearId &&
+    draftFilters.quarterId &&
+    draftFilters.sectionId;
 
-  // Get current selections for display
   const getCurrentSelections = () => {
     const selections = {};
 
-    if (globalFilters.academicYearId) {
+    if (draftFilters.academicYearId) {
       const year = filterOptions.academicYears?.find(
-        (y) => y.id == globalFilters.academicYearId
+        (y) => y.id == draftFilters.academicYearId
       );
       selections.academicYear = year
         ? `${year.year_start}-${year.year_end}`
         : null;
     }
 
-    if (globalFilters.quarterId) {
+    if (draftFilters.quarterId) {
       const quarter = filterOptions.quarters?.find(
-        (q) => q.id === globalFilters.quarterId
+        (q) => q.id === draftFilters.quarterId
       );
       selections.quarter = quarter ? quarter.name : null;
     }
 
-    if (globalFilters.sectionId) {
+    if (draftFilters.sectionId) {
       const section = filterOptions.sections?.find(
-        (s) => s.id === globalFilters.sectionId
+        (s) => s.id === draftFilters.sectionId
       );
       selections.section = section ? section.name : null;
     }
@@ -105,40 +118,33 @@ const GlobalFilterDropdown = ({ userRole }) => {
   const selections = getCurrentSelections();
   const filterCount = Object.values(selections).filter(Boolean).length;
 
+  const getTriggerStyle = () => {
+    if (hasCompleteFilters) {
+      return "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-sm";
+    } else if (hasFiltersSelected) {
+      return "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm";
+    } else {
+      return "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400";
+    }
+  };
+
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative w-full max-w-sm" ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:ring-offset-1 ${
-          hasCompleteFilters
-            ? "border-[#3730A3] bg-[#3730A3] text-white hover:bg-[#312e81] shadow-md"
-            : hasFiltersSelected
-            ? "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
-            : "border-[#C7D2FE] bg-[#F8FAFC] text-[#3730A3] hover:bg-[#E0E7FF]"
-        }`}
+        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 ${getTriggerStyle()}`}
       >
-        <LuSettings className="w-4 h-4" />
-        <span className="text-sm font-medium">
-          {hasCompleteFilters
-            ? "Filters Applied"
-            : hasFiltersSelected
-            ? `${filterCount} Filter${filterCount > 1 ? "s" : ""}`
-            : "Set Filters"}
-        </span>
-
-        {filterCount > 0 && (
-          <span
-            className={`px-2 py-0.5 text-xs rounded-full font-bold ${
-              hasCompleteFilters
-                ? "bg-white text-[#3730A3]"
-                : "bg-amber-200 text-amber-800"
-            }`}
-          >
-            {filterCount}
+        <div className="flex items-center gap-2.5">
+          <LuFilter className="w-4 h-4 flex-shrink-0" />
+          <span className="text-sm font-medium truncate">
+            {hasCompleteFilters
+              ? "All Filters Applied"
+              : hasFiltersSelected
+              ? `${filterCount} Filter${filterCount > 1 ? "s" : ""} Set`
+              : "Select Filters"}
           </span>
-        )}
-
+        </div>
         <LuChevronDown
           className={`w-4 h-4 transform transition-transform duration-200 ${
             isExpanded ? "rotate-180" : ""
@@ -148,176 +154,121 @@ const GlobalFilterDropdown = ({ userRole }) => {
 
       {/* Dropdown Panel */}
       {isExpanded && (
-        <div className="absolute left-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 min-w-[320px]">
           {/* Header */}
-          <div className="p-4 bg-gradient-to-r from-[#3730A3] to-[#4F46E5] text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Global Filters</h3>
-                <p className="text-sm opacity-90">
-                  Apply filters across all sections
-                </p>
-              </div>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="p-1 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <LuX className="w-5 h-5" />
-              </button>
-            </div>
+          <div className="bg-[#3730A3]  px-6 py-4 text-white flex justify-between">
+            <h3 className="font-semibold text-base">Filter Settings</h3>
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="p-2 hover:bg-white/20 rounded-lg"
+            >
+              <LuX className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Content */}
-          <div className="p-4 space-y-4">
-            {/* Academic Year Filter */}
-            <div className="space-y-2">
-              <label className="flex items-center justify-between text-sm font-medium text-gray-700">
-                Academic Year
+          <div className="p-6 space-y-6">
+            {/* Academic Year */}
+            <div>
+              <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
+                <span className="flex items-center gap-2">
+                  <LuCalendar className="w-5 h-5 text-[#3730A3]" /> Academic
+                  Year
+                </span>
                 {selections.academicYear && (
-                  <LuCheck className="w-4 h-4 text-green-600" />
+                  <LuCheck className="w-5 h-5 text-emerald-600" />
                 )}
               </label>
               <select
-                value={globalFilters.academicYearId || ""}
+                value={draftFilters.academicYearId || ""}
                 onChange={(e) => handleAcademicYearChange(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-[#3730A3] transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 disabled={loading}
               >
                 <option value="">Choose Academic Year</option>
-                {filterOptions.academicYears?.map((year) => (
-                  <option key={year.id} value={year.id}>
-                    {year.year_start} - {year.year_end}
+                {filterOptions.academicYears?.map((y) => (
+                  <option key={y.id} value={y.id}>
+                    {y.year_start} - {y.year_end}
                   </option>
                 ))}
               </select>
-              {selections.academicYear && (
-                <p className="text-xs text-green-600 font-medium">
-                  Selected: {selections.academicYear}
-                </p>
-              )}
             </div>
 
-            {/* Quarter Filter */}
-            <div className="space-y-2">
-              <label className="flex items-center justify-between text-sm font-medium text-gray-700">
-                Quarter
+            {/* Quarter */}
+            <div>
+              <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
+                <span className="flex items-center gap-2">
+                  <LuBookOpen className="w-5 h-5 text-[#3730A3]" /> Quarter
+                </span>
                 {selections.quarter && (
-                  <LuCheck className="w-4 h-4 text-green-600" />
+                  <LuCheck className="w-5 h-5 text-emerald-600" />
                 )}
               </label>
               <select
-                value={globalFilters.quarterId || ""}
+                value={draftFilters.quarterId || ""}
                 onChange={(e) => handleQuarterChange(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-[#3730A3] transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 disabled={loading}
               >
                 <option value="">Choose Quarter</option>
-                {filterOptions.quarters?.map((quarter) => (
-                  <option key={quarter.id} value={quarter.id}>
-                    {quarter.name}
+                {filterOptions.quarters?.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.name}
                   </option>
                 ))}
               </select>
-              {selections.quarter && (
-                <p className="text-xs text-green-600 font-medium">
-                  Selected: {selections.quarter}
-                </p>
-              )}
             </div>
 
-            {/* Section Filter */}
-            <div className="space-y-2">
-              <label className="flex items-center justify-between text-sm font-medium text-gray-700">
-                Section
+            {/* Section */}
+            <div>
+              <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
+                <span className="flex items-center gap-2">
+                  <LuUsers className="w-5 h-5 text-[#3730A3]" /> Section
+                </span>
                 {selections.section && (
-                  <LuCheck className="w-4 h-4 text-green-600" />
+                  <LuCheck className="w-5 h-5 text-emerald-600" />
                 )}
               </label>
               <select
-                value={globalFilters.sectionId || ""}
+                value={draftFilters.sectionId || ""}
                 onChange={(e) => handleSectionChange(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3730A3] focus:border-[#3730A3] transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 disabled={loading}
               >
                 <option value="">Choose Section</option>
-                {filterOptions.sections?.map((section) => (
-                  <option key={section.id} value={section.id}>
-                    {section.name}
+                {filterOptions.sections?.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
                   </option>
                 ))}
               </select>
-              {selections.section && (
-                <p className="text-xs text-green-600 font-medium">
-                  Selected: {selections.section}
-                </p>
-              )}
-              {filterOptions.sections?.length === 0 && !loading && (
-                <p className="text-xs text-amber-600">
-                  No sections available. Please select an academic year first.
-                </p>
-              )}
-            </div>
-
-            {/* Filter Status */}
-            <div className="pt-3 border-t">
-              {hasCompleteFilters ? (
-                <div className="flex items-center space-x-2 text-green-700 bg-green-50 p-3 rounded-lg">
-                  <LuCheck className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    All filters applied
-                  </span>
-                </div>
-              ) : hasFiltersSelected ? (
-                <div className="flex items-center space-x-2 text-amber-700 bg-amber-50 p-3 rounded-lg">
-                  <LuSettings className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    {3 - filterCount} more filter
-                    {3 - filterCount > 1 ? "s" : ""} needed
-                  </span>
-                </div>
-              ) : (
-                <div className="text-gray-600 bg-gray-50 p-3 rounded-lg">
-                  <span className="text-sm">
-                    Please select filters to continue
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-2 pt-2">
-              {hasFiltersSelected && (
-                <button
-                  onClick={() => {
-                    clearGlobalFilters();
-                    setIsExpanded(false);
-                  }}
-                  className="flex-1 px-4 py-2.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200 border border-red-200 hover:border-red-300 font-medium"
-                >
-                  Clear All
-                </button>
-              )}
-
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="flex-1 px-4 py-2.5 text-sm text-[#3730A3] hover:text-white hover:bg-[#3730A3] rounded-lg transition-colors duration-200 border border-[#3730A3] font-medium"
-              >
-                Done
-              </button>
             </div>
           </div>
 
-          {/* Loading Overlay */}
-          {loading && (
-            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-b-transparent border-[#3730A3]"></div>
-                <span className="text-sm text-gray-600">
-                  Loading options...
-                </span>
-              </div>
-            </div>
-          )}
+          {/* Footer */}
+          <div className="border-t border-gray-200 p-4 flex gap-3 bg-gray-50">
+            {hasFiltersSelected && (
+              <button
+                onClick={() => {
+                  clearGlobalFilters();
+                  setDraftFilters({});
+                  setIsExpanded(false);
+                }}
+                className="flex-1 px-4 py-2 text-sm text-red-600 border rounded-lg"
+              >
+                Clear All
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setGlobalFilters(draftFilters); // ✅ Apply only here
+                setIsExpanded(false);
+              }}
+              className="flex-1 px-4 py-2 text-sm text-white bg-[#3730A3] rounded-lg"
+            >
+              Apply Filters
+            </button>
+          </div>
         </div>
       )}
     </div>

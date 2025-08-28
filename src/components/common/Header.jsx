@@ -108,114 +108,144 @@ const Header = () => {
 
   return (
     <>
-      <header className="w-full border-b border-gray-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between px-4 h-22">
-          {/* Left Side - Menu + Filters */}
-          <div className="flex items-center space-x-3">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="text-xl text-[#3730A3] hover:scale-105 transition-transform duration-200 focus:outline-none xl:hidden"
-            >
-              <LuMenu />
-            </button>
-
-            {/* Global Filter Dropdown */}
-            {shouldShowRole && (
-              <div className="flex items-center space-x-2">
-                <GlobalFilterDropdown userRole={userRole} />
-
-                {/* Small Filter Status Badge */}
-                {hasCompleteFilters && (
-                  <span className="hidden md:inline-flex items-center px-2 py-0.5 text-xs bg-green-50 text-green-700 rounded-md border border-green-200">
-                    <LuFilter className="w-3 h-3 mr-1" />
-                    Active
-                  </span>
-                )}
-
-                {!hasCompleteFilters && hasAnyFilter && (
-                  <span className="hidden md:inline-flex items-center px-2 py-0.5 text-xs bg-amber-50 text-amber-700 rounded-md border border-amber-200">
-                    <LuFilter className="w-3 h-3 mr-1" />
-                    Incomplete
-                  </span>
-                )}
-
-                {!hasAnyFilter && (
-                  <span className="hidden md:inline-flex items-center px-2 py-0.5 text-xs bg-gray-50 text-gray-600 rounded-md border border-gray-200">
-                    <LuFilter className="w-3 h-3 mr-1" />
-                    None
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Right Side - Actions */}
-          <div className="flex items-center space-x-2">
-            {/* Refresh */}
-            {shouldShowRole && hasCompleteFilters && (
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200/60 shadow-sm">
+        <div className="max-w-full mx-auto">
+          {/* Main Header Row */}
+          <div className="flex items-center justify-between px-4 lg:px-6 h-22">
+            {/* Left Section - Global Filters */}
+            <div className="flex items-center gap-4">
+              {/* Mobile Menu Button */}
               <button
-                onClick={handleRefreshData}
-                disabled={isRefreshing}
-                className="p-2 bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] rounded-md transition-all duration-200 disabled:opacity-50"
-                title="Refresh data"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
+                aria-label="Toggle mobile menu"
               >
-                <LuRefreshCw
-                  className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-              </button>
-            )}
-
-            {/* Notifications */}
-            <div className="relative" ref={notifDropdownRef}>
-              <button
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className="relative p-2 bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] rounded-md transition-all duration-200"
-              >
-                <LuBell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold border-2 border-white">
-                  3
-                </span>
+                <LuMenu className="w-5 h-5" />
               </button>
 
-              {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                  <div className="p-3 border-b bg-gradient-to-r from-[#3730A3] to-[#4F46E5] text-white">
-                    <h3 className="text-sm font-semibold">Notifications</h3>
-                    <p className="text-xs opacity-90">Recent updates</p>
+              {/* Global Filters */}
+              {shouldShowRole && (
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 max-w-sm">
+                    <GlobalFilterDropdown userRole={userRole} />
                   </div>
-                  <ul className="text-sm max-h-56 overflow-y-auto">
-                    {/* notifications list here */}
-                  </ul>
+
+                  {/* Filter Display (Desktop) */}
+                  {filterLabels.length > 0 && (
+                    <div className="hidden lg:flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        {filterLabels.map((label, index) => (
+                          <span
+                            key={index}
+                            className="px-2.5 py-1 bg-[#3730A3] text-white rounded-md text-xs font-medium"
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* Right Section */}
+            <div className="flex items-center gap-2">
+              {/* Refresh Button */}
+              {shouldShowRole && hasCompleteFilters && (
+                <button
+                  onClick={handleRefreshData}
+                  disabled={isRefreshing}
+                  className="p-2.5 hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  title="Refresh data"
+                >
+                  <LuRefreshCw
+                    className={`w-5 h-5 ${
+                      isRefreshing ? "animate-spin" : "group-hover:rotate-180"
+                    } transition-transform duration-300`}
+                  />
+                </button>
+              )}
+
+              {/* Notifications */}
+              <div className="relative" ref={notifDropdownRef}>
+                <button
+                  onClick={() => setIsNotifOpen(!isNotifOpen)}
+                  className="relative p-2.5 hover:bg-gray-100 text-gray-700 hover:text-gray-900 rounded-lg transition-all duration-200"
+                  aria-label="View notifications"
+                >
+                  <LuBell className="w-5 h-5" />
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium border-2 border-white shadow-sm">
+                    3
+                  </span>
+                </button>
+
+                {/* Notifications Dropdown */}
+                {isNotifOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-white">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-sm">
+                            Notifications
+                          </h3>
+                          <p className="text-xs text-indigo-100">
+                            3 unread messages
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setIsNotifOpen(false)}
+                          className="p-1 hover:bg-white/20 rounded-md transition-colors"
+                        >
+                          <LuX className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Notifications List */}
+                    <div className="max-h-64 overflow-y-auto">
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No new notifications
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+
+          {/* Mobile Filter Tags */}
+          {shouldShowRole && filterLabels.length > 0 && (
+            <div className="lg:hidden px-4 pb-3 border-t border-gray-100">
+              <div className="flex items-center gap-2 pt-3">
+                <span className="text-xs font-medium text-gray-600 flex-shrink-0">
+                  Active Filters:
+                </span>
+                <div className="flex flex-wrap gap-1.5 flex-1">
+                  {filterLabels.map((label, index) => (
+                    <span
+                      key={index}
+                      className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium border border-indigo-200/50"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                {hasAnyFilter && (
+                  <button
+                    onClick={clearGlobalFilters}
+                    className="px-2.5 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full border border-red-200/50 text-xs font-medium transition-colors flex-shrink-0"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Mobile Filter Tags */}
-        {shouldShowRole && filterLabels.length > 0 && (
-          <div className="lg:hidden px-4 pb-2 flex flex-wrap gap-2 text-xs">
-            {filterLabels.map((label, index) => (
-              <span
-                key={index}
-                className="px-2 py-0.5 bg-[#E0E7FF] text-[#3730A3] rounded-full border border-[#C7D2FE]"
-              >
-                {label}
-              </span>
-            ))}
-
-            {hasAnyFilter && (
-              <button
-                onClick={clearGlobalFilters}
-                className="px-2 py-0.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full border border-red-200 text-xs"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        )}
       </header>
+
       {/* Mobile Navigation */}
       {menuOpen && <MobileNavigation onClose={() => setMenuOpen(false)} />}
     </>
