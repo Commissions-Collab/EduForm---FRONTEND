@@ -167,6 +167,202 @@ export const useAdminStore = create((set, get) => ({
     };
   },
 
+
+  // State
+  dashboardData: null,
+  loading: false,
+  error: null,
+  lastUpdated: null,
+
+  // Actions
+  fetchDashboardData: async (quarterId = null, attendanceDate = null) => {
+    set({ loading: true, error: null });
+    
+    try {
+      const params = {};
+      if (quarterId) params.quarter_id = quarterId;
+      if (attendanceDate) params.attendance_date = attendanceDate;
+      
+      const response = await axiosInstance.get('/teacher/dashboard', {params});
+
+      if (response.data.success) {
+        set({ 
+          dashboardData: response.data.data,
+          loading: false,
+          lastUpdated: new Date().toISOString(),
+          error: null 
+        });
+      } else {
+        set({ 
+          error: response.data.message || 'Failed to fetch dashboard data',
+          loading: false 
+        });
+      }
+    } catch (error) {
+      console.error('Dashboard fetch error:', error);
+      
+      let errorMessage = 'Network error';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      set({ 
+        error: errorMessage,
+        loading: false 
+      });
+    }
+  },
+
+  // Update attendance data specifically
+  updateAttendanceData: async (attendanceData) => {
+    set({ loading: true, error: null });
+    
+    try {
+      const response = await dashboardAPI.updateAttendance(attendanceData);
+      
+      if (response.data.success) {
+        // Refresh dashboard data after successful attendance update
+        await get().fetchDashboardData();
+        return { success: true };
+      } else {
+        set({ 
+          error: response.data.message || 'Failed to update attendance',
+          loading: false 
+        });
+        return { success: false, message: response.data.message };
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update attendance';
+      set({ 
+        error: errorMessage,
+        loading: false 
+      });
+      return { success: false, message: errorMessage };
+    }
+  },
+
+  // Reset store
+  resetDashboard: () => {
+    set({ 
+      dashboardData: null, 
+      loading: false, 
+      error: null, 
+      lastUpdated: null 
+    });
+  },
+
+  // Clear error
+  clearError: () => {
+    set({ error: null });
+  },
+
+  // Getters (computed values)
+  getAttendanceData: () => {
+    const data = get().dashboardData;
+    if (!data?.today_attendance) return null;
+    
+    return {
+      present: {
+        count: data.today_attendance.present || 0,
+        percent: Math.round((data.today_attendance.present_percentage || 0) * 10) / 10
+      },
+      absent: {
+        count: data.today_attendance.absent || 0,
+        percent: Math.round((data.today_attendance.absent_percentage || 0) * 10) / 10
+      },
+      late: {
+        count: data.today_attendance.late || 0,
+        percent: Math.round((data.today_attendance.late_percentage || 0) * 10) / 10
+      }
+    };
+  },
+
+  getAcademicData: () => {
+    const data = get().dashboardData;
+    if (!data?.academic_status) return null;
+    
+    return {
+      reportsIssued: data.academic_status.report_cards || 0,
+      honorEligible: data.academic_status.honors_eligible || 0,
+      gradesSubmitted: data.academic_status.grades_submitted_percentage || 0
+    };
+  },
+
+  getResourcesData: () => {
+    const data = get().dashboardData;
+    if (!data?.resources_calendar) return null;
+    
+    return {
+      textbookOverdues: data.resources_calendar.textbook_overdues || 0,
+      pendingReturns: data.resources_calendar.pending_returns || 0,
+      upcomingEvents: (data.resources_calendar.upcoming_events || []).map(event => ({
+        name: event.title || 'Untitled Event',
+        date: event.date ? new Date(event.date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: new Date(event.date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+        }) : 'TBD',
+        type: event.type || 'event'
+      }))
+    };
+  },
+
+  getWeeklySummary: () => {
+    const data = get().dashboardData;
+    if (!data?.weekly_summary) return null;
+    
+    return {
+      attendanceTrends: {
+        averageDaily: Math.round((data.weekly_summary.attendance_trends?.average_daily || 0) * 10) / 10,
+        bestDay: data.weekly_summary.attendance_trends?.best_day || 'No data',
+        improvement: data.weekly_summary.attendance_trends?.improvement || '0%'
+      },
+      academicUpdates: {
+        gradesSubmitted: data.weekly_summary.academic_updates?.grades_submitted || 0,
+        reportsGenerated: data.weekly_summary.academic_updates?.reports_generated || 0,
+        pendingReviews: data.weekly_summary.academic_updates?.pending_reviews || 0
+      },
+      systemStatus: {
+        serverHealth: data.weekly_summary.system_status?.server_health || 'Unknown',
+        lastBackup: data.weekly_summary.system_status?.last_backup || 'Unknown',
+        activeUsers: data.weekly_summary.system_status?.active_users || 0
+      }
+    };
+  },
+
+  getSectionInfo: () => {
+    const data = get().dashboardData;
+    return data?.section_info || null;
+  },
+
+  // Additional utility methods
+  isDataStale: (maxAgeMinutes = 5) => {
+    const lastUpdated = get().lastUpdated;
+    if (!lastUpdated) return true;
+    
+    const now = new Date();
+    const lastUpdateTime = new Date(lastUpdated);
+    const diffMinutes = (now - lastUpdateTime) / (1000 * 60);
+    
+    return diffMinutes > maxAgeMinutes;
+  },
+
+  getTotalStudents: () => {
+    const sectionInfo = get().getSectionInfo();
+    return sectionInfo?.total_students || 0;
+  },
+
+  getAttendanceTotal: () => {
+    const attendanceData = get().getAttendanceData();
+    if (!attendanceData) return 0;
+    
+    return attendanceData.present.count + attendanceData.absent.count + attendanceData.late.count;
+  },
+
+
+
   // === Attendance ===
   scheduleAttendance: {},
   studentAttendance: {},
