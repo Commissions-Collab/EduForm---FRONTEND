@@ -55,35 +55,44 @@ export const useAdminStore = create((set, get) => ({
 
     set({
       globalFilters: {
-        academicYearId: academicYearId || null,
-        quarterId: quarterId ? parseInt(quarterId) : null,
-        sectionId: sectionId ? parseInt(sectionId) : null,
+        academicYearId: academicYearId ? parseInt(academicYearId, 10) : null,
+        quarterId: quarterId ? parseInt(quarterId, 10) : null,
+        sectionId: sectionId ? parseInt(sectionId, 10) : null,
       },
     });
   },
 
   // Set global filters and save to localStorage
   setGlobalFilters: (filters) => {
-    const newFilters = { ...get().globalFilters, ...filters };
+    const prev = get().globalFilters;
+    const next = {
+      ...prev,
+      ...filters,
+    };
 
-    // Save to localStorage
-    if (newFilters.academicYearId) {
-      setItem("academicYearId", newFilters.academicYearId);
-    }
-    if (newFilters.quarterId) {
-      setItem("quarterId", newFilters.quarterId);
-    }
-    if (newFilters.sectionId) {
-      setItem("sectionId", newFilters.sectionId);
+    // Save to localStorage (handle null values properly)
+    if (next.academicYearId !== null) {
+      setItem("academicYearId", String(next.academicYearId));
+    } else {
+      setItem("academicYearId", "");
     }
 
-    set({ globalFilters: newFilters });
+    if (next.quarterId !== null) {
+      setItem("quarterId", String(next.quarterId));
+    } else {
+      setItem("quarterId", "");
+    }
 
-    // Dispatch event for components to listen to
+    if (next.sectionId !== null) {
+      setItem("sectionId", String(next.sectionId));
+    } else {
+      setItem("sectionId", "");
+    }
+
+    set({ globalFilters: next });
+
     window.dispatchEvent(
-      new CustomEvent("globalFiltersChanged", {
-        detail: newFilters,
-      })
+      new CustomEvent("globalFiltersChanged", { detail: next })
     );
   },
 
@@ -112,61 +121,141 @@ export const useAdminStore = create((set, get) => ({
     );
   },
 
-  // Fetch filter options - CORRECTED based on actual routes
+  // Fetch filter options and set defaults
   fetchGlobalFilterOptions: async () => {
     set({ loading: true, error: null });
     try {
-      // Get academic years from the existing endpoint
-      const academicResponse = await axiosInstance.get(
+      const res = await axiosInstance.get(
         "/teacher/academic-records/filter-options"
       );
 
-      // Get sections from book management filter options (since this exists in your routes)
-      const sectionsResponse = await axiosInstance.get(
-        "/teacher/book-management/filter-options"
-      );
+      const rawYears = res.data?.academic_years || [];
+      const sections = res.data?.sections || [];
 
+      // Format academic years for dropdown
+      const academicYears = rawYears.map((y) => ({
+        id: y.id,
+        name: y.name,
+        is_current: !!y.is_current,
+        quarters: Array.isArray(y.quarters) ? y.quarters : [],
+      }));
+
+      // Find current academic year or first available
+      const currentYear =
+        academicYears.find((y) => y.is_current) || academicYears[0] || null;
+
+      // Get quarters for the current/selected academic year
+      const availableQuarters = currentYear?.quarters?.length
+        ? currentYear.quarters
+        : get().filterOptions.quarters;
+
+      // Set filter options
       set({
         filterOptions: {
-          academicYears: academicResponse.data?.academic_years || [],
-          quarters: get().filterOptions.quarters, // Keep static quarters
-          sections: sectionsResponse.data?.sections || [],
+          academicYears: academicYears.map(({ id, name, is_current }) => ({
+            id,
+            name,
+            is_current,
+          })),
+          quarters: availableQuarters,
+          sections,
         },
         loading: false,
       });
+
+      // Set defaults if no filters are currently set
+      const { globalFilters } = get();
+      const shouldSetDefaults =
+        !globalFilters.academicYearId ||
+        !globalFilters.quarterId ||
+        !globalFilters.sectionId;
+
+      if (shouldSetDefaults && currentYear) {
+        const defaultQuarterId = availableQuarters[0]?.id || null;
+        const defaultSectionId = sections[0]?.id || null;
+
+        get().setGlobalFilters({
+          academicYearId: currentYear.id,
+          quarterId: defaultQuarterId,
+          sectionId: defaultSectionId,
+        });
+      }
     } catch (err) {
       console.error("Filter fetch error:", err);
+      handleError(err, "Unable to load filter options", set);
+    }
+  },
 
-      // Fallback: Try to get data from any available endpoint
-      try {
-        const fallbackResponse = await axiosInstance.get(
-          "/teacher/academic-records/filter-options"
-        );
+  // Update quarters when academic year changes
+  updateQuartersForAcademicYear: async (academicYearId) => {
+    if (!academicYearId) return;
+
+    try {
+      // Find the selected academic year from our stored data
+      const { filterOptions } = get();
+      const selectedYear = filterOptions.academicYears.find(
+        (y) => y.id === academicYearId
+      );
+
+      if (selectedYear) {
+        // If we have quarters data, use it
+        const quarters = selectedYear.quarters?.length
+          ? selectedYear.quarters
+          : filterOptions.quarters;
+
         set({
           filterOptions: {
-            academicYears: fallbackResponse.data?.academic_years || [],
-            quarters: get().filterOptions.quarters,
-            sections: [], // Will be empty but won't break
+            ...filterOptions,
+            quarters,
           },
-          loading: false,
         });
-      } catch (fallbackErr) {
-        handleError(fallbackErr, "Unable to load filter options", set);
+
+        // Update section list for this academic year
+        await get().updateSectionsForAcademicYear(academicYearId);
       }
+    } catch (err) {
+      console.error("Error updating quarters:", err);
+    }
+  },
+
+  // Update sections when academic year changes
+  updateSectionsForAcademicYear: async (academicYearId) => {
+    if (!academicYearId) return;
+
+    try {
+      const res = await axiosInstance.get(
+        `/teacher/academic-records/filter-options?academic_year_id=${academicYearId}`
+      );
+      const sections = res.data?.sections || [];
+
+      const { filterOptions } = get();
+      set({
+        filterOptions: {
+          ...filterOptions,
+          sections,
+        },
+      });
+    } catch (err) {
+      console.error("Error updating sections:", err);
     }
   },
 
   // Get current filter values (with fallback to localStorage)
   getCurrentFilters: () => {
     const { globalFilters } = get();
+    const lsYear = getItem("academicYearId", false);
+    const lsQuarter = getItem("quarterId", false);
+    const lsSection = getItem("sectionId", false);
+
     return {
       academicYearId:
-        globalFilters.academicYearId || getItem("academicYearId", false),
-      quarterId: globalFilters.quarterId || getItem("quarterId", false),
-      sectionId: globalFilters.sectionId || getItem("sectionId", false),
+        globalFilters.academicYearId ?? (lsYear ? parseInt(lsYear, 10) : null),
+      quarterId:
+        globalFilters.quarterId ?? (lsQuarter ? parseInt(lsQuarter, 10) : null),
+      sectionId:
+        globalFilters.sectionId ?? (lsSection ? parseInt(lsSection, 10) : null),
     };
   },
-
 
   // State
   dashboardData: null,
@@ -177,40 +266,42 @@ export const useAdminStore = create((set, get) => ({
   // Actions
   fetchDashboardData: async (quarterId = null, attendanceDate = null) => {
     set({ loading: true, error: null });
-    
+
     try {
       const params = {};
       if (quarterId) params.quarter_id = quarterId;
       if (attendanceDate) params.attendance_date = attendanceDate;
-      
-      const response = await axiosInstance.get('/teacher/dashboard', {params});
+
+      const response = await axiosInstance.get("/teacher/dashboard", {
+        params,
+      });
 
       if (response.data.success) {
-        set({ 
+        set({
           dashboardData: response.data.data,
           loading: false,
           lastUpdated: new Date().toISOString(),
-          error: null 
+          error: null,
         });
       } else {
-        set({ 
-          error: response.data.message || 'Failed to fetch dashboard data',
-          loading: false 
+        set({
+          error: response.data.message || "Failed to fetch dashboard data",
+          loading: false,
         });
       }
     } catch (error) {
-      console.error('Dashboard fetch error:', error);
-      
-      let errorMessage = 'Network error';
+      console.error("Dashboard fetch error:", error);
+
+      let errorMessage = "Network error";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      set({ 
+
+      set({
         error: errorMessage,
-        loading: false 
+        loading: false,
       });
     }
   },
@@ -218,26 +309,29 @@ export const useAdminStore = create((set, get) => ({
   // Update attendance data specifically
   updateAttendanceData: async (attendanceData) => {
     set({ loading: true, error: null });
-    
+
     try {
       const response = await dashboardAPI.updateAttendance(attendanceData);
-      
+
       if (response.data.success) {
         // Refresh dashboard data after successful attendance update
         await get().fetchDashboardData();
         return { success: true };
       } else {
-        set({ 
-          error: response.data.message || 'Failed to update attendance',
-          loading: false 
+        set({
+          error: response.data.message || "Failed to update attendance",
+          loading: false,
         });
         return { success: false, message: response.data.message };
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to update attendance';
-      set({ 
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update attendance";
+      set({
         error: errorMessage,
-        loading: false 
+        loading: false,
       });
       return { success: false, message: errorMessage };
     }
@@ -245,11 +339,11 @@ export const useAdminStore = create((set, get) => ({
 
   // Reset store
   resetDashboard: () => {
-    set({ 
-      dashboardData: null, 
-      loading: false, 
-      error: null, 
-      lastUpdated: null 
+    set({
+      dashboardData: null,
+      loading: false,
+      error: null,
+      lastUpdated: null,
     });
   },
 
@@ -262,73 +356,91 @@ export const useAdminStore = create((set, get) => ({
   getAttendanceData: () => {
     const data = get().dashboardData;
     if (!data?.today_attendance) return null;
-    
+
     return {
       present: {
         count: data.today_attendance.present || 0,
-        percent: Math.round((data.today_attendance.present_percentage || 0) * 10) / 10
+        percent:
+          Math.round((data.today_attendance.present_percentage || 0) * 10) / 10,
       },
       absent: {
         count: data.today_attendance.absent || 0,
-        percent: Math.round((data.today_attendance.absent_percentage || 0) * 10) / 10
+        percent:
+          Math.round((data.today_attendance.absent_percentage || 0) * 10) / 10,
       },
       late: {
         count: data.today_attendance.late || 0,
-        percent: Math.round((data.today_attendance.late_percentage || 0) * 10) / 10
-      }
+        percent:
+          Math.round((data.today_attendance.late_percentage || 0) * 10) / 10,
+      },
     };
   },
 
   getAcademicData: () => {
     const data = get().dashboardData;
     if (!data?.academic_status) return null;
-    
+
     return {
       reportsIssued: data.academic_status.report_cards || 0,
       honorEligible: data.academic_status.honors_eligible || 0,
-      gradesSubmitted: data.academic_status.grades_submitted_percentage || 0
+      gradesSubmitted: data.academic_status.grades_submitted_percentage || 0,
     };
   },
 
   getResourcesData: () => {
     const data = get().dashboardData;
     if (!data?.resources_calendar) return null;
-    
+
     return {
       textbookOverdues: data.resources_calendar.textbook_overdues || 0,
       pendingReturns: data.resources_calendar.pending_returns || 0,
-      upcomingEvents: (data.resources_calendar.upcoming_events || []).map(event => ({
-        name: event.title || 'Untitled Event',
-        date: event.date ? new Date(event.date).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: new Date(event.date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-        }) : 'TBD',
-        type: event.type || 'event'
-      }))
+      upcomingEvents: (data.resources_calendar.upcoming_events || []).map(
+        (event) => ({
+          name: event.title || "Untitled Event",
+          date: event.date
+            ? new Date(event.date).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year:
+                  new Date(event.date).getFullYear() !==
+                  new Date().getFullYear()
+                    ? "numeric"
+                    : undefined,
+              })
+            : "TBD",
+          type: event.type || "event",
+        })
+      ),
     };
   },
 
   getWeeklySummary: () => {
     const data = get().dashboardData;
     if (!data?.weekly_summary) return null;
-    
+
     return {
       attendanceTrends: {
-        averageDaily: Math.round((data.weekly_summary.attendance_trends?.average_daily || 0) * 10) / 10,
-        bestDay: data.weekly_summary.attendance_trends?.best_day || 'No data',
-        improvement: data.weekly_summary.attendance_trends?.improvement || '0%'
+        averageDaily:
+          Math.round(
+            (data.weekly_summary.attendance_trends?.average_daily || 0) * 10
+          ) / 10,
+        bestDay: data.weekly_summary.attendance_trends?.best_day || "No data",
+        improvement: data.weekly_summary.attendance_trends?.improvement || "0%",
       },
       academicUpdates: {
-        gradesSubmitted: data.weekly_summary.academic_updates?.grades_submitted || 0,
-        reportsGenerated: data.weekly_summary.academic_updates?.reports_generated || 0,
-        pendingReviews: data.weekly_summary.academic_updates?.pending_reviews || 0
+        gradesSubmitted:
+          data.weekly_summary.academic_updates?.grades_submitted || 0,
+        reportsGenerated:
+          data.weekly_summary.academic_updates?.reports_generated || 0,
+        pendingReviews:
+          data.weekly_summary.academic_updates?.pending_reviews || 0,
       },
       systemStatus: {
-        serverHealth: data.weekly_summary.system_status?.server_health || 'Unknown',
-        lastBackup: data.weekly_summary.system_status?.last_backup || 'Unknown',
-        activeUsers: data.weekly_summary.system_status?.active_users || 0
-      }
+        serverHealth:
+          data.weekly_summary.system_status?.server_health || "Unknown",
+        lastBackup: data.weekly_summary.system_status?.last_backup || "Unknown",
+        activeUsers: data.weekly_summary.system_status?.active_users || 0,
+      },
     };
   },
 
@@ -341,11 +453,11 @@ export const useAdminStore = create((set, get) => ({
   isDataStale: (maxAgeMinutes = 5) => {
     const lastUpdated = get().lastUpdated;
     if (!lastUpdated) return true;
-    
+
     const now = new Date();
     const lastUpdateTime = new Date(lastUpdated);
     const diffMinutes = (now - lastUpdateTime) / (1000 * 60);
-    
+
     return diffMinutes > maxAgeMinutes;
   },
 
@@ -357,42 +469,95 @@ export const useAdminStore = create((set, get) => ({
   getAttendanceTotal: () => {
     const attendanceData = get().getAttendanceData();
     if (!attendanceData) return 0;
-    
-    return attendanceData.present.count + attendanceData.absent.count + attendanceData.late.count;
+
+    return (
+      attendanceData.present.count +
+      attendanceData.absent.count +
+      attendanceData.late.count
+    );
   },
 
-
-
-  // === Attendance ===
+  // *Attendance
   scheduleAttendance: {},
   studentAttendance: {},
   attendancePDFBlob: null,
-  weeklySchedule: [],
-
-  fetchWeeklySchedule: async (sectionId, academicYearId, quarterId) => {
+  weeklySchedule: null,
+  fetchWeeklySchedule: async (
+    sectionId,
+    academicYearId,
+    quarterId,
+    weekStart
+  ) => {
     set({ loading: true, error: null });
-
     try {
-      const { data } = await axiosInstance.get(`/teacher/schedule/weekly`, {
-        params: {
-          section_id: sectionId,
-          academic_year_id: academicYearId,
-          quarter_id: quarterId,
-        },
-      });
+      const params = new URLSearchParams();
+      if (sectionId) params.append("section_id", sectionId);
+      if (academicYearId) params.append("academic_year_id", academicYearId);
+      if (quarterId) params.append("quarter_id", quarterId);
+      if (weekStart) params.append("week_start", weekStart);
 
-      console.log("✅ Weekly Schedule Response:", data);
+      const res = await axiosInstance.get(
+        `/teacher/schedule/weekly?${params.toString()}`
+      );
 
-      set({ weeklySchedule: data?.data || [], loading: false });
+      if (res.data?.success) {
+        set({
+          weeklySchedule: res.data.data,
+          loading: false,
+          error: null,
+        });
+      } else {
+        throw new Error(res.data?.message || "Failed to fetch weekly schedule");
+      }
     } catch (err) {
-      handleError(err, "Unable to fetch weekly schedule", set);
+      console.error("Weekly schedule fetch error:", err);
+      set({
+        weeklySchedule: null,
+        loading: false,
+        error:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to fetch weekly schedule",
+      });
     }
   },
 
-  fetchScheduleStudents: async () => {
+  // New function to fetch schedule attendance data
+  fetchScheduleAttendance: async ({
+    scheduleId,
+    sectionId,
+    academicYearId,
+    quarterId,
+    date,
+  }) => {
     set({ loading: true, error: null });
 
-    const scheduleId = getItem("scheduleId", false);
+    if (!scheduleId) {
+      set({ error: "Schedule not selected", loading: false });
+      return;
+    }
+
+    try {
+      const { data } = await axiosInstance.get(`/teacher/schedule/attendance`, {
+        params: {
+          schedule_id: scheduleId,
+          section_id: sectionId,
+          academic_year_id: academicYearId,
+          quarter_id: quarterId,
+          date: date,
+        },
+      });
+
+      set({ scheduleAttendance: data?.data || {}, loading: false });
+    } catch (err) {
+      handleError(err, "Unable to fetch schedule attendance", set);
+    }
+  },
+
+  // Updated to match backend parameter names
+  fetchScheduleStudents: async (scheduleId, date) => {
+    set({ loading: true, error: null });
+
     if (!scheduleId) {
       set({ error: "Schedule not selected", loading: false });
       return;
@@ -400,7 +565,10 @@ export const useAdminStore = create((set, get) => ({
 
     try {
       const { data } = await axiosInstance.get(
-        `/teacher/schedule/${scheduleId}/students`
+        `/teacher/schedule/${scheduleId}/students`,
+        {
+          params: { date: date },
+        }
       );
       set({ scheduleAttendance: data?.data || {}, loading: false });
     } catch (err) {
@@ -408,13 +576,25 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  // Updated to handle both 'date' and 'attendance_date' parameters
   updateIndividualAttendance: async (payload) => {
     set({ loading: true, error: null });
 
     try {
+      // Ensure proper parameter names for backend
+      const backendPayload = {
+        student_id: payload.student_id,
+        schedule_id: payload.schedule_id,
+        attendance_date: payload.date || payload.attendance_date,
+        status: payload.status.toLowerCase(), // Backend expects lowercase
+        time_in: payload.time_in,
+        time_out: payload.time_out,
+        remarks: payload.remarks || payload.reason,
+      };
+
       const { data } = await axiosInstance.post(
         `/teacher/attendance/update-individual`,
-        payload
+        backendPayload
       );
       set({ loading: false });
       return data;
@@ -423,13 +603,27 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  // Updated bulk attendance function
   updateBulkAttendance: async (payload) => {
     set({ loading: true, error: null });
 
     try {
+      // Format payload for backend
+      const backendPayload = {
+        schedule_id: payload.schedule_id,
+        attendance_date: payload.attendance_date,
+        attendances: payload.attendances.map((att) => ({
+          student_id: att.student_id,
+          status: att.status.toLowerCase(),
+          time_in: att.time_in,
+          time_out: att.time_out,
+          remarks: att.remarks || att.reason,
+        })),
+      };
+
       const { data } = await axiosInstance.post(
         `/teacher/attendance/update-bulk`,
-        payload
+        backendPayload
       );
       set({ loading: false });
       return data;
@@ -438,13 +632,24 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  // Updated to handle flexible date parameters
   updateAllStudentsAttendance: async (payload) => {
     set({ loading: true, error: null });
 
     try {
+      // Backend accepts both 'date' and 'attendance_date'
+      const backendPayload = {
+        schedule_id: payload.schedule_id,
+        attendance_date: payload.date || payload.attendance_date,
+        status: payload.status.toLowerCase(), // Backend expects lowercase
+        time_in: payload.time_in,
+        time_out: payload.time_out,
+        remarks: payload.remarks || payload.reason,
+      };
+
       const { data } = await axiosInstance.post(
         `/teacher/attendance/update-all`,
-        payload
+        backendPayload
       );
       set({ loading: false });
       return data;
@@ -453,12 +658,9 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  fetchScheduleAttendanceHistory: async () => {
+  // Keep existing attendance history functions
+  fetchScheduleAttendanceHistory: async (scheduleId, startDate, endDate) => {
     set({ loading: true, error: null });
-
-    const scheduleId = getItem("scheduleId", false);
-    const startDate = getItem("startDate", false);
-    const endDate = getItem("endDate", false);
 
     if (!scheduleId) {
       set({ error: "Schedule not selected", loading: false });
@@ -481,14 +683,14 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  fetchStudentAttendanceHistory: async () => {
+  fetchStudentAttendanceHistory: async (
+    studentId,
+    scheduleId,
+    academicYearId,
+    startDate,
+    endDate
+  ) => {
     set({ loading: true, error: null });
-
-    const filters = get().getCurrentFilters();
-    const studentId = getItem("studentId", false);
-    const scheduleId = getItem("scheduleId", false);
-    const startDate = getItem("startDate", false);
-    const endDate = getItem("endDate", false);
 
     if (!studentId || !scheduleId) {
       set({ error: "Student or schedule not selected", loading: false });
@@ -500,7 +702,7 @@ export const useAdminStore = create((set, get) => ({
         `/teacher/student/${studentId}/schedule/${scheduleId}/attendance-history`,
         {
           params: {
-            academic_year_id: filters.academicYearId,
+            academic_year_id: academicYearId,
             start_date: startDate,
             end_date: endDate,
           },

@@ -8,6 +8,7 @@ import {
   LuCalendar,
   LuBookOpen,
   LuUsers,
+  LuLoader,
 } from "react-icons/lu";
 
 const GlobalFilterDropdown = ({ userRole }) => {
@@ -19,10 +20,13 @@ const GlobalFilterDropdown = ({ userRole }) => {
     fetchGlobalFilterOptions,
     setGlobalFilters,
     clearGlobalFilters,
+    updateQuartersForAcademicYear,
+    updateSectionsForAcademicYear,
   } = useAdminStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const [draftFilters, setDraftFilters] = useState(globalFilters); // ✅ local draft state
+  const [draftFilters, setDraftFilters] = useState(globalFilters);
+  const [isUpdatingFilters, setIsUpdatingFilters] = useState(false);
   const dropdownRef = useRef();
 
   // Only show for admin/teacher roles
@@ -52,27 +56,42 @@ const GlobalFilterDropdown = ({ userRole }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Update draft only
-  const handleAcademicYearChange = (value) => {
+  // Handle academic year change with cascade updates
+  const handleAcademicYearChange = async (value) => {
+    const academicYearId = value ? parseInt(value, 10) : null;
+    
     setDraftFilters((prev) => ({
       ...prev,
-      academicYearId: value || null,
-      quarterId: null,
-      sectionId: null,
+      academicYearId,
+      quarterId: null, // Reset quarter when year changes
+      sectionId: null, // Reset section when year changes
     }));
+
+    // Update quarters and sections for the new academic year
+    if (academicYearId) {
+      setIsUpdatingFilters(true);
+      try {
+        await updateQuartersForAcademicYear(academicYearId);
+        await updateSectionsForAcademicYear(academicYearId);
+      } catch (error) {
+        console.error('Error updating filters:', error);
+      } finally {
+        setIsUpdatingFilters(false);
+      }
+    }
   };
 
   const handleQuarterChange = (value) => {
     setDraftFilters((prev) => ({
       ...prev,
-      quarterId: value ? parseInt(value) : null,
+      quarterId: value ? parseInt(value, 10) : null,
     }));
   };
 
   const handleSectionChange = (value) => {
     setDraftFilters((prev) => ({
       ...prev,
-      sectionId: value ? parseInt(value) : null,
+      sectionId: value ? parseInt(value, 10) : null,
     }));
   };
 
@@ -91,11 +110,9 @@ const GlobalFilterDropdown = ({ userRole }) => {
 
     if (draftFilters.academicYearId) {
       const year = filterOptions.academicYears?.find(
-        (y) => y.id == draftFilters.academicYearId
+        (y) => y.id === draftFilters.academicYearId
       );
-      selections.academicYear = year
-        ? `${year.year_start}-${year.year_end}`
-        : null;
+      selections.academicYear = year ? year.name : null;
     }
 
     if (draftFilters.quarterId) {
@@ -128,15 +145,50 @@ const GlobalFilterDropdown = ({ userRole }) => {
     }
   };
 
+  const getSelectedYear = () => {
+    if (!draftFilters.academicYearId) return null;
+    return filterOptions.academicYears?.find(y => y.id === draftFilters.academicYearId);
+  };
+
+  const getAvailableQuarters = () => {
+    const selectedYear = getSelectedYear();
+    if (selectedYear?.quarters?.length) {
+      return selectedYear.quarters;
+    }
+    return filterOptions.quarters || [];
+  };
+
+  const applyFilters = () => {
+    setGlobalFilters(draftFilters);
+    setIsExpanded(false);
+  };
+
+  const clearAllFilters = () => {
+    clearGlobalFilters();
+    setDraftFilters({
+      academicYearId: null,
+      quarterId: null,
+      sectionId: null,
+    });
+    setIsExpanded(false);
+  };
+
+  const isLoading = loading || isUpdatingFilters;
+
   return (
     <div className="relative w-full max-w-sm" ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 ${getTriggerStyle()}`}
+        disabled={isLoading}
       >
         <div className="flex items-center gap-2.5">
-          <LuFilter className="w-4 h-4 flex-shrink-0" />
+          {isLoading ? (
+            <LuLoader className="w-4 h-4 flex-shrink-0 animate-spin" />
+          ) : (
+            <LuFilter className="w-4 h-4 flex-shrink-0" />
+          )}
           <span className="text-sm font-medium truncate">
             {hasCompleteFilters
               ? "All Filters Applied"
@@ -156,11 +208,11 @@ const GlobalFilterDropdown = ({ userRole }) => {
       {isExpanded && (
         <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 min-w-[320px]">
           {/* Header */}
-          <div className="bg-[#3730A3]  px-6 py-4 text-white flex justify-between">
+          <div className="bg-[#3730A3] px-6 py-4 text-white flex justify-between">
             <h3 className="font-semibold text-base">Filter Settings</h3>
             <button
               onClick={() => setIsExpanded(false)}
-              className="p-2 hover:bg-white/20 rounded-lg"
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <LuX className="w-5 h-5" />
             </button>
@@ -172,8 +224,8 @@ const GlobalFilterDropdown = ({ userRole }) => {
             <div>
               <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
                 <span className="flex items-center gap-2">
-                  <LuCalendar className="w-5 h-5 text-[#3730A3]" /> Academic
-                  Year
+                  <LuCalendar className="w-5 h-5 text-[#3730A3]" />
+                  Academic Year
                 </span>
                 {selections.academicYear && (
                   <LuCheck className="w-5 h-5 text-emerald-600" />
@@ -182,13 +234,13 @@ const GlobalFilterDropdown = ({ userRole }) => {
               <select
                 value={draftFilters.academicYearId || ""}
                 onChange={(e) => handleAcademicYearChange(e.target.value)}
-                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                disabled={loading}
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
               >
                 <option value="">Choose Academic Year</option>
                 {filterOptions.academicYears?.map((y) => (
                   <option key={y.id} value={y.id}>
-                    {y.year_start} - {y.year_end}
+                    {y.name} {y.is_current ? "(Current)" : ""}
                   </option>
                 ))}
               </select>
@@ -198,7 +250,8 @@ const GlobalFilterDropdown = ({ userRole }) => {
             <div>
               <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
                 <span className="flex items-center gap-2">
-                  <LuBookOpen className="w-5 h-5 text-[#3730A3]" /> Quarter
+                  <LuBookOpen className="w-5 h-5 text-[#3730A3]" />
+                  Quarter
                 </span>
                 {selections.quarter && (
                   <LuCheck className="w-5 h-5 text-emerald-600" />
@@ -207,23 +260,29 @@ const GlobalFilterDropdown = ({ userRole }) => {
               <select
                 value={draftFilters.quarterId || ""}
                 onChange={(e) => handleQuarterChange(e.target.value)}
-                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                disabled={loading}
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                disabled={isLoading || !draftFilters.academicYearId}
               >
                 <option value="">Choose Quarter</option>
-                {filterOptions.quarters?.map((q) => (
+                {getAvailableQuarters().map((q) => (
                   <option key={q.id} value={q.id}>
                     {q.name}
                   </option>
                 ))}
               </select>
+              {!draftFilters.academicYearId && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Select an academic year first
+                </p>
+              )}
             </div>
 
             {/* Section */}
             <div>
               <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
                 <span className="flex items-center gap-2">
-                  <LuUsers className="w-5 h-5 text-[#3730A3]" /> Section
+                  <LuUsers className="w-5 h-5 text-[#3730A3]" />
+                  Section
                 </span>
                 {selections.section && (
                   <LuCheck className="w-5 h-5 text-emerald-600" />
@@ -232,8 +291,8 @@ const GlobalFilterDropdown = ({ userRole }) => {
               <select
                 value={draftFilters.sectionId || ""}
                 onChange={(e) => handleSectionChange(e.target.value)}
-                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                disabled={loading}
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                disabled={isLoading || !draftFilters.academicYearId}
               >
                 <option value="">Choose Section</option>
                 {filterOptions.sections?.map((s) => (
@@ -242,33 +301,66 @@ const GlobalFilterDropdown = ({ userRole }) => {
                   </option>
                 ))}
               </select>
+              {!draftFilters.academicYearId && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Select an academic year first
+                </p>
+              )}
             </div>
+
+            {/* Current Selections Summary */}
+            {hasFiltersSelected && (
+              <div className="bg-blue-50 rounded-lg p-3 space-y-1">
+                <h4 className="text-sm font-medium text-blue-900">Current Selection:</h4>
+                {selections.academicYear && (
+                  <p className="text-xs text-blue-700">📅 {selections.academicYear}</p>
+                )}
+                {selections.quarter && (
+                  <p className="text-xs text-blue-700">📚 {selections.quarter}</p>
+                )}
+                {selections.section && (
+                  <p className="text-xs text-blue-700">👥 {selections.section}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer */}
           <div className="border-t border-gray-200 p-4 flex gap-3 bg-gray-50">
             {hasFiltersSelected && (
               <button
-                onClick={() => {
-                  clearGlobalFilters();
-                  setDraftFilters({});
-                  setIsExpanded(false);
-                }}
-                className="flex-1 px-4 py-2 text-sm text-red-600 border rounded-lg"
+                onClick={clearAllFilters}
+                className="flex-1 px-4 py-2 text-sm text-red-600 border border-red-300 hover:bg-red-50 rounded-lg transition-colors"
+                disabled={isLoading}
               >
                 Clear All
               </button>
             )}
             <button
-              onClick={() => {
-                setGlobalFilters(draftFilters); // ✅ Apply only here
-                setIsExpanded(false);
-              }}
-              className="flex-1 px-4 py-2 text-sm text-white bg-[#3730A3] rounded-lg"
+              onClick={applyFilters}
+              className="flex-1 px-4 py-2 text-sm text-white bg-[#3730A3] hover:bg-[#312e81] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={isLoading || !hasFiltersSelected}
             >
-              Apply Filters
+              {isLoading ? (
+                <>
+                  <LuLoader className="w-4 h-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Apply Filters"
+              )}
             </button>
           </div>
+
+          {/* Loading Indicator */}
+          {isUpdatingFilters && (
+            <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <LuLoader className="w-4 h-4 animate-spin" />
+                Updating filter options...
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
