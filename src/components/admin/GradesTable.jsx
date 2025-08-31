@@ -19,6 +19,7 @@ const GradesTable = ({
     totalPages,
     paginatedGradeRecords,
     updateGrade,
+    updateMultipleGrades,
     loading,
     error,
   } = useAdminStore();
@@ -26,6 +27,7 @@ const GradesTable = ({
   const [localGradeState, setLocalGradeState] = useState({});
   const [savingGrades, setSavingGrades] = useState({});
   const [unsavedChanges, setUnsavedChanges] = useState({});
+  const [isBulkSaving, setIsBulkSaving] = useState(false);
 
   // Create enhanced records with local state
   const records = paginatedGradeRecords().map((student) => ({
@@ -45,6 +47,9 @@ const GradesTable = ({
   const hasUnsavedChanges = Object.keys(unsavedChanges).length > 0;
 
   const handleGradeChange = (studentId, subjectId, grade) => {
+    //* Make sure user can only type 0 to 100
+    let numericGrade = grade === "" ? "" : Math.min(Math.max(Number(grade), 0), 100); 
+
     const gradeKey = `${studentId}-${subjectId}`;
     const originalGrade = students
       .find((s) => s.id === studentId)
@@ -53,17 +58,17 @@ const GradesTable = ({
     // Update local state
     setLocalGradeState((prev) => ({
       ...prev,
-      [gradeKey]: grade,
+      [gradeKey]: numericGrade,
     }));
 
     // Track unsaved changes
-    if (String(grade) !== String(originalGrade)) {
+    if (String(numericGrade) !== String(originalGrade)) {
       setUnsavedChanges((prev) => ({
         ...prev,
         [gradeKey]: {
           studentId,
           subjectId,
-          grade,
+          grade: numericGrade,
           originalGrade,
         },
       }));
@@ -90,6 +95,7 @@ const GradesTable = ({
         student_id: Number(studentId),
         subject_id: Number(subjectId),
         quarter_id: Number(selectedQuarter),
+        academic_year_id: Number(selectedAcademicYear),
         grade:
           gradeValue === "" || gradeValue === null || gradeValue === undefined
             ? null
@@ -114,7 +120,7 @@ const GradesTable = ({
       toast.success("Grade saved successfully!");
     } catch (error) {
       console.error("Failed to save grade:", error);
-      toast.error("Failed to save grade. Please try again.");
+      toast.error(error.message || "Failed to save grade. Please try again.");
     } finally {
       setSavingGrades((prev) => {
         const newState = { ...prev };
@@ -124,23 +130,42 @@ const GradesTable = ({
     }
   };
 
+  // Updated saveAllChanges to use bulk update
   const saveAllChanges = async () => {
     const changeKeys = Object.keys(unsavedChanges);
     if (changeKeys.length === 0) return;
 
-    toast.promise(
-      Promise.all(
-        changeKeys.map(async (key) => {
-          const change = unsavedChanges[key];
-          return saveGrade(change.studentId, change.subjectId);
-        })
-      ),
-      {
-        loading: `Saving ${changeKeys.length} grade changes...`,
-        success: `All ${changeKeys.length} changes saved successfully!`,
-        error: "Some grades failed to save. Please try again.",
-      }
-    );
+    setIsBulkSaving(true);
+
+    // Prepare bulk update data
+    const gradeUpdates = changeKeys.map(key => {
+      const change = unsavedChanges[key];
+      return {
+        student_id: change.studentId,
+        subject_id: change.subjectId,
+        quarter_id: Number(selectedQuarter),
+        academic_year_id: Number(selectedAcademicYear),
+        grade: change.grade === "" || change.grade === null || change.grade === undefined
+          ? null
+          : Number(change.grade)
+      };
+    });
+
+    try {
+      await updateMultipleGrades(gradeUpdates);
+      
+      // Clear all unsaved changes after successful bulk update
+      setLocalGradeState({});
+      setUnsavedChanges({});
+      setSavingGrades({});
+      
+      toast.success(`All ${changeKeys.length} changes saved successfully!`);
+    } catch (error) {
+      console.error("Bulk save failed:", error);
+      toast.error(error.message || "Some grades failed to save. Please try again.");
+    } finally {
+      setIsBulkSaving(false);
+    }
   };
 
   // Show filters message if not all filters are selected
@@ -195,11 +220,18 @@ const GradesTable = ({
               {hasUnsavedChanges && (
                 <button
                   onClick={saveAllChanges}
-                  disabled={Object.keys(savingGrades).length > 0}
+                  disabled={isBulkSaving || Object.keys(savingGrades).length > 0}
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <LuSave size={16} className="mr-2" />
-                  Save All ({Object.keys(unsavedChanges).length})
+                  {isBulkSaving ? (
+                    <LuLoader size={16} className="mr-2 animate-spin" />
+                  ) : (
+                    <LuSave size={16} className="mr-2" />
+                  )}
+                  {isBulkSaving 
+                    ? `Saving ${Object.keys(unsavedChanges).length}...`
+                    : `Save All (${Object.keys(unsavedChanges).length})`
+                  }
                 </button>
               )}
               <div className="text-sm font-medium text-gray-700">
@@ -338,7 +370,10 @@ const GradesTable = ({
                                   min="0"
                                   max="100"
                                   disabled={
-                                    loading || !grade?.can_edit || isSaving
+                                    loading || 
+                                    !grade?.can_edit || 
+                                    isSaving || 
+                                    isBulkSaving
                                   }
                                   value={grade?.grade ?? ""}
                                   onChange={(e) =>
@@ -354,7 +389,7 @@ const GradesTable = ({
                                       : "border-gray-300 focus:border-indigo-500"
                                   }`}
                                 />
-                                {hasUnsavedChange && (
+                                {hasUnsavedChange && !isBulkSaving && (
                                   <button
                                     onClick={() =>
                                       saveGrade(student.id, subject.id)
@@ -429,7 +464,10 @@ const GradesTable = ({
                                 min="0"
                                 max="100"
                                 disabled={
-                                  loading || !grade?.can_edit || isSaving
+                                  loading || 
+                                  !grade?.can_edit || 
+                                  isSaving || 
+                                  isBulkSaving
                                 }
                                 value={grade?.grade ?? ""}
                                 onChange={(e) =>
@@ -446,7 +484,7 @@ const GradesTable = ({
                                 }`}
                                 placeholder="Enter grade (0-100)"
                               />
-                              {hasUnsavedChange && (
+                              {hasUnsavedChange && !isBulkSaving && (
                                 <button
                                   onClick={() =>
                                     saveGrade(student.id, subject.id)
