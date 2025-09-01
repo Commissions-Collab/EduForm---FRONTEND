@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useSuperAdminStore } from "../../stores/useSuperAdminStore";
+
 import {
   CalendarDays,
   Plus,
@@ -8,6 +8,7 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
+import { useSuperAdminStore } from "../../stores/superAdmin";
 
 const Calendar = () => {
   const {

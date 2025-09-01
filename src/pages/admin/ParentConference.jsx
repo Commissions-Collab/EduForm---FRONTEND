@@ -11,7 +11,7 @@ import {
   LuActivity,
   LuLoader,
 } from "react-icons/lu";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
 
 const StudentCard = ({ student, isSelected, onClick }) => {
   const getStatusColor = (status) => {

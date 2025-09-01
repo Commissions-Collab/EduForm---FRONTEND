@@ -1,21 +1,20 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { 
-  LuCircleCheck, 
-  LuCircleX, 
-  LuClock, 
-  LuLoader,  
+import {
+  LuCircleCheck,
+  LuCircleX,
+  LuClock,
+  LuLoader,
   LuSquare,
   LuUsers,
-  LuEye, 
-  LuCheck
+  LuEye,
+  LuCheck,
 } from "react-icons/lu";
 import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
 import PaginationControls from "./Pagination";
 import { useNavigate } from "react-router-dom";
 import { getItem } from "../../lib/utils";
-import { useAdminStore } from "../../stores/useAdminStore";
-
+import { useAdminStore } from "../../stores/admin";
 const RECORDS_PER_PAGE = 10;
 
 const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
@@ -31,12 +30,12 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
 
   const filters = globalFilters || {};
   const navigate = useNavigate();
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [localAttendanceState, setLocalAttendanceState] = useState({});
   const [selectedStudents, setSelectedStudents] = useState(new Set());
-  const [bulkStatus, setBulkStatus] = useState('present');
-  const [bulkReason, setBulkReason] = useState('');
+  const [bulkStatus, setBulkStatus] = useState("present");
+  const [bulkReason, setBulkReason] = useState("");
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   // Extract students into records
@@ -67,7 +66,9 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
 
   const handleViewHistory = (studentId) => {
     if (selectedSchedule?.id) {
-      navigate(`/teacher/student/${studentId}/schedule/${scheduleId}/attendance-history`);
+      navigate(
+        `/teacher/student/${studentId}/schedule/${scheduleId}/attendance-history`
+      );
     }
   };
 
@@ -89,9 +90,10 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
         schedule_id: selectedSchedule.id,
         status,
         date: selectedDate,
-        reason: status === "absent" 
-          ? localAttendanceState[studentId]?.reason || ""
-          : "",
+        reason:
+          status === "absent"
+            ? localAttendanceState[studentId]?.reason || ""
+            : "",
       });
 
       // Refresh data
@@ -155,7 +157,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
       setSelectedStudents(new Set());
       setShowBulkActions(false);
     } else {
-      const allIds = new Set(paginatedRecords.map(r => r.student_id));
+      const allIds = new Set(paginatedRecords.map((r) => r.student_id));
       setSelectedStudents(allIds);
       setShowBulkActions(true);
     }
@@ -165,10 +167,10 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
     if (selectedStudents.size === 0 || !selectedSchedule?.id) return;
 
     try {
-      const attendances = Array.from(selectedStudents).map(studentId => ({
+      const attendances = Array.from(selectedStudents).map((studentId) => ({
         student_id: studentId,
         status: bulkStatus,
-        reason: bulkStatus === 'absent' ? bulkReason : '',
+        reason: bulkStatus === "absent" ? bulkReason : "",
       }));
 
       await updateBulkAttendance({
@@ -180,7 +182,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
       // Clear selection and refresh
       setSelectedStudents(new Set());
       setShowBulkActions(false);
-      setBulkReason('');
+      setBulkReason("");
 
       // Refresh data
       if (filters.sectionId && filters.academicYearId && filters.quarterId) {
@@ -207,9 +209,10 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <span className="text-sm font-medium text-blue-900">
-                {selectedStudents.size} student{selectedStudents.size !== 1 ? 's' : ''} selected
+                {selectedStudents.size} student
+                {selectedStudents.size !== 1 ? "s" : ""} selected
               </span>
-              
+
               <div className="flex items-center space-x-2">
                 <label className="text-sm text-blue-700">Status:</label>
                 <select
@@ -224,7 +227,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                 </select>
               </div>
 
-              {bulkStatus === 'absent' && (
+              {bulkStatus === "absent" && (
                 <div className="flex items-center space-x-2">
                   <label className="text-sm text-blue-700">Reason:</label>
                   <select
@@ -275,7 +278,8 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                   onClick={handleSelectAll}
                   className="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700"
                 >
-                  {selectedStudents.size === paginatedRecords.length && paginatedRecords.length > 0 ? (
+                  {selectedStudents.size === paginatedRecords.length &&
+                  paginatedRecords.length > 0 ? (
                     <LuCheckCheck size={16} />
                   ) : (
                     <LuSquare size={16} />
@@ -324,9 +328,13 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
               </tr>
             ) : (
               paginatedRecords.map((student) => (
-                <tr 
+                <tr
                   key={student.student_id}
-                  className={selectedStudents.has(student.student_id) ? 'bg-blue-50' : 'hover:bg-gray-50'}
+                  className={
+                    selectedStudents.has(student.student_id)
+                      ? "bg-blue-50"
+                      : "hover:bg-gray-50"
+                  }
                 >
                   <td className="px-4 py-4">
                     <button
@@ -353,7 +361,9 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                             student.status,
                             status
                           )}`}
-                          title={status.charAt(0).toUpperCase() + status.slice(1)}
+                          title={
+                            status.charAt(0).toUpperCase() + status.slice(1)
+                          }
                         >
                           {status === "present" && (
                             <LuCircleCheck className="w-8 h-8" />

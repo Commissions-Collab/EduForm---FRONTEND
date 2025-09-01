@@ -2,7 +2,7 @@ import React from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
 import { LuBadgeAlert, LuLoader, LuUser } from "react-icons/lu";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
 
 const PromotionTable = () => {
   const {

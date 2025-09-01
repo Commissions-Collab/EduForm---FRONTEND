@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
-import { useAdminStore } from "../../stores/useAdminStore";
 import { LuLoader, LuUser, LuSave, LuFilter } from "react-icons/lu";
 import { VscLayoutStatusbar } from "react-icons/vsc";
 import toast from "react-hot-toast";
+import { useAdminStore } from "../../stores/admin";
 
 const GradesTable = ({
   selectedAcademicYear,
@@ -48,7 +48,8 @@ const GradesTable = ({
 
   const handleGradeChange = (studentId, subjectId, grade) => {
     //* Make sure user can only type 0 to 100
-    let numericGrade = grade === "" ? "" : Math.min(Math.max(Number(grade), 0), 100); 
+    let numericGrade =
+      grade === "" ? "" : Math.min(Math.max(Number(grade), 0), 100);
 
     const gradeKey = `${studentId}-${subjectId}`;
     const originalGrade = students
@@ -138,31 +139,36 @@ const GradesTable = ({
     setIsBulkSaving(true);
 
     // Prepare bulk update data
-    const gradeUpdates = changeKeys.map(key => {
+    const gradeUpdates = changeKeys.map((key) => {
       const change = unsavedChanges[key];
       return {
         student_id: change.studentId,
         subject_id: change.subjectId,
         quarter_id: Number(selectedQuarter),
         academic_year_id: Number(selectedAcademicYear),
-        grade: change.grade === "" || change.grade === null || change.grade === undefined
-          ? null
-          : Number(change.grade)
+        grade:
+          change.grade === "" ||
+          change.grade === null ||
+          change.grade === undefined
+            ? null
+            : Number(change.grade),
       };
     });
 
     try {
       await updateMultipleGrades(gradeUpdates);
-      
+
       // Clear all unsaved changes after successful bulk update
       setLocalGradeState({});
       setUnsavedChanges({});
       setSavingGrades({});
-      
+
       toast.success(`All ${changeKeys.length} changes saved successfully!`);
     } catch (error) {
       console.error("Bulk save failed:", error);
-      toast.error(error.message || "Some grades failed to save. Please try again.");
+      toast.error(
+        error.message || "Some grades failed to save. Please try again."
+      );
     } finally {
       setIsBulkSaving(false);
     }
@@ -220,7 +226,9 @@ const GradesTable = ({
               {hasUnsavedChanges && (
                 <button
                   onClick={saveAllChanges}
-                  disabled={isBulkSaving || Object.keys(savingGrades).length > 0}
+                  disabled={
+                    isBulkSaving || Object.keys(savingGrades).length > 0
+                  }
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isBulkSaving ? (
@@ -228,10 +236,9 @@ const GradesTable = ({
                   ) : (
                     <LuSave size={16} className="mr-2" />
                   )}
-                  {isBulkSaving 
+                  {isBulkSaving
                     ? `Saving ${Object.keys(unsavedChanges).length}...`
-                    : `Save All (${Object.keys(unsavedChanges).length})`
-                  }
+                    : `Save All (${Object.keys(unsavedChanges).length})`}
                 </button>
               )}
               <div className="text-sm font-medium text-gray-700">
@@ -370,9 +377,9 @@ const GradesTable = ({
                                   min="0"
                                   max="100"
                                   disabled={
-                                    loading || 
-                                    !grade?.can_edit || 
-                                    isSaving || 
+                                    loading ||
+                                    !grade?.can_edit ||
+                                    isSaving ||
                                     isBulkSaving
                                   }
                                   value={grade?.grade ?? ""}
@@ -464,9 +471,9 @@ const GradesTable = ({
                                 min="0"
                                 max="100"
                                 disabled={
-                                  loading || 
-                                  !grade?.can_edit || 
-                                  isSaving || 
+                                  loading ||
+                                  !grade?.can_edit ||
+                                  isSaving ||
                                   isBulkSaving
                                 }
                                 value={grade?.grade ?? ""}

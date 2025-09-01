@@ -7,7 +7,7 @@ import {
   LuUserCheck,
 } from "react-icons/lu";
 import WorkloadTable from "../../../components/admin/WorkloadTable";
-import { useAdminStore } from "../../../stores/useAdminStore";
+import { useAdminStore } from "../../../stores/admin";
 
 const Workload = () => {
   // Destructure state and actions from the store

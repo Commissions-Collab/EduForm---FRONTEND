@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
 import { LuBadgeAlert, LuLoader } from "react-icons/lu";
 import { getItem } from "../../lib/utils";
 

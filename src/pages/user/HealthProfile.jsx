@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { LuInfo } from "react-icons/lu";
-import { useStoreUser } from "../../stores/useStoreUser";
-
+import { useStoreUser } from "../../stores/student";
 const HealthProfile = () => {
   const {
     healthProfileData,
     fetchHealthProfile,
     healthProfileLoading,
     healthProfileError,
-    clearHealthProfileError
+    clearHealthProfileError,
   } = useStoreUser();
 
   const [startHeight, setStartHeight] = useState(""); // cm
@@ -67,7 +66,7 @@ const HealthProfile = () => {
       <main className="p-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700">{healthProfileError}</p>
-          <button 
+          <button
             onClick={clearHealthProfileError}
             className="mt-2 text-red-600 hover:text-red-800 underline"
           >
@@ -83,10 +82,12 @@ const HealthProfile = () => {
       <div className="between">
         <div className="page-title">Health Profile (SF8)</div>
         <div className="inline-flex items-center px-2 py-1 text-sm rounded-lg bg-[#E0E7FF] text-[#3730A3]">
-          <span className="ml-2">Last Checkup: {new Date().toLocaleDateString()}</span>
+          <span className="ml-2">
+            Last Checkup: {new Date().toLocaleDateString()}
+          </span>
         </div>
       </div>
-      
+
       <div className="shad-container p-4 mt-8">
         <div className="flex items-center gap-5">
           <LuInfo size={20} />
@@ -143,7 +144,9 @@ const HealthProfile = () => {
                         {bmi}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${classification.bg} ${classification.color}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${classification.bg} ${classification.color}`}
+                        >
                           {classification.label}
                         </span>
                       </td>

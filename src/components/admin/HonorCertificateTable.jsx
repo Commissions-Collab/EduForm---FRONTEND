@@ -12,8 +12,7 @@ import {
   LuCalendar,
 } from "react-icons/lu";
 import PaginationControls from "./Pagination";
-import { useAdminStore } from "../../stores/useAdminStore";
-
+import { useAdminStore } from "../../stores/admin";
 const HonorsCertificateTable = ({
   searchName,
   filterType,

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useAuthStore } from "../../stores/useAuthStore";
+import { useAuthStore } from "../../stores/auth";
 
 const SignUp = () => {
   const navigate = useNavigate();

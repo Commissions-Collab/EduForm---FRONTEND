@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import MobileNavigation from "./MobileNavigation";
 import GlobalFilterDropdown from "../admin/GlobalFilterDropdown";
 import { LuMenu, LuBell, LuRefreshCw, LuFilter, LuX } from "react-icons/lu";
-import { useAuthStore } from "../../stores/useAuthStore";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAuthStore } from "../../stores/auth";
+import { useAdminStore } from "../../stores/admin";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);

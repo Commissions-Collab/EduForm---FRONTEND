@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
-import { useAdminStore } from "../../stores/useAdminStore";
+
 import { setItem } from "../../lib/utils";
+import { useAdminStore } from "../../stores/admin";
 
 const StudentAttendanceHistory = () => {
   const { studentId, scheduleId } = useParams();

@@ -1,5 +1,5 @@
 import { LuUser, LuLogOut, LuChevronUp } from "react-icons/lu";
-import { useAuthStore } from "../../stores/useAuthStore";
+import { useAuthStore } from "../../stores/auth";
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import { useState } from "react";

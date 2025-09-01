@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSuperAdminStore } from "../../stores/useSuperAdminStore";
+import { useSuperAdminStore } from "../../stores/superAdmin";
 import SearchFilter from "../../components/common/SearchFilter";
 import RecordsTable from "../../components/superadmin/RecordsTable";
 

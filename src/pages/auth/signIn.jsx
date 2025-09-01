@@ -3,8 +3,7 @@ import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ClipLoader } from "react-spinners";
-import { useAuthStore } from "../../stores/useAuthStore";
-
+import { useAuthStore } from "../../stores/auth";
 const SignIn = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);

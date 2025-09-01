@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { LuDownload } from "react-icons/lu";
 import GradesTable from "../../../components/admin/GradesTable";
-import { useAdminStore } from "../../../stores/useAdminStore";
 import { getItem } from "../../../lib/utils";
+import { useAdminStore } from "../../../stores/admin";
 
 const Grades = () => {
   const {

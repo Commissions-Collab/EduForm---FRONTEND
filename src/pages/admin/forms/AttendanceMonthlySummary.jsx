@@ -7,8 +7,7 @@ import {
   LuLoader,
 } from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
-
-import { useAdminStore } from "../../../stores/useAdminStore";
+import { useAdminStore } from "../../../stores/admin";
 import { getItem } from "../../../lib/utils";
 
 const AttendanceMonthlySummary = () => {

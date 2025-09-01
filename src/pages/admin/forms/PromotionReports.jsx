@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
 import { LuBadgeAlert, LuFilter, LuLoader } from "react-icons/lu";
-import { useAdminStore } from "../../../stores/useAdminStore";
+import { useAdminStore } from "../../../stores/admin";
 import { getItem } from "../../../lib/utils";
 
 const PromotionReport = () => {

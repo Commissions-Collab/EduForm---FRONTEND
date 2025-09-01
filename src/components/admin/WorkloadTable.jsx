@@ -10,7 +10,7 @@ import {
   LuLoader,
 } from "react-icons/lu";
 import Pagination from "./Pagination"; // Assuming Pagination component exists
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
 
 // The store defines 10 records per page
 const RECORDS_PER_PAGE = 10;

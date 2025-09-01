@@ -13,8 +13,8 @@ import {
   LuLoader,
   LuIdCard,
 } from "react-icons/lu";
-import { useAdminStore } from "../../../stores/useAdminStore";
 import Pagination from "../../../components/admin/Pagination";
+import { useAdminStore } from "../../../stores/admin";
 
 const StudentApproval = () => {
   const {

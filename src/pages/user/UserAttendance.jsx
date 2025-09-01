@@ -1,18 +1,18 @@
 import React, { useEffect } from "react";
 import AttendanceCards from "../../components/user/AttendanceCards";
-import { useStoreUser } from "../../stores/useStoreUser";
+import { useStoreUser } from "../../stores/student";
 
 const UserAttendance = () => {
-  const { 
+  const {
     attendanceData,
     fetchAttendance,
     fetchMonthOptions,
-    monthOptions, 
-    selectedMonth, 
+    monthOptions,
+    selectedMonth,
     setSelectedMonth,
     attendanceLoading,
     attendanceError,
-    clearAttendanceError
+    clearAttendanceError,
   } = useStoreUser();
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const UserAttendance = () => {
       <div className="p-5">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700">{attendanceError}</p>
-          <button 
+          <button
             onClick={clearAttendanceError}
             className="mt-2 text-red-600 hover:text-red-800 underline"
           >
@@ -79,23 +79,39 @@ const UserAttendance = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Attendance Rate</h3>
-              <p className="text-2xl font-bold text-green-600">{attendanceData.attendance_rate}%</p>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Attendance Rate
+              </h3>
+              <p className="text-2xl font-bold text-green-600">
+                {attendanceData.attendance_rate}%
+              </p>
             </div>
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Late Arrivals</h3>
-              <p className="text-2xl font-bold text-yellow-600">{attendanceData.late_arrivals.count}</p>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Late Arrivals
+              </h3>
+              <p className="text-2xl font-bold text-yellow-600">
+                {attendanceData.late_arrivals.count}
+              </p>
               {attendanceData.late_arrivals.pattern && (
-                <p className="text-sm text-gray-500">Mostly on {attendanceData.late_arrivals.pattern}</p>
+                <p className="text-sm text-gray-500">
+                  Mostly on {attendanceData.late_arrivals.pattern}
+                </p>
               )}
             </div>
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-700">Absences</h3>
-              <p className="text-2xl font-bold text-red-600">{attendanceData.absences.count}</p>
+              <p className="text-2xl font-bold text-red-600">
+                {attendanceData.absences.count}
+              </p>
             </div>
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Total Days</h3>
-              <p className="text-2xl font-bold text-blue-600">{attendanceData.daily_status.length}</p>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Total Days
+              </h3>
+              <p className="text-2xl font-bold text-blue-600">
+                {attendanceData.daily_status.length}
+              </p>
             </div>
           </div>
         </div>

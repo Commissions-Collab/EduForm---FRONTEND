@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { LuUsers, LuCalendar, LuBook, LuCircle, LuClock, LuCheckCheck, LuX } from "react-icons/lu";
+import {
+  LuUsers,
+  LuCalendar,
+  LuBook,
+  LuCircle,
+  LuClock,
+  LuCheckCheck,
+  LuX,
+} from "react-icons/lu";
 import { getItem, setItem } from "../../../lib/utils";
-import { useAdminStore } from "../../../stores/useAdminStore";
 import WeeklyScheduleView from "../../../components/admin/WeeklyScheduleView";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
+import { useAdminStore } from "../../../stores/admin";
 
 const DailyAttendance = () => {
   const {
@@ -30,11 +38,11 @@ const DailyAttendance = () => {
   useEffect(() => {
     const savedScheduleId = getItem("selectedScheduleId", false);
     const savedDate = getItem("selectedDate", false);
-    
+
     if (savedDate) {
       setSelectedDate(savedDate);
     }
-    
+
     if (savedScheduleId) {
       // You would need to fetch schedule details here or store more info
       // For now, we'll set it when a schedule is clicked from weekly view
@@ -43,7 +51,13 @@ const DailyAttendance = () => {
 
   // Fetch attendance data when schedule and date change
   useEffect(() => {
-    if (selectedSchedule && selectedDate && academicYearId && quarterId && sectionId) {
+    if (
+      selectedSchedule &&
+      selectedDate &&
+      academicYearId &&
+      quarterId &&
+      sectionId
+    ) {
       fetchScheduleAttendance({
         scheduleId: selectedSchedule.id,
         sectionId: sectionId,
@@ -52,7 +66,14 @@ const DailyAttendance = () => {
         date: selectedDate,
       });
     }
-  }, [selectedSchedule, selectedDate, academicYearId, quarterId, sectionId, fetchScheduleAttendance]);
+  }, [
+    selectedSchedule,
+    selectedDate,
+    academicYearId,
+    quarterId,
+    sectionId,
+    fetchScheduleAttendance,
+  ]);
 
   const handleScheduleSelect = (schedule, date) => {
     setSelectedSchedule(schedule);
@@ -60,7 +81,7 @@ const DailyAttendance = () => {
       setSelectedDate(date);
     }
     setShowWeeklyView(false);
-    
+
     // Save to localStorage
     setItem("selectedScheduleId", schedule.id);
     setItem("selectedDate", date || selectedDate);
@@ -71,14 +92,14 @@ const DailyAttendance = () => {
       alert("Please select a schedule first");
       return;
     }
-    
+
     try {
       await updateAllStudentsAttendance({
         schedule_id: selectedSchedule.id,
         status: "present",
         date: selectedDate,
       });
-      
+
       // Refresh attendance data
       fetchScheduleAttendance({
         scheduleId: selectedSchedule.id,
@@ -97,14 +118,14 @@ const DailyAttendance = () => {
       alert("Please select a schedule first");
       return;
     }
-    
+
     try {
       await updateAllStudentsAttendance({
         schedule_id: selectedSchedule.id,
         status: "absent",
         date: selectedDate,
       });
-      
+
       // Refresh attendance data
       fetchScheduleAttendance({
         scheduleId: selectedSchedule.id,
@@ -125,14 +146,14 @@ const DailyAttendance = () => {
 
   const getAttendanceSummary = () => {
     if (!scheduleAttendance?.summary) return null;
-    
+
     const summary = scheduleAttendance.summary;
     return {
       total: summary.total_students || 0,
       present: summary.present || 0,
       absent: summary.absent || 0,
       late: summary.late || 0,
-      notRecorded: summary.not_recorded || 0
+      notRecorded: summary.not_recorded || 0,
     };
   };
 
@@ -148,12 +169,11 @@ const DailyAttendance = () => {
             <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
               SF2
             </span>
-            {selectedSchedule && (
-              <span className="text-gray-400">•</span>
-            )}
+            {selectedSchedule && <span className="text-gray-400">•</span>}
             {selectedSchedule && (
               <span>
-                {selectedSchedule.subject?.name} - {selectedSchedule.section?.name}
+                {selectedSchedule.subject?.name} -{" "}
+                {selectedSchedule.section?.name}
               </span>
             )}
           </div>
@@ -185,9 +205,7 @@ const DailyAttendance = () => {
 
       {/* Weekly Schedule View */}
       {showWeeklyView && (
-        <WeeklyScheduleView 
-          onScheduleClick={handleScheduleSelect}
-        />
+        <WeeklyScheduleView onScheduleClick={handleScheduleSelect} />
       )}
 
       {/* Selected Schedule Info */}
@@ -209,8 +227,11 @@ const DailyAttendance = () => {
                     {selectedSchedule.subject?.name}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {selectedSchedule.section?.name} • {selectedSchedule.time?.start} - {selectedSchedule.time?.end}
-                    {selectedSchedule.room && ` • Room ${selectedSchedule.room}`}
+                    {selectedSchedule.section?.name} •{" "}
+                    {selectedSchedule.time?.start} -{" "}
+                    {selectedSchedule.time?.end}
+                    {selectedSchedule.room &&
+                      ` • Room ${selectedSchedule.room}`}
                   </p>
                 </div>
               </div>
@@ -232,23 +253,33 @@ const DailyAttendance = () => {
           {summary && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               <div className="bg-blue-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {summary.total}
+                </div>
                 <div className="text-sm text-blue-700">Total Students</div>
               </div>
               <div className="bg-green-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-green-600">{summary.present}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {summary.present}
+                </div>
                 <div className="text-sm text-green-700">Present</div>
               </div>
               <div className="bg-red-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-red-600">{summary.absent}</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {summary.absent}
+                </div>
                 <div className="text-sm text-red-700">Absent</div>
               </div>
               <div className="bg-yellow-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-yellow-600">{summary.late}</div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {summary.late}
+                </div>
                 <div className="text-sm text-yellow-700">Late</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-gray-600">{summary.notRecorded}</div>
+                <div className="text-2xl font-bold text-gray-600">
+                  {summary.notRecorded}
+                </div>
                 <div className="text-sm text-gray-700">Not Recorded</div>
               </div>
             </div>
@@ -266,25 +297,28 @@ const DailyAttendance = () => {
 
       {/* Attendance Table */}
       {selectedSchedule && !showWeeklyView ? (
-        <AttendanceTable 
-          selectedDate={selectedDate} 
+        <AttendanceTable
+          selectedDate={selectedDate}
           selectedSchedule={selectedSchedule}
         />
-      ) : !showWeeklyView && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-600 font-medium">
-            Please select a schedule to view students
-          </p>
-          <p className="text-gray-500 text-sm mt-1">
-            Choose a class from your weekly schedule to start taking attendance.
-          </p>
-          <button
-            onClick={() => setShowWeeklyView(true)}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            View Weekly Schedule
-          </button>
-        </div>
+      ) : (
+        !showWeeklyView && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+            <p className="text-gray-600 font-medium">
+              Please select a schedule to view students
+            </p>
+            <p className="text-gray-500 text-sm mt-1">
+              Choose a class from your weekly schedule to start taking
+              attendance.
+            </p>
+            <button
+              onClick={() => setShowWeeklyView(true)}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View Weekly Schedule
+            </button>
+          </div>
+        )
       )}
 
       {/* Quick Actions for selected schedule */}
@@ -309,7 +343,11 @@ const DailyAttendance = () => {
             <button
               onClick={() => {
                 // This could export attendance or generate reports
-                console.log('Export attendance for', selectedSchedule.subject?.name, selectedDate);
+                console.log(
+                  "Export attendance for",
+                  selectedSchedule.subject?.name,
+                  selectedDate
+                );
               }}
               className="px-3 py-2 text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors"
             >

@@ -1,7 +1,7 @@
 import { adminNav, studentNav, superAdminNav } from "../../constants";
 import { Link, useLocation } from "react-router-dom";
 import SidebarFooter from "./SidebarFooter";
-import { useAuthStore } from "../../stores/useAuthStore";
+import { useAuthStore } from "../../stores/auth";
 
 // Navigation categories for teachers
 const teacherNavCategories = [

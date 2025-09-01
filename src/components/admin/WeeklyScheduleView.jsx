@@ -8,8 +8,9 @@ import {
   LuChevronLeft,
   LuChevronRight,
 } from "react-icons/lu";
-import { useAdminStore } from "../../stores/useAdminStore";
+
 import { getItem, setItem } from "../../lib/utils";
+import { useAdminStore } from "../../stores/admin";
 
 const WeeklyScheduleView = ({ onScheduleClick }) => {
   const {

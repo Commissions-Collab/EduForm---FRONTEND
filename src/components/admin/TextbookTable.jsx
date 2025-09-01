@@ -10,7 +10,7 @@ import {
   LuLoader,
 } from "react-icons/lu";
 import Pagination from "./Pagination";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
 
 const TextbookTable = ({ searchTerm }) => {
   const {

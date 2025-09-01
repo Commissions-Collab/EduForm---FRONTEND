@@ -1,7 +1,7 @@
 // components/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import DashboardCard from "../../components/admin/DashboardCard";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
 import {
   LuTrendingUp,
   LuCalendar,

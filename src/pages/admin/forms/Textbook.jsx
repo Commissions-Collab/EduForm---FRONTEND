@@ -9,7 +9,7 @@ import {
   LuCircleCheck,
 } from "react-icons/lu";
 import TextbookTable from "../../../components/admin/TextbookTable";
-import { useAdminStore } from "../../../stores/useAdminStore";
+import { useAdminStore } from "../../../stores/admin";
 
 const Textbook = () => {
   const { fetchTextbooks, textbooks, loading } = useAdminStore();

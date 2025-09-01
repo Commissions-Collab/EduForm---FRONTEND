@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useAdminStore } from "../../stores/useAdminStore";
 import {
   LuChevronDown,
   LuFilter,
@@ -10,6 +9,7 @@ import {
   LuUsers,
   LuLoader,
 } from "react-icons/lu";
+import { useAdminStore } from "../../stores/admin";
 
 const GlobalFilterDropdown = ({ userRole }) => {
   const {
@@ -59,7 +59,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
   // Handle academic year change with cascade updates
   const handleAcademicYearChange = async (value) => {
     const academicYearId = value ? parseInt(value, 10) : null;
-    
+
     setDraftFilters((prev) => ({
       ...prev,
       academicYearId,
@@ -74,7 +74,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
         await updateQuartersForAcademicYear(academicYearId);
         await updateSectionsForAcademicYear(academicYearId);
       } catch (error) {
-        console.error('Error updating filters:', error);
+        console.error("Error updating filters:", error);
       } finally {
         setIsUpdatingFilters(false);
       }
@@ -147,7 +147,9 @@ const GlobalFilterDropdown = ({ userRole }) => {
 
   const getSelectedYear = () => {
     if (!draftFilters.academicYearId) return null;
-    return filterOptions.academicYears?.find(y => y.id === draftFilters.academicYearId);
+    return filterOptions.academicYears?.find(
+      (y) => y.id === draftFilters.academicYearId
+    );
   };
 
   const getAvailableQuarters = () => {
@@ -311,15 +313,23 @@ const GlobalFilterDropdown = ({ userRole }) => {
             {/* Current Selections Summary */}
             {hasFiltersSelected && (
               <div className="bg-blue-50 rounded-lg p-3 space-y-1">
-                <h4 className="text-sm font-medium text-blue-900">Current Selection:</h4>
+                <h4 className="text-sm font-medium text-blue-900">
+                  Current Selection:
+                </h4>
                 {selections.academicYear && (
-                  <p className="text-xs text-blue-700">📅 {selections.academicYear}</p>
+                  <p className="text-xs text-blue-700">
+                    📅 {selections.academicYear}
+                  </p>
                 )}
                 {selections.quarter && (
-                  <p className="text-xs text-blue-700">📚 {selections.quarter}</p>
+                  <p className="text-xs text-blue-700">
+                    📚 {selections.quarter}
+                  </p>
                 )}
                 {selections.section && (
-                  <p className="text-xs text-blue-700">👥 {selections.section}</p>
+                  <p className="text-xs text-blue-700">
+                    👥 {selections.section}
+                  </p>
                 )}
               </div>
             )}

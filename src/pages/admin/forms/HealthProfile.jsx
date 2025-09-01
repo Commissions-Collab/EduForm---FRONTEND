@@ -1,10 +1,9 @@
 // src/pages/admin/health/HealthProfile.jsx
 import React, { useEffect, useState } from "react";
-import { useAdminStore } from "../../../stores/useAdminStore";
-
 import { LuActivity } from "react-icons/lu";
 import { getItem } from "../../../lib/utils";
 import BmiStudentTable from "../../../components/admin/BmiStudentTable";
+import { useAdminStore } from "../../../stores/admin";
 
 const HealthProfile = () => {
   const { bmiStudents, bmiLoading, bmiError, fetchBmiStudents } =
