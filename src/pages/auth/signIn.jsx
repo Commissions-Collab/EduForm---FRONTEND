@@ -3,8 +3,7 @@ import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ClipLoader } from "react-spinners";
-import { useAuthStore } from "../../stores/useAuthStore";
-
+import { useAuthStore } from "../../stores/auth";
 const SignIn = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
@@ -14,16 +13,15 @@ const SignIn = () => {
   const {
     register,
     handleSubmit,
-    setError,
+    setValue,
+    clearErrors,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  } = useForm();
 
   const onSubmit = async (formData) => {
+    // Clear any existing API errors before attempting login
+    clearErrors("api");
+
     const result = await login(formData);
 
     if (result.success && result.user) {
@@ -34,6 +32,14 @@ const SignIn = () => {
         message: result.message || "Login failed. Please try again.",
       });
     }
+  };
+
+  // Clear API errors when user starts typing in either field
+  const handleInputChange = (fieldName) => (e) => {
+    if (errors.api) {
+      clearErrors("api");
+    }
+    setValue(fieldName, e.target.value, { shouldValidate: true });
   };
 
   useEffect(() => {
@@ -71,6 +77,7 @@ const SignIn = () => {
                   message: "Enter a valid email address",
                 },
               })}
+              onChange={handleInputChange("email")}
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
@@ -91,6 +98,7 @@ const SignIn = () => {
                   message: "Password must be at least 6 characters",
                 },
               })}
+              onChange={handleInputChange("password")}
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">

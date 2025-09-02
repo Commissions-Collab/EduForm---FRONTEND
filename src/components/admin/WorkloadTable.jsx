@@ -1,38 +1,55 @@
-import React from "react";
+import React, { useMemo, useEffect } from "react";
 import {
   LuUsers,
   LuBookOpen,
   LuClock,
   LuUserCheck,
   LuGraduationCap,
-  LuCalendarDays,
   LuEye,
   LuMenu,
-  LuLoader,
 } from "react-icons/lu";
 import Pagination from "./Pagination";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
+
+// The store defines 10 records per page
+const RECORDS_PER_PAGE = 10;
 
 const WorkloadTable = ({ searchTerm }) => {
   const {
     workloads,
     loading,
     error,
-    paginatedWorkloadRecords,
     workloadCurrentPage,
     setWorkloadCurrentPage,
-    totalWorkloadPages,
   } = useAdminStore();
 
-  const filteredRecords = paginatedWorkloadRecords().filter((record) =>
-    record.section?.toLowerCase()?.includes(searchTerm.toLowerCase())
+  // Memoize the filtered records
+  const filteredRecords = useMemo(
+    () =>
+      workloads.filter((record) =>
+        record.section?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [workloads, searchTerm]
   );
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    if (workloadCurrentPage !== 1) {
+      setWorkloadCurrentPage(1);
+    }
+  }, [searchTerm, setWorkloadCurrentPage]);
+
+  // Pagination variables
+  const totalPages = Math.ceil(filteredRecords.length / RECORDS_PER_PAGE);
+  const indexOfLast = workloadCurrentPage * RECORDS_PER_PAGE;
+  const indexOfFirst = indexOfLast - RECORDS_PER_PAGE;
+  const paginatedRecords = filteredRecords.slice(indexOfFirst, indexOfLast);
+  const totalRecords = filteredRecords.length;
 
   const getWorkloadLevel = (hours) => {
     if (hours >= 20)
       return {
         level: "High",
-        color: "red",
         bg: "bg-red-50",
         text: "text-red-700",
         border: "border-red-200",
@@ -40,14 +57,12 @@ const WorkloadTable = ({ searchTerm }) => {
     if (hours >= 15)
       return {
         level: "Medium",
-        color: "amber",
         bg: "bg-amber-50",
         text: "text-amber-700",
         border: "border-amber-200",
       };
     return {
       level: "Low",
-      color: "green",
       bg: "bg-green-50",
       text: "text-green-700",
       border: "border-green-200",
@@ -68,9 +83,37 @@ const WorkloadTable = ({ searchTerm }) => {
     return colors[hash % colors.length];
   };
 
-  const indexOfLast = workloadCurrentPage * 10;
-  const indexOfFirst = indexOfLast - 10;
-  const totalRecords = filteredRecords.length;
+  // Skeleton row (repeat for loading state)
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+          <div className="w-24 h-4 bg-gray-200 rounded"></div>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-10 h-4 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="w-32 h-4 bg-gray-200 rounded mb-2"></div>
+        <div className="w-16 h-3 bg-gray-200 rounded"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-20 h-5 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-10 h-4 bg-gray-200 rounded mx-auto mb-2"></div>
+        <div className="w-16 h-5 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-12 h-6 bg-gray-200 rounded"></div>
+          <div className="w-8 h-6 bg-gray-200 rounded"></div>
+        </div>
+      </td>
+    </tr>
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -86,7 +129,6 @@ const WorkloadTable = ({ searchTerm }) => {
                 Comprehensive view of section assignments and teaching hours
               </p>
             </div>
-
             {!loading && (
               <div className="text-sm text-gray-500">
                 {totalRecords} {totalRecords === 1 ? "section" : "sections"}{" "}
@@ -148,16 +190,8 @@ const WorkloadTable = ({ searchTerm }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-16 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                    <p className="text-sm text-gray-500">
-                      Loading workload data...
-                    </p>
-                  </div>
-                </td>
-              </tr>
+              // Show 5 skeleton rows
+              Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : error ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
@@ -174,7 +208,7 @@ const WorkloadTable = ({ searchTerm }) => {
                   </div>
                 </td>
               </tr>
-            ) : filteredRecords.length === 0 ? (
+            ) : paginatedRecords.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
@@ -195,11 +229,10 @@ const WorkloadTable = ({ searchTerm }) => {
                 </td>
               </tr>
             ) : (
-              filteredRecords.map((record, index) => {
+              paginatedRecords.map((record, index) => {
                 const workloadLevel = getWorkloadLevel(
                   record.hours_per_week || 0
                 );
-
                 return (
                   <tr
                     key={index}
@@ -222,7 +255,6 @@ const WorkloadTable = ({ searchTerm }) => {
                         </div>
                       </div>
                     </td>
-
                     {/* Students */}
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center">
@@ -232,23 +264,29 @@ const WorkloadTable = ({ searchTerm }) => {
                         <span className="text-xs text-gray-500">students</span>
                       </div>
                     </td>
-
                     {/* Subjects */}
                     <td className="px-6 py-4">
                       <div className="max-w-xs">
-                        <p
-                          className="text-sm text-gray-900 font-medium truncate"
-                          title={record.subjects_display}
-                        >
-                          {record.subjects_display || "N/A"}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {record.subjects_display?.split(",").length || 0}{" "}
-                          subject(s)
-                        </p>
+                        {record.subjects_display ? (
+                          <>
+                            <p
+                              className="text-sm text-gray-900 font-medium truncate"
+                              title={record.subjects_display}
+                            >
+                              {record.subjects_display}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {record.subjects_display.split(",").length}{" "}
+                              subject(s)
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">
+                            No subjects assigned
+                          </p>
+                        )}
                       </div>
                     </td>
-
                     {/* Advisory Role */}
                     <td className="px-6 py-4 text-center">
                       <span
@@ -258,13 +296,16 @@ const WorkloadTable = ({ searchTerm }) => {
                             : "bg-gray-100 text-gray-800 border border-gray-200"
                         }`}
                       >
-                        {record.advisory_role === "Yes" && (
-                          <LuUserCheck className="w-3 h-3 mr-1" />
+                        {record.advisory_role === "Yes" ? (
+                          <>
+                            <LuUserCheck className="w-3 h-3 mr-1" />
+                            Advisory
+                          </>
+                        ) : (
+                          "No advisory"
                         )}
-                        {record.advisory_role}
                       </span>
                     </td>
-
                     {/* Hours per Week */}
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center gap-2">
@@ -279,7 +320,6 @@ const WorkloadTable = ({ searchTerm }) => {
                         </span>
                       </div>
                     </td>
-
                     {/* Actions */}
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
@@ -301,7 +341,7 @@ const WorkloadTable = ({ searchTerm }) => {
       </div>
 
       {/* Pagination */}
-      {!loading && !error && filteredRecords.length > 0 && (
+      {!loading && !error && totalRecords > 0 && (
         <div className="border-t border-gray-200 bg-white px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
@@ -310,15 +350,8 @@ const WorkloadTable = ({ searchTerm }) => {
             </p>
             <Pagination
               currentPage={workloadCurrentPage}
-              totalPages={totalWorkloadPages()}
-              onPrevious={() =>
-                setWorkloadCurrentPage(Math.max(workloadCurrentPage - 1, 1))
-              }
-              onNext={() =>
-                setWorkloadCurrentPage(
-                  Math.min(workloadCurrentPage + 1, totalWorkloadPages())
-                )
-              }
+              totalPages={totalPages}
+              onPageChange={setWorkloadCurrentPage}
             />
           </div>
         </div>

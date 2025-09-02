@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import DashboardStatCard from "../../components/user/DashboardStatCard";
 import NotificationCard from "../../components/user/NotificationCard";
-import { useStoreUser } from "../../stores/useStoreUser";
+import { useStoreUser } from "../../stores/student";
 import { LuCircleAlert } from "react-icons/lu";
 
 const Dashboard = () => {
@@ -11,7 +11,7 @@ const Dashboard = () => {
     fetchDashboard,
     dashboardLoading,
     dashboardError,
-    clearDashboardError
+    clearDashboardError,
   } = useStoreUser();
 
   useEffect(() => {
@@ -23,7 +23,10 @@ const Dashboard = () => {
     {
       title: "QUARTERLY AVERAGE",
       value: `${dashboardData.grades}%`,
-      change: dashboardData.grade_change_percent > 0 ? `+${dashboardData.grade_change_percent}%` : `${dashboardData.grade_change_percent}%`,
+      change:
+        dashboardData.grade_change_percent > 0
+          ? `+${dashboardData.grade_change_percent}%`
+          : `${dashboardData.grade_change_percent}%`,
       progress: true,
     },
     {
@@ -35,21 +38,33 @@ const Dashboard = () => {
     {
       title: "RESOURCES",
       value: `${dashboardData.borrow_book} Books Borrowed`,
-      resources: dashboardData.book_due_this_week > 0 ? [`${dashboardData.book_due_this_week} book(s) due this week`] : [],
+      resources:
+        dashboardData.book_due_this_week > 0
+          ? [`${dashboardData.book_due_this_week} book(s) due this week`]
+          : [],
     },
   ];
 
   // Transform notifications from API data
-  const transformedNotifications = dashboardData.notifications.map((notification, index) => ({
-    type: notification.includes('overdue') || notification.includes('due') ? 'clock' : 
-          notification.includes('grade') || notification.includes('below') ? 'alert' : 'award',
-    message: notification,
-    suggestion: notification.includes('grade') ? 'Consider scheduling time with a tutor.' : 
-               notification.includes('due') ? 'Return books on time to avoid fines.' : '',
-    time: 'Today',
-    fine: notification.includes('fine') ? '50' : null,
-    returnDate: notification.includes('due') ? 'This week' : null,
-  }));
+  const transformedNotifications = dashboardData.notifications.map(
+    (notification, index) => ({
+      type:
+        notification.includes("overdue") || notification.includes("due")
+          ? "clock"
+          : notification.includes("grade") || notification.includes("below")
+          ? "alert"
+          : "award",
+      message: notification,
+      suggestion: notification.includes("grade")
+        ? "Consider scheduling time with a tutor."
+        : notification.includes("due")
+        ? "Return books on time to avoid fines."
+        : "",
+      time: "Today",
+      fine: notification.includes("fine") ? "50" : null,
+      returnDate: notification.includes("due") ? "This week" : null,
+    })
+  );
 
   if (dashboardLoading) {
     return (
@@ -66,7 +81,7 @@ const Dashboard = () => {
       <main className="p-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700">{dashboardError}</p>
-          <button 
+          <button
             onClick={clearDashboardError}
             className="mt-2 text-red-600 hover:text-red-800 underline"
           >
@@ -81,7 +96,9 @@ const Dashboard = () => {
     <main className="p-4">
       <div className="flex justify-between items-center">
         <h1 className="page-title">Student Dashboard</h1>
-        <p className="text-sm text-gray-500">Last updated: Today, {new Date().toLocaleTimeString()}</p>
+        <p className="text-sm text-gray-500">
+          Last updated: Today, {new Date().toLocaleTimeString()}
+        </p>
       </div>
 
       {/* Important Notifications Section */}

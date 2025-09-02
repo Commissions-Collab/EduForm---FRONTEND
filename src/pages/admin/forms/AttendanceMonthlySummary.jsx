@@ -7,15 +7,14 @@ import {
   LuLoader,
 } from "react-icons/lu";
 import { ClipLoader } from "react-spinners";
-
-import { useAdminStore } from "../../../stores/useAdminStore";
+import { useAdminStore } from "../../../stores/admin";
 import { getItem } from "../../../lib/utils";
 
 const AttendanceMonthlySummary = () => {
   const {
     downloadAttendancePDF,
-    fetchScheduleAttendanceHistory,
-    scheduleAttendance,
+    fetchMonthlyAttendance,
+    monthlyAttendanceData,
     loading,
     error,
   } = useAdminStore();
@@ -23,18 +22,14 @@ const AttendanceMonthlySummary = () => {
   const [downloadLoading, setDownloadLoading] = useState(false);
 
   useEffect(() => {
-    // Load attendance data when component mounts
-    const scheduleId = getItem("scheduleId", false);
-    if (scheduleId) {
-      fetchScheduleAttendanceHistory();
-    }
+    // Load monthly attendance data when component mounts
+    const sectionId = getItem("sectionId", false) || 1;
+    const academicYearId = getItem("academicYearId", false) || 1;
 
-    // Get section name from localStorage if available
-    const storedSectionName = getItem("sectionName", false);
-    if (storedSectionName) {
-      setSectionName(storedSectionName);
+    if (sectionId && academicYearId) {
+      fetchMonthlyAttendance();
     }
-  }, [fetchScheduleAttendanceHistory]);
+  }, [fetchMonthlyAttendance]);
 
   const handlePrint = () => {
     window.print();
@@ -51,71 +46,151 @@ const AttendanceMonthlySummary = () => {
     }
   };
 
-  // Calculate summary statistics from scheduleAttendance data
+  // Calculate summary statistics from the new API response structure
   const calculateSummaryStats = () => {
-    if (!scheduleAttendance || typeof scheduleAttendance !== "object") {
+    if (
+      !monthlyAttendanceData?.students ||
+      !Array.isArray(monthlyAttendanceData.students)
+    ) {
       return {
         totalStudents: 0,
         totalDays: 0,
         presentCount: 0,
         absentCount: 0,
-        lateCount: 0,
+        halfDayCount: 0,
       };
     }
 
-    let totalStudents = 0;
-    let totalDays = 0;
-    let presentCount = 0;
-    let absentCount = 0;
-    let lateCount = 0;
+    const students = monthlyAttendanceData.students;
+    const totalStudents = students.length;
 
-    // If scheduleAttendance is grouped by date
-    Object.values(scheduleAttendance).forEach((dateData) => {
-      if (Array.isArray(dateData)) {
-        totalStudents = Math.max(totalStudents, dateData.length);
-        totalDays++;
+    // Calculate totals from monthly_summary of each student
+    let totalPresentDays = 0;
+    let totalAbsentDays = 0;
+    let totalHalfDays = 0;
+    let totalSchoolDays = 0;
 
-        dateData.forEach((student) => {
-          switch (student.status?.toLowerCase()) {
-            case "present":
-              presentCount++;
-              break;
-            case "absent":
-              absentCount++;
-              break;
-            case "late":
-              lateCount++;
-              break;
-          }
-        });
-      }
+    students.forEach((student) => {
+      const summary = student.monthly_summary;
+      totalPresentDays += summary.present_days || 0;
+      totalAbsentDays += summary.absent_days || 0;
+      totalHalfDays += summary.half_days || 0;
+
+      // Calculate school days for this student (excluding no_class days)
+      const studentSchoolDays =
+        (summary.present_days || 0) +
+        (summary.absent_days || 0) +
+        (summary.half_days || 0);
+      totalSchoolDays = Math.max(totalSchoolDays, studentSchoolDays);
     });
 
-    return { totalStudents, totalDays, presentCount, absentCount, lateCount };
+    return {
+      totalStudents,
+      totalDays: totalSchoolDays,
+      presentCount: totalPresentDays,
+      absentCount: totalAbsentDays,
+      halfDayCount: totalHalfDays,
+    };
   };
 
   const summaryStats = calculateSummaryStats();
+
+  // Calculate attendance rate
+  const totalAttendanceRecords =
+    summaryStats.presentCount +
+    summaryStats.absentCount +
+    summaryStats.halfDayCount;
   const attendanceRate =
-    summaryStats.presentCount + summaryStats.lateCount > 0
+    totalAttendanceRecords > 0
       ? (
-          ((summaryStats.presentCount + summaryStats.lateCount) /
-            (summaryStats.presentCount +
-              summaryStats.absentCount +
-              summaryStats.lateCount)) *
+          ((summaryStats.presentCount + summaryStats.halfDayCount * 0.5) /
+            totalAttendanceRecords) *
           100
         ).toFixed(1)
       : 0;
+
+  // Get current period info from API response or fallback to current date
+  const periodInfo = monthlyAttendanceData?.period || {
+    month_name: new Date().toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    }),
+  };
+
+  // Transform student data for daily attendance table
+  const getDailyAttendanceData = () => {
+    if (
+      !monthlyAttendanceData?.students ||
+      !monthlyAttendanceData?.calendar_days
+    ) {
+      return [];
+    }
+
+    return monthlyAttendanceData.calendar_days
+      .filter((day) => !day.is_weekend && !day.is_holiday) // Only show school days
+      .map((day) => {
+        let dayPresent = 0;
+        let dayAbsent = 0;
+        let dayHalfDay = 0;
+
+        // Count attendance for this day across all students
+        monthlyAttendanceData.students.forEach((student) => {
+          const dayAttendance = student.daily_attendance.find(
+            (att) => att.date === day.date
+          );
+          if (dayAttendance) {
+            switch (dayAttendance.status) {
+              case "present":
+                dayPresent++;
+                break;
+              case "absent":
+                dayAbsent++;
+                break;
+              case "half_day":
+                dayHalfDay++;
+                break;
+            }
+          }
+        });
+
+        const totalStudents = monthlyAttendanceData.students.length;
+        const attendedStudents = dayPresent + dayHalfDay;
+        const dayRate =
+          totalStudents > 0
+            ? (((dayPresent + dayHalfDay * 0.5) / totalStudents) * 100).toFixed(
+                1
+              )
+            : 0;
+
+        return {
+          date: day.date,
+          dayName: day.day_name,
+          day: day.day,
+          present: dayPresent,
+          absent: dayAbsent,
+          halfDay: dayHalfDay,
+          rate: dayRate,
+        };
+      });
+  };
+
+  const dailyData = getDailyAttendanceData();
 
   return (
     <main className="p-4">
       <div className="between mb-6">
         <div>
           <div>
-            <h1 className="page-title">Monthly Attendance Summary </h1>
+            <h1 className="page-title">Monthly Attendance Summary</h1>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="px-2 py-1 bg-blue-100 text-blue-800  rounded-full font-medium">
-                SF4
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
+                {periodInfo.month_name}
               </span>
+              {monthlyAttendanceData?.section && (
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                  {monthlyAttendanceData.section.name}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -140,16 +215,20 @@ const AttendanceMonthlySummary = () => {
               <LuDownload size={15} />
             )}
             <span className="ml-2">
-              {downloadLoading ? "Downloading..." : "Export PDF by Quarter"}
+              {downloadLoading ? "Downloading..." : "Export PDF"}
             </span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-600 font-medium">Error</p>
-          <p className="text-red-500 text-sm">{error}</p>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6 text-center">
+          <p className="text-yellow-800 font-semibold">
+            {error.includes("advisory class")
+              ? " Access Restricted"
+              : " Access Restricted"}
+          </p>
+          <p className="text-yellow-700 mt-2">{error}</p>
         </div>
       )}
 
@@ -232,20 +311,16 @@ const AttendanceMonthlySummary = () => {
             <div className="text-3xl font-bold text-green-600 mb-2">
               {summaryStats.presentCount}
             </div>
-            <div className="text-sm font-medium text-gray-500">Present</div>
+            <div className="text-sm font-medium text-gray-500">
+              Present Days
+            </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div
                 className="bg-green-600 h-2 rounded-full"
                 style={{
                   width: `${
-                    summaryStats.presentCount +
-                      summaryStats.absentCount +
-                      summaryStats.lateCount >
-                    0
-                      ? (summaryStats.presentCount /
-                          (summaryStats.presentCount +
-                            summaryStats.absentCount +
-                            summaryStats.lateCount)) *
+                    totalAttendanceRecords > 0
+                      ? (summaryStats.presentCount / totalAttendanceRecords) *
                         100
                       : 0
                   }%`,
@@ -258,20 +333,14 @@ const AttendanceMonthlySummary = () => {
             <div className="text-3xl font-bold text-red-600 mb-2">
               {summaryStats.absentCount}
             </div>
-            <div className="text-sm font-medium text-gray-500">Absent</div>
+            <div className="text-sm font-medium text-gray-500">Absent Days</div>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div
                 className="bg-red-600 h-2 rounded-full"
                 style={{
                   width: `${
-                    summaryStats.presentCount +
-                      summaryStats.absentCount +
-                      summaryStats.lateCount >
-                    0
-                      ? (summaryStats.absentCount /
-                          (summaryStats.presentCount +
-                            summaryStats.absentCount +
-                            summaryStats.lateCount)) *
+                    totalAttendanceRecords > 0
+                      ? (summaryStats.absentCount / totalAttendanceRecords) *
                         100
                       : 0
                   }%`,
@@ -282,22 +351,16 @@ const AttendanceMonthlySummary = () => {
 
           <div className="text-center">
             <div className="text-3xl font-bold text-yellow-600 mb-2">
-              {summaryStats.lateCount}
+              {summaryStats.halfDayCount}
             </div>
-            <div className="text-sm font-medium text-gray-500">Late</div>
+            <div className="text-sm font-medium text-gray-500">Half Days</div>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div
                 className="bg-yellow-600 h-2 rounded-full"
                 style={{
                   width: `${
-                    summaryStats.presentCount +
-                      summaryStats.absentCount +
-                      summaryStats.lateCount >
-                    0
-                      ? (summaryStats.lateCount /
-                          (summaryStats.presentCount +
-                            summaryStats.absentCount +
-                            summaryStats.lateCount)) *
+                    totalAttendanceRecords > 0
+                      ? (summaryStats.halfDayCount / totalAttendanceRecords) *
                         100
                       : 0
                   }%`,
@@ -307,6 +370,42 @@ const AttendanceMonthlySummary = () => {
           </div>
         </div>
       </div>
+
+      {/* Class Statistics */}
+      {monthlyAttendanceData?.class_statistics && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Class Performance
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-xl font-bold text-gray-900">
+                {monthlyAttendanceData.class_statistics.average_attendance_rate}
+                %
+              </div>
+              <div className="text-sm text-gray-600">Average Rate</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-xl font-bold text-green-600">
+                {monthlyAttendanceData.class_statistics.students_above_90}
+              </div>
+              <div className="text-sm text-gray-600">Above 90%</div>
+            </div>
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <div className="text-xl font-bold text-red-600">
+                {monthlyAttendanceData.class_statistics.students_below_75}
+              </div>
+              <div className="text-sm text-gray-600">Below 75%</div>
+            </div>
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-xl font-bold text-blue-600">
+                {monthlyAttendanceData.class_statistics.highest_attendance}%
+              </div>
+              <div className="text-sm text-gray-600">Highest Rate</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Daily Attendance Overview */}
       {loading ? (
@@ -318,7 +417,7 @@ const AttendanceMonthlySummary = () => {
             </span>
           </div>
         </div>
-      ) : scheduleAttendance && Object.keys(scheduleAttendance).length > 0 ? (
+      ) : dailyData.length > 0 ? (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">
@@ -339,7 +438,7 @@ const AttendanceMonthlySummary = () => {
                     Absent
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Late
+                    Half Day
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Attendance Rate
@@ -347,61 +446,40 @@ const AttendanceMonthlySummary = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {Object.entries(scheduleAttendance).map(([date, students]) => {
-                  if (!Array.isArray(students)) return null;
-
-                  const dayPresent = students.filter(
-                    (s) => s.status?.toLowerCase() === "present"
-                  ).length;
-                  const dayAbsent = students.filter(
-                    (s) => s.status?.toLowerCase() === "absent"
-                  ).length;
-                  const dayLate = students.filter(
-                    (s) => s.status?.toLowerCase() === "late"
-                  ).length;
-                  const dayRate =
-                    students.length > 0
-                      ? (
-                          ((dayPresent + dayLate) / students.length) *
-                          100
-                        ).toFixed(1)
-                      : 0;
-
-                  return (
-                    <tr key={date} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {new Date(date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
-                        {dayPresent}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
-                        {dayAbsent}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 font-medium">
-                        {dayLate}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            dayRate >= 90
-                              ? "bg-green-100 text-green-800"
-                              : dayRate >= 75
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {dayRate}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {dailyData.map((day) => (
+                  <tr key={day.date} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {new Date(day.date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                      {day.present}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
+                      {day.absent}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 font-medium">
+                      {day.halfDay}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          day.rate >= 90
+                            ? "bg-green-100 text-green-800"
+                            : day.rate >= 75
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {day.rate}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -412,10 +490,90 @@ const AttendanceMonthlySummary = () => {
             No attendance data available
           </p>
           <p className="text-gray-500 text-sm mt-1">
-            Please ensure a schedule is selected and attendance data exists.
+            Please ensure a section and academic year are selected and
+            attendance data exists for this month.
           </p>
         </div>
       )}
+
+      {/* Student List with Individual Stats */}
+      {monthlyAttendanceData?.students &&
+        monthlyAttendanceData.students.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md overflow-hidden mt-6">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Individual Student Performance
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Student
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Present Days
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Absent Days
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Half Days
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Attendance Rate
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {monthlyAttendanceData.students.map((studentData) => (
+                    <tr
+                      key={studentData.student.id}
+                      className="hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {studentData.student.full_name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {studentData.student.student_id} • LRN:{" "}
+                              {studentData.student.lrn}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                        {studentData.monthly_summary.present_days}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
+                        {studentData.monthly_summary.absent_days}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 font-medium">
+                        {studentData.monthly_summary.half_days}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            studentData.attendance_rate >= 90
+                              ? "bg-green-100 text-green-800"
+                              : studentData.attendance_rate >= 75
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {studentData.attendance_rate}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
     </main>
   );
 };

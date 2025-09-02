@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   LuPrinter,
   LuEye,
@@ -6,15 +6,19 @@ import {
   LuSearch,
   LuFilter,
   LuPrinterCheck,
-  LuLoader,
   LuAward,
   LuUser,
   LuCalendar,
 } from "react-icons/lu";
 import PaginationControls from "./Pagination";
-import { useAdminStore } from "../../stores/useAdminStore";
+import { useAdminStore } from "../../stores/admin";
 
-const HonorsCertificateTable = () => {
+const HonorsCertificateTable = ({
+  searchName,
+  filterType,
+  setSearchName,
+  setFilterType,
+}) => {
   const {
     honorCertificates,
     certificateCurrentPage,
@@ -23,9 +27,7 @@ const HonorsCertificateTable = () => {
     error,
   } = useAdminStore();
 
-  const [searchName, setSearchName] = useState("");
-  const [filterType, setFilterType] = useState("All");
-
+  // --- Filtering ---
   const filteredRecords = honorCertificates.filter((record) => {
     const matchesName = (record.student_name || "")
       .toLowerCase()
@@ -35,10 +37,12 @@ const HonorsCertificateTable = () => {
     return matchesName && matchesHonor;
   });
 
-  const indexOfLast = certificateCurrentPage * 5;
-  const indexOfFirst = indexOfLast - 5;
+  // --- Pagination ---
+  const pageSize = 5;
+  const indexOfLast = certificateCurrentPage * pageSize;
+  const indexOfFirst = indexOfLast - pageSize;
   const records = filteredRecords.slice(indexOfFirst, indexOfLast);
-  const total = Math.ceil(filteredRecords.length / 5);
+  const total = Math.ceil(filteredRecords.length / pageSize);
 
   const honorTypeColors = {
     "With Honors": "bg-blue-100 text-blue-800 border-blue-200",
@@ -131,16 +135,33 @@ const HonorsCertificateTable = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-12 text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                    <p className="text-sm text-gray-500">
-                      Loading certificates...
-                    </p>
-                  </div>
-                </td>
-              </tr>
+              // --- Skeleton Loader ---
+              [...Array(5)].map((_, idx) => (
+                <tr key={idx} className="animate-pulse">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                      <div className="h-4 bg-gray-200 rounded w-32" />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="h-4 bg-gray-200 rounded w-28" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-36" />
+                      <div className="h-3 bg-gray-200 rounded w-24" />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex justify-center gap-2">
+                      <div className="h-8 w-16 bg-gray-200 rounded" />
+                      <div className="h-8 w-16 bg-gray-200 rounded" />
+                      <div className="h-8 w-16 bg-gray-200 rounded" />
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : error ? (
               <tr>
                 <td colSpan={4} className="px-6 py-12 text-center">

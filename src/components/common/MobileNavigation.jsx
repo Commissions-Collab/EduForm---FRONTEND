@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { adminNav, studentNav, superAdminNav } from "../../constants";
 import SidebarFooter from "./SidebarFooter";
-import { useAuthStore } from "../../stores/useAuthStore";
+import { useAuthStore } from "../../stores/auth";
 import { LuX } from "react-icons/lu";
 
 // Mobile navigation categories for teachers (same as desktop)

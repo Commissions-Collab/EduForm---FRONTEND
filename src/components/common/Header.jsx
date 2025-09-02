@@ -1,12 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import MobileNavigation from "./MobileNavigation";
-
-import { LuUsers, LuMenu, LuSettings, LuBell } from "react-icons/lu";
+import GlobalFilterDropdown from "../admin/GlobalFilterDropdown";
+import { LuMenu, LuBell, LuRefreshCw, LuFilter, LuX } from "react-icons/lu";
+import { useAuthStore } from "../../stores/auth";
+import { useAdminStore } from "../../stores/admin";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const notifDropdownRef = useRef();
+
+  // Get role and refresh function from stores
+  const userRole = useAuthStore((state) => state.user?.role);
+  const { refreshAllData, globalFilters, clearGlobalFilters, filterOptions } =
+    useAdminStore();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -22,67 +30,219 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Listen for global filter changes and refresh data
+  useEffect(() => {
+    const handleFilterChange = async (event) => {
+      const { academicYearId, quarterId, sectionId } = event.detail;
+
+      // Only refresh if all required filters are present
+      if (academicYearId && quarterId && sectionId) {
+        await handleRefreshData();
+      }
+    };
+
+    window.addEventListener("globalFiltersChanged", handleFilterChange);
+    return () =>
+      window.removeEventListener("globalFiltersChanged", handleFilterChange);
+  }, []);
+
+  const handleRefreshData = async () => {
+    if (
+      !globalFilters.academicYearId ||
+      !globalFilters.quarterId ||
+      !globalFilters.sectionId
+    ) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await refreshAllData();
+    } catch (error) {
+      console.error("Failed to refresh data:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const hasCompleteFilters =
+    globalFilters.academicYearId &&
+    globalFilters.quarterId &&
+    globalFilters.sectionId;
+
+  const hasAnyFilter =
+    globalFilters.academicYearId ||
+    globalFilters.quarterId ||
+    globalFilters.sectionId;
+
+  // Get filter labels for display
+  const getFilterLabels = () => {
+    const labels = [];
+
+    if (globalFilters.academicYearId) {
+      const year = filterOptions.academicYears?.find(
+        (y) => y.id == globalFilters.academicYearId
+      );
+      if (year) labels.push(`${year.year_start}-${year.year_end}`);
+    }
+
+    if (globalFilters.quarterId) {
+      const quarter = filterOptions.quarters?.find(
+        (q) => q.id === globalFilters.quarterId
+      );
+      if (quarter) labels.push(quarter.name);
+    }
+
+    if (globalFilters.sectionId) {
+      const section = filterOptions.sections?.find(
+        (s) => s.id === globalFilters.sectionId
+      );
+      if (section) labels.push(section.name);
+    }
+
+    return labels;
+  };
+
+  const filterLabels = getFilterLabels();
+  const shouldShowRole = ["admin", "teacher"].includes(userRole?.toLowerCase());
+
   return (
     <>
-      <header className="header w-full border-gray-100 bg-white">
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="text-3xl text-[#3730A3] hover:scale-105 transition-transform duration-300 cursor-pointer focus:outline-none xl:hidden"
-        >
-          {menuOpen ? <LuMenu /> : <LuMenu />}
-        </button>
-        <div className="flex w-full items-center justify-end">
-          <div className="block lg:hidden items-center"></div>
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200/60 shadow-sm">
+        <div className="max-w-full mx-auto">
+          {/* Main Header Row */}
+          <div className="flex items-center justify-between px-4 lg:px-6 h-22">
+            {/* Left Section - Global Filters */}
+            <div className="flex items-center gap-4">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
+                aria-label="Toggle mobile menu"
+              >
+                <LuMenu className="w-5 h-5" />
+              </button>
 
-          {/* <div className="hidden lg:block  items-center">
-            <select
-              id="section"
-              className="px-4 py-2 text-sm rounded-lg border border-[#C7D2FE] bg-[#E0E7FF] text-[#3730A3] hover:bg-[#C7D2FE] focus:outline-none focus:ring-2 focus:ring-[#3730A3] transition-all duration-200"
-            >
-              <option value="Grade 10-A">Grade 10-A</option>
-              <option value="Grade 10-B">Grade 10-B</option>
-              <option value="Grade 10-C">Grade 10-C</option>
-              <option value="Grade 10-D">Grade 10-D</option>
-            </select>
-            <span className="ml-3 text-sm text-gray-500">
-              Academic year: 2024-2025
-            </span>
-          </div> */}
+              {/* Global Filters */}
+              {shouldShowRole && (
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 max-w-sm">
+                    <GlobalFilterDropdown userRole={userRole} />
+                  </div>
 
-          <div className="relative" ref={notifDropdownRef}>
-            <button
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative text-[17px]  p-2 bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] rounded-full transition"
-            >
-              <LuBell />
-
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white">
-                3
-              </span>
-            </button>
-
-            {isNotifOpen && (
-              <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <div className="p-4 border-b text-lg font-bold text-[#3730A3]">
-                  Notifications
+                  {/* Filter Display (Desktop) */}
+                  {filterLabels.length > 0 && (
+                    <div className="hidden lg:flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        {filterLabels.map((label, index) => (
+                          <span
+                            key={index}
+                            className="px-2.5 py-1 bg-[#3730A3] text-white rounded-md text-xs font-medium"
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <ul className="text-sm max-h-60 overflow-y-auto ">
-                  <li className="px-4 py-3 hover:bg-gray-50">
-                    3 textbooks are overdue from Grade 10-A.
-                  </li>
-                  <li className="px-4 py-3 hover:bg-gray-50">
-                    New Biology books have been added to the inventory.
-                  </li>
-                  <li className="px-4 py-3 hover:bg-gray-50">
-                    System maintenance scheduled for July 20.
-                  </li>
-                  <li className="px-4 py-3 hover:bg-gray-100 text-center text-blue-600 font-medium cursor-pointer">
-                    View all
-                  </li>
-                </ul>
+              )}
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center gap-2">
+              {/* Refresh Button */}
+              {shouldShowRole && hasCompleteFilters && (
+                <button
+                  onClick={handleRefreshData}
+                  disabled={isRefreshing}
+                  className="p-2.5 hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  title="Refresh data"
+                >
+                  <LuRefreshCw
+                    className={`w-5 h-5 ${
+                      isRefreshing ? "animate-spin" : "group-hover:rotate-180"
+                    } transition-transform duration-300`}
+                  />
+                </button>
+              )}
+
+              {/* Notifications */}
+              <div className="relative" ref={notifDropdownRef}>
+                <button
+                  onClick={() => setIsNotifOpen(!isNotifOpen)}
+                  className="relative p-2.5 hover:bg-gray-100 text-gray-700 hover:text-gray-900 rounded-lg transition-all duration-200"
+                  aria-label="View notifications"
+                >
+                  <LuBell className="w-5 h-5" />
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium border-2 border-white shadow-sm">
+                    3
+                  </span>
+                </button>
+
+                {/* Notifications Dropdown */}
+                {isNotifOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-white">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-sm">
+                            Notifications
+                          </h3>
+                          <p className="text-xs text-indigo-100">
+                            3 unread messages
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setIsNotifOpen(false)}
+                          className="p-1 hover:bg-white/20 rounded-md transition-colors"
+                        >
+                          <LuX className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Notifications List */}
+                    <div className="max-h-64 overflow-y-auto">
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No new notifications
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
+
+          {/* Mobile Filter Tags */}
+          {shouldShowRole && filterLabels.length > 0 && (
+            <div className="lg:hidden px-4 pb-3 border-t border-gray-100">
+              <div className="flex items-center gap-2 pt-3">
+                <span className="text-xs font-medium text-gray-600 flex-shrink-0">
+                  Active Filters:
+                </span>
+                <div className="flex flex-wrap gap-1.5 flex-1">
+                  {filterLabels.map((label, index) => (
+                    <span
+                      key={index}
+                      className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium border border-indigo-200/50"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                {hasAnyFilter && (
+                  <button
+                    onClick={clearGlobalFilters}
+                    className="px-2.5 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full border border-red-200/50 text-xs font-medium transition-colors flex-shrink-0"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
