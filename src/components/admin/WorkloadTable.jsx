@@ -7,9 +7,8 @@ import {
   LuGraduationCap,
   LuEye,
   LuMenu,
-  LuLoader,
 } from "react-icons/lu";
-import Pagination from "./Pagination"; // Assuming Pagination component exists
+import Pagination from "./Pagination";
 import { useAdminStore } from "../../stores/admin";
 
 // The store defines 10 records per page
@@ -24,7 +23,7 @@ const WorkloadTable = ({ searchTerm }) => {
     setWorkloadCurrentPage,
   } = useAdminStore();
 
-  // Memoize the filtered records to avoid re-calculating on every render
+  // Memoize the filtered records
   const filteredRecords = useMemo(
     () =>
       workloads.filter((record) =>
@@ -40,17 +39,14 @@ const WorkloadTable = ({ searchTerm }) => {
     }
   }, [searchTerm, setWorkloadCurrentPage]);
 
-  // Calculate pagination variables based on the *filtered* data
+  // Pagination variables
   const totalPages = Math.ceil(filteredRecords.length / RECORDS_PER_PAGE);
   const indexOfLast = workloadCurrentPage * RECORDS_PER_PAGE;
   const indexOfFirst = indexOfLast - RECORDS_PER_PAGE;
-
-  // Get the current page's records from the *filtered* list
   const paginatedRecords = filteredRecords.slice(indexOfFirst, indexOfLast);
   const totalRecords = filteredRecords.length;
 
   const getWorkloadLevel = (hours) => {
-    // ... (utility function remains unchanged)
     if (hours >= 20)
       return {
         level: "High",
@@ -74,7 +70,6 @@ const WorkloadTable = ({ searchTerm }) => {
   };
 
   const getSectionColor = (section) => {
-    // ... (utility function remains unchanged)
     const colors = [
       "bg-blue-100 text-blue-800 border-blue-200",
       "bg-purple-100 text-purple-800 border-purple-200",
@@ -87,6 +82,38 @@ const WorkloadTable = ({ searchTerm }) => {
       section?.split("").reduce((a, b) => a + b.charCodeAt(0), 0) || 0;
     return colors[hash % colors.length];
   };
+
+  // Skeleton row (repeat for loading state)
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+          <div className="w-24 h-4 bg-gray-200 rounded"></div>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-10 h-4 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="w-32 h-4 bg-gray-200 rounded mb-2"></div>
+        <div className="w-16 h-3 bg-gray-200 rounded"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-20 h-5 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-10 h-4 bg-gray-200 rounded mx-auto mb-2"></div>
+        <div className="w-16 h-5 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-12 h-6 bg-gray-200 rounded"></div>
+          <div className="w-8 h-6 bg-gray-200 rounded"></div>
+        </div>
+      </td>
+    </tr>
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -125,7 +152,6 @@ const WorkloadTable = ({ searchTerm }) => {
       <div className="overflow-x-auto">
         <table className="w-full divide-y divide-gray-200">
           <thead className="bg-gray-50/50">
-            {/* Table Headers (remain unchanged) */}
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
@@ -164,16 +190,8 @@ const WorkloadTable = ({ searchTerm }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-16 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                    <p className="text-sm text-gray-500">
-                      Loading workload data...
-                    </p>
-                  </div>
-                </td>
-              </tr>
+              // Show 5 skeleton rows
+              Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : error ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">

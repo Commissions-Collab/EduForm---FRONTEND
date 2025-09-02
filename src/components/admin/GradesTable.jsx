@@ -47,7 +47,6 @@ const GradesTable = ({
   const hasUnsavedChanges = Object.keys(unsavedChanges).length > 0;
 
   const handleGradeChange = (studentId, subjectId, grade) => {
-    //* Make sure user can only type 0 to 100
     let numericGrade =
       grade === "" ? "" : Math.min(Math.max(Number(grade), 0), 100);
 
@@ -56,13 +55,11 @@ const GradesTable = ({
       .find((s) => s.id === studentId)
       ?.grades?.find((g) => g.subject_id === subjectId)?.grade;
 
-    // Update local state
     setLocalGradeState((prev) => ({
       ...prev,
       [gradeKey]: numericGrade,
     }));
 
-    // Track unsaved changes
     if (String(numericGrade) !== String(originalGrade)) {
       setUnsavedChanges((prev) => ({
         ...prev,
@@ -74,7 +71,6 @@ const GradesTable = ({
         },
       }));
     } else {
-      // Remove from unsaved if reverting to original
       setUnsavedChanges((prev) => {
         const newState = { ...prev };
         delete newState[gradeKey];
@@ -105,7 +101,6 @@ const GradesTable = ({
 
       await updateGrade(payload);
 
-      // Remove from local state and unsaved changes after successful update
       setLocalGradeState((prev) => {
         const newState = { ...prev };
         delete newState[gradeKey];
@@ -131,14 +126,12 @@ const GradesTable = ({
     }
   };
 
-  // Updated saveAllChanges to use bulk update
   const saveAllChanges = async () => {
     const changeKeys = Object.keys(unsavedChanges);
     if (changeKeys.length === 0) return;
 
     setIsBulkSaving(true);
 
-    // Prepare bulk update data
     const gradeUpdates = changeKeys.map((key) => {
       const change = unsavedChanges[key];
       return {
@@ -158,7 +151,6 @@ const GradesTable = ({
     try {
       await updateMultipleGrades(gradeUpdates);
 
-      // Clear all unsaved changes after successful bulk update
       setLocalGradeState({});
       setUnsavedChanges({});
       setSavingGrades({});
@@ -174,7 +166,6 @@ const GradesTable = ({
     }
   };
 
-  // Show filters message if not all filters are selected
   const showFiltersMessage =
     !selectedAcademicYear || !selectedQuarter || !selectedSection;
 
@@ -209,9 +200,7 @@ const GradesTable = ({
 
   return (
     <div className="space-y-6">
-      {/* Main Table Card */}
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
-        {/* Header Section */}
         <div className="px-4 sm:px-6 py-5 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
             <div>
@@ -249,62 +238,30 @@ const GradesTable = ({
         </div>
 
         {error ? (
-          /* Error State */
-          <div className="py-20">
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-              </div>
-              <div className="text-center">
-                <h3 className="text-red-900 font-medium">
-                  Error Loading Grades
-                </h3>
-                <p className="text-red-900 text-sm mt-1">{error}</p>
-              </div>
+          <div className="py-20 flex flex-col items-center space-y-3">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <span className="text-red-600 font-bold text-xl">!</span>
+            </div>
+            <div className="text-center">
+              <h3 className="text-red-900 font-medium">Error Loading Grades</h3>
+              <p className="text-red-900 text-sm mt-1">{error}</p>
             </div>
           </div>
         ) : !hasRecords && !loading ? (
-          /* Empty State */
-          <div className="py-20">
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-              </div>
-              <div className="text-center">
-                <h3 className="text-gray-900 font-medium">No Grade Records</h3>
-                <p className="text-gray-500 text-sm mt-1">
-                  No grade records available for the selected filters.
-                </p>
-              </div>
+          <div className="py-20 flex flex-col items-center space-y-3">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+              <span className="text-gray-400 font-bold text-xl">Ø</span>
+            </div>
+            <div className="text-center">
+              <h3 className="text-gray-900 font-medium">No Grade Records</h3>
+              <p className="text-gray-500 text-sm mt-1">
+                No grade records available for the selected filters.
+              </p>
             </div>
           </div>
         ) : (
           <>
-            {/* Desktop Table View */}
+            {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -332,32 +289,137 @@ const GradesTable = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {loading ? (
-                    <tr>
-                      <td
-                        colSpan={subjects.length + 2}
-                        className="py-10 text-center"
-                      >
-                        <div className="flex flex-col items-center space-y-3">
-                          <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                          <p className="text-gray-500 text-sm">
-                            Loading grade records...
+                  {loading
+                    ? [...Array(5)].map((_, i) => (
+                        <tr key={i}>
+                          <td className="px-6 py-4 sticky left-0 bg-white z-10">
+                            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                          </td>
+                          {subjects.map((subject) => (
+                            <td
+                              key={subject.id}
+                              className="px-4 py-4 text-center"
+                            >
+                              <div className="h-4 w-16 bg-gray-200 rounded mx-auto animate-pulse"></div>
+                            </td>
+                          ))}
+                          <td className="px-6 py-4 text-center">
+                            <div className="h-4 w-20 bg-gray-200 rounded mx-auto animate-pulse"></div>
+                          </td>
+                        </tr>
+                      ))
+                    : records.map((student, index) => (
+                        <tr
+                          key={student.id}
+                          className={`hover:bg-gray-50 transition-colors ${
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                          }`}
+                        >
+                          <td className="px-6 py-4 font-semibold text-gray-900 sticky left-0 bg-inherit z-10">
+                            {student.name ||
+                              `${student.first_name} ${student.last_name}`.trim()}
+                          </td>
+                          {subjects.map((subject) => {
+                            const grade = student.grades?.find(
+                              (g) => g.subject_id === subject.id
+                            );
+                            const gradeKey = `${student.id}-${subject.id}`;
+                            const hasUnsavedChange = unsavedChanges[gradeKey];
+                            const isSaving = savingGrades[gradeKey];
+
+                            return (
+                              <td
+                                key={subject.id}
+                                className="px-4 py-4 text-center"
+                              >
+                                <div className="flex items-center justify-center space-x-2">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    disabled={
+                                      loading ||
+                                      !grade?.can_edit ||
+                                      isSaving ||
+                                      isBulkSaving
+                                    }
+                                    value={grade?.grade ?? ""}
+                                    onChange={(e) =>
+                                      handleGradeChange(
+                                        student.id,
+                                        subject.id,
+                                        e.target.value
+                                      )
+                                    }
+                                    className={`w-16 p-2 border rounded-lg text-center focus:outline-none focus:ring-2 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed ${
+                                      hasUnsavedChange
+                                        ? "border-amber-300 bg-amber-50 focus:border-amber-500"
+                                        : "border-gray-300 focus:border-indigo-500"
+                                    }`}
+                                  />
+                                  {hasUnsavedChange && !isBulkSaving && (
+                                    <button
+                                      onClick={() =>
+                                        saveGrade(student.id, subject.id)
+                                      }
+                                      disabled={isSaving}
+                                      className="p-1 text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+                                    >
+                                      {isSaving ? (
+                                        <LuLoader className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <LuSave className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
+                          <td className="px-6 py-5 text-center">
+                            <StatusBadge status={student.status} />
+                          </td>
+                        </tr>
+                      ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden divide-y divide-gray-200">
+              {loading
+                ? [...Array(3)].map((_, i) => (
+                    <div key={i} className="p-4 sm:p-6 space-y-4 animate-pulse">
+                      <div className="flex justify-between items-center">
+                        <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                        <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {subjects.map((subject) => (
+                          <div key={subject.id} className="space-y-2">
+                            <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                            <div className="h-10 w-full bg-gray-200 rounded"></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                : records.map((student) => (
+                    <div key={student.id} className="p-4 sm:p-6 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900">
+                            {student.name ||
+                              `${student.first_name} ${student.last_name}`.trim()}
+                          </h4>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Grade Entry
                           </p>
                         </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    records.map((student, index) => (
-                      <tr
-                        key={student.id}
-                        className={`hover:bg-gray-50 transition-colors ${
-                          index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                        }`}
-                      >
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900 sticky left-0 bg-inherit z-10">
-                          {student.name ||
-                            `${student.first_name} ${student.last_name}`.trim()}
-                        </td>
+                        <StatusBadge status={student.status} />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {subjects.map((subject) => {
                           const grade = student.grades?.find(
                             (g) => g.subject_id === subject.id
@@ -367,11 +429,11 @@ const GradesTable = ({
                           const isSaving = savingGrades[gradeKey];
 
                           return (
-                            <td
-                              key={subject.id}
-                              className="px-4 py-4 text-center"
-                            >
-                              <div className="flex items-center justify-center space-x-2">
+                            <div key={subject.id} className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700">
+                                {subject.name}
+                              </label>
+                              <div className="flex items-center space-x-2">
                                 <input
                                   type="number"
                                   min="0"
@@ -390,11 +452,12 @@ const GradesTable = ({
                                       e.target.value
                                     )
                                   }
-                                  className={`w-16 p-2 border rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed ${
+                                  className={`flex-1 p-3 border rounded-lg text-center focus:outline-none focus:ring-2 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed ${
                                     hasUnsavedChange
-                                      ? "border-amber-300 bg-amber-50 focus:border-amber-500"
-                                      : "border-gray-300 focus:border-indigo-500"
+                                      ? "border-amber-300 bg-amber-50 focus:border-amber-500 focus:ring-amber-500"
+                                      : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                                   }`}
+                                  placeholder="Enter grade (0-100)"
                                 />
                                 {hasUnsavedChange && !isBulkSaving && (
                                   <button
@@ -402,119 +465,22 @@ const GradesTable = ({
                                       saveGrade(student.id, subject.id)
                                     }
                                     disabled={isSaving}
-                                    className="p-1 text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
-                                    title="Save grade"
+                                    className="p-2 text-indigo-600 hover:text-indigo-800 disabled:opacity-50 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
                                   >
                                     {isSaving ? (
-                                      <LuLoader className="w-4 h-4 animate-spin" />
+                                      <LuLoader className="w-5 h-5 animate-spin" />
                                     ) : (
-                                      <LuSave className="w-4 h-4" />
+                                      <LuSave className="w-5 h-5" />
                                     )}
                                   </button>
                                 )}
                               </div>
-                            </td>
+                            </div>
                           );
                         })}
-                        <td className="px-6 py-5 text-center">
-                          <StatusBadge status={student.status} />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="lg:hidden divide-y divide-gray-200">
-              {loading ? (
-                <div className="py-10 flex flex-col items-center space-y-3">
-                  <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                  <p className="text-gray-500 text-sm">
-                    Loading grade records...
-                  </p>
-                </div>
-              ) : (
-                records.map((student) => (
-                  <div key={student.id} className="p-4 sm:p-6 space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          {student.name ||
-                            `${student.first_name} ${student.last_name}`.trim()}
-                        </h4>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Grade Entry
-                        </p>
                       </div>
-                      <StatusBadge status={student.status} />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {subjects.map((subject) => {
-                        const grade = student.grades?.find(
-                          (g) => g.subject_id === subject.id
-                        );
-                        const gradeKey = `${student.id}-${subject.id}`;
-                        const hasUnsavedChange = unsavedChanges[gradeKey];
-                        const isSaving = savingGrades[gradeKey];
-
-                        return (
-                          <div key={subject.id} className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">
-                              {subject.name}
-                            </label>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                disabled={
-                                  loading ||
-                                  !grade?.can_edit ||
-                                  isSaving ||
-                                  isBulkSaving
-                                }
-                                value={grade?.grade ?? ""}
-                                onChange={(e) =>
-                                  handleGradeChange(
-                                    student.id,
-                                    subject.id,
-                                    e.target.value
-                                  )
-                                }
-                                className={`flex-1 p-3 border rounded-lg text-center focus:outline-none focus:ring-2 transition-all duration-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed ${
-                                  hasUnsavedChange
-                                    ? "border-amber-300 bg-amber-50 focus:border-amber-500 focus:ring-amber-500"
-                                    : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                                }`}
-                                placeholder="Enter grade (0-100)"
-                              />
-                              {hasUnsavedChange && !isBulkSaving && (
-                                <button
-                                  onClick={() =>
-                                    saveGrade(student.id, subject.id)
-                                  }
-                                  disabled={isSaving}
-                                  className="p-2 text-indigo-600 hover:text-indigo-800 disabled:opacity-50 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
-                                  title="Save grade"
-                                >
-                                  {isSaving ? (
-                                    <LuLoader className="w-5 h-5 animate-spin" />
-                                  ) : (
-                                    <LuSave className="w-5 h-5" />
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))
-              )}
+                  ))}
             </div>
           </>
         )}

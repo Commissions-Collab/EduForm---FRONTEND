@@ -7,7 +7,6 @@ import {
   LuTriangleAlert,
   LuCircleCheck,
   LuMenu,
-  LuLoader,
 } from "react-icons/lu";
 import Pagination from "./Pagination";
 import { useAdminStore } from "../../stores/admin";
@@ -54,6 +53,43 @@ const TextbookTable = ({ searchTerm }) => {
   const indexOfLast = textbookCurrentPage * 10; // Assuming 10 items per page
   const indexOfFirst = indexOfLast - 10;
   const totalRecords = filteredRecords.length;
+
+  // Skeleton row component
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-gray-200 rounded-lg" />
+          <div className="flex-1">
+            <div className="h-3 w-32 bg-gray-200 rounded mb-2" />
+            <div className="h-3 w-20 bg-gray-200 rounded" />
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="h-3 w-8 bg-gray-200 rounded mx-auto mb-2" />
+        <div className="h-2 w-12 bg-gray-200 rounded mx-auto" />
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="h-3 w-8 bg-gray-200 rounded mx-auto mb-2" />
+        <div className="h-2 w-12 bg-gray-200 rounded mx-auto" />
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="h-3 w-8 bg-gray-200 rounded mx-auto mb-2" />
+        <div className="h-2 w-12 bg-gray-200 rounded mx-auto" />
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="h-3 w-8 bg-gray-200 rounded mx-auto mb-2" />
+        <div className="h-2 w-12 bg-gray-200 rounded mx-auto" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex justify-center gap-2">
+          <div className="h-6 w-12 bg-gray-200 rounded" />
+          <div className="h-6 w-6 bg-gray-200 rounded" />
+        </div>
+      </td>
+    </tr>
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -130,16 +166,8 @@ const TextbookTable = ({ searchTerm }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-16 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                    <p className="text-sm text-gray-500">
-                      Loading textbooks...
-                    </p>
-                  </div>
-                </td>
-              </tr>
+              // Show 5 skeleton rows
+              Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : error ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
@@ -196,7 +224,7 @@ const TextbookTable = ({ searchTerm }) => {
                           <LuBookOpen className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-gray-900 mb-1 truncate">
+                          <p className="text-sm font-semibold text-gray-900 mb-1 line-clamp-4">
                             {book.title}
                           </p>
                           <span

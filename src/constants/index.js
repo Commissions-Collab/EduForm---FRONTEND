@@ -61,11 +61,7 @@ export const adminNav = [
   },
 
   // Student Management
-  {
-    name: "Student Master List (SF 1)",
-    icon: LuUser,
-    url: "/teacher/studentList",
-  },
+
   {
     name: "Student Approval",
     icon: LuCircleCheck,

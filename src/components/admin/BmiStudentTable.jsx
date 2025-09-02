@@ -8,7 +8,6 @@ import {
   LuTrendingUp,
   LuTrendingDown,
   LuTriangleAlert,
-  LuLoader,
 } from "react-icons/lu";
 
 const BmiStudentTable = ({ students, loading, error }) => {
@@ -66,6 +65,36 @@ const BmiStudentTable = ({ students, loading, error }) => {
     return "text-red-600";
   };
 
+  // Skeleton Loader Component
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+          <div>
+            <div className="w-24 h-3 bg-gray-200 rounded mb-2"></div>
+            <div className="w-16 h-2 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-10 h-3 bg-gray-200 rounded mx-auto mb-2"></div>
+        <div className="w-6 h-2 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-10 h-3 bg-gray-200 rounded mx-auto mb-2"></div>
+        <div className="w-6 h-2 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-10 h-3 bg-gray-200 rounded mx-auto mb-2"></div>
+        <div className="w-6 h-2 bg-gray-200 rounded mx-auto"></div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-20 h-5 bg-gray-200 rounded mx-auto"></div>
+      </td>
+    </tr>
+  );
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Header */}
@@ -92,11 +121,48 @@ const BmiStudentTable = ({ students, loading, error }) => {
       {/* Content */}
       <div>
         {loading ? (
-          <div className="px-6 py-16 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-              <p className="text-sm text-gray-500">Loading health data...</p>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50/50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <div className="flex items-center gap-2">
+                      <LuUser className="w-4 h-4" />
+                      Student
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <div className="flex items-center justify-center gap-2">
+                      <LuRuler className="w-4 h-4" />
+                      Height (cm)
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <div className="flex items-center justify-center gap-2">
+                      <LuWeight className="w-4 h-4" />
+                      Weight (kg)
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <div className="flex items-center justify-center gap-2">
+                      <LuActivity className="w-4 h-4" />
+                      BMI
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <div className="flex items-center justify-center gap-2">
+                      <LuHeart className="w-4 h-4" />
+                      Health Status
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {[...Array(5)].map((_, i) => (
+                  <SkeletonRow key={i} />
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : error ? (
           <div className="px-6 py-16 text-center">

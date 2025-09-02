@@ -1,9 +1,8 @@
-// src/pages/admin/Certificates.jsx
 import React, { useEffect, useState } from "react";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
 import { useAdminStore } from "../../stores/admin";
-import { LuBadgeAlert, LuLoader } from "react-icons/lu";
+import { LuBadgeAlert } from "react-icons/lu";
 import { getItem } from "../../lib/utils";
 
 const Certificates = () => {
@@ -99,12 +98,57 @@ const Certificates = () => {
         </div>
       )}
 
-      {/* Loading */}
+      {/* Skeleton Loading */}
       {loading && hasAllFilters && (
-        <div className="flex justify-center items-center py-40">
-          <div className="flex flex-col items-center space-y-4">
-            <LuLoader className="w-11 h-11 text-blue-700 animate-spin" />
-            <p className="text-gray-600">Loading certificate data...</p>
+        <div className="space-y-8">
+          {/* Skeleton block for PerfectAttendanceTable */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+            <div className="p-6 border-b border-gray-200">
+              <div className="h-6 w-48 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 w-72 bg-gray-200 rounded"></div>
+            </div>
+            <div className="p-6 space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between border-b border-gray-100 pb-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                      <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Skeleton block for HonorsCertificateTable */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+            <div className="p-6 border-b border-gray-200">
+              <div className="h-6 w-56 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 w-64 bg-gray-200 rounded"></div>
+            </div>
+            <div className="p-6 space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between border-b border-gray-100 pb-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-28 bg-gray-200 rounded"></div>
+                      <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

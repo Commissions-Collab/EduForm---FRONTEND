@@ -10,7 +10,6 @@ import {
   LuClock,
   LuTriangleAlert,
   LuMenu,
-  LuLoader,
   LuIdCard,
 } from "react-icons/lu";
 import Pagination from "../../../components/admin/Pagination";
@@ -121,16 +120,35 @@ const StudentApproval = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loadingStudentRequests ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                      <p className="text-sm text-gray-500">
-                        Loading student requests...
-                      </p>
-                    </div>
-                  </td>
-                </tr>
+                // Skeleton Rows
+                [...Array(5)].map((_, idx) => (
+                  <tr key={idx}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+                        <div className="space-y-2">
+                          <div className="w-32 h-3 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="w-20 h-2 bg-gray-100 rounded animate-pulse"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="w-20 h-3 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="w-12 h-4 bg-gray-200 rounded-full mx-auto animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="w-28 h-3 bg-gray-200 rounded animate-pulse"></div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center gap-2">
+                        <div className="w-16 h-6 bg-gray-200 rounded-lg animate-pulse"></div>
+                        <div className="w-16 h-6 bg-gray-200 rounded-lg animate-pulse"></div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               ) : currentRequests.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-16 text-center">
