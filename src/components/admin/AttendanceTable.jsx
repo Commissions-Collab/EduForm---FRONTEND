@@ -3,9 +3,7 @@ import {
   LuCircleCheck,
   LuCircleX,
   LuClock,
-  LuLoader,
   LuSquare,
-  LuUsers,
   LuEye,
   LuCheck,
 } from "react-icons/lu";
@@ -13,8 +11,8 @@ import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
 import PaginationControls from "./Pagination";
 import { useNavigate } from "react-router-dom";
-import { getItem } from "../../lib/utils";
 import { useAdminStore } from "../../stores/admin";
+
 const RECORDS_PER_PAGE = 10;
 
 const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
@@ -67,7 +65,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
   const handleViewHistory = (studentId) => {
     if (selectedSchedule?.id) {
       navigate(
-        `/teacher/student/${studentId}/schedule/${scheduleId}/attendance-history`
+        `/teacher/student/${studentId}/schedule/${selectedSchedule.id}/attendance-history`
       );
     }
   };
@@ -110,6 +108,11 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
       console.error("Failed to update status:", error);
     }
   };
+
+  useEffect(() => {
+    setLocalAttendanceState({});
+    setCurrentPage(1);
+  }, [scheduleAttendance]);
 
   const setReason = async (studentId, reason) => {
     if (!selectedSchedule?.id) return;
@@ -184,7 +187,6 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
       setShowBulkActions(false);
       setBulkReason("");
 
-      // Refresh data
       if (filters.sectionId && filters.academicYearId && filters.quarterId) {
         fetchScheduleAttendance({
           scheduleId: selectedSchedule.id,
@@ -200,6 +202,31 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
   };
 
   const hasRecords = paginatedRecords.length > 0;
+
+  // Skeleton loader rows
+  const SkeletonRows = () => (
+    <>
+      {Array.from({ length: RECORDS_PER_PAGE }).map((_, idx) => (
+        <tr key={idx} className="animate-pulse">
+          <td className="px-4 py-4">
+            <div className="w-5 h-5 bg-gray-200 rounded"></div>
+          </td>
+          <td className="px-4 py-4">
+            <div className="h-4 bg-gray-200 rounded w-40"></div>
+          </td>
+          <td className="px-4 py-4 text-center">
+            <div className="h-8 w-20 mx-auto bg-gray-200 rounded-full"></div>
+          </td>
+          <td className="px-4 py-4 text-center">
+            <div className="h-4 w-24 mx-auto bg-gray-200 rounded"></div>
+          </td>
+          <td className="px-4 py-4 text-center">
+            <div className="h-4 w-16 mx-auto bg-gray-200 rounded"></div>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
 
   return (
     <div className="space-y-4">
@@ -280,7 +307,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                 >
                   {selectedStudents.size === paginatedRecords.length &&
                   paginatedRecords.length > 0 ? (
-                    <LuCheckCheck size={16} />
+                    <LuCheck size={16} />
                   ) : (
                     <LuSquare size={16} />
                   )}
@@ -302,14 +329,8 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan={5}>
-                  <div className="flex justify-center items-center h-64">
-                    <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-                  </div>
-                </td>
-              </tr>
+            {loading && records.length === 0 ? ( // only show skeleton on first load
+              <SkeletonRows />
             ) : error ? (
               <tr>
                 <td colSpan={5}>
@@ -412,7 +433,6 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
           </tbody>
         </table>
       </div>
-
       {/* Pagination */}
       {!loading && hasRecords && (
         <PaginationControls
