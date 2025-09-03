@@ -3,7 +3,8 @@ import { LuCalendar, LuBook, LuArrowLeft } from "react-icons/lu";
 import { getItem, setItem } from "../../../lib/utils";
 import WeeklyScheduleView from "../../../components/admin/WeeklyScheduleView";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
-import { useAdminStore } from "../../../stores/admin";
+import useAttendanceStore from "../../../stores/admin/attendanceStore";
+import useFilterStore from "../../../stores/admin/filterStore";
 
 const DailyAttendance = () => {
   const {
@@ -12,13 +13,12 @@ const DailyAttendance = () => {
     scheduleAttendance,
     loading,
     error,
-    globalFilters,
-  } = useAdminStore();
+  } = useAttendanceStore();
+  const { globalFilters } = useFilterStore();
 
-  const filters = globalFilters || {};
-  const academicYearId = filters.academicYearId ?? null;
-  const quarterId = filters.quarterId ?? null;
-  const sectionId = filters.sectionId ?? null;
+  const academicYearId = globalFilters?.academicYearId ?? null;
+  const quarterId = globalFilters?.quarterId ?? null;
+  const sectionId = globalFilters?.sectionId ?? null;
 
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
@@ -36,8 +36,21 @@ const DailyAttendance = () => {
     }
 
     if (savedScheduleId) {
+      // Assuming schedule data can be fetched or retrieved from store
+      fetchScheduleAttendance({
+        scheduleId: savedScheduleId,
+        sectionId: sectionId,
+        academicYearId: academicYearId,
+        quarterId: quarterId,
+        date: savedDate || selectedDate,
+      }).then((data) => {
+        if (data?.schedule) {
+          setSelectedSchedule(data.schedule);
+          setShowWeeklyView(false);
+        }
+      });
     }
-  }, []);
+  }, [fetchScheduleAttendance, academicYearId, quarterId, sectionId]);
 
   useEffect(() => {
     if (
@@ -216,7 +229,7 @@ const DailyAttendance = () => {
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={handleBackToWeekly}
-              className="text-blue-600 flex gap-2 items-center underline  hover:text-blue-800 text-base font-medium"
+              className="text-blue-600 flex gap-2 items-center underline hover:text-blue-800 text-base font-medium"
             >
               <LuArrowLeft /> Weekly Schedule
             </button>

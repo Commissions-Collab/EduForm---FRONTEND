@@ -13,38 +13,38 @@ import {
   LuIdCard,
 } from "react-icons/lu";
 import Pagination from "../../../components/admin/Pagination";
-import { useAdminStore } from "../../../stores/admin";
+import useStudentRequestsStore from "../../../stores/admin/studentRequest";
 
 const StudentApproval = () => {
   const {
     fetchStudentRequests,
     approveStudentRequest,
     rejectStudentRequest,
-    loadingStudentRequests,
-    studentRequestError,
-    paginatedStudentRequests,
-    studentRequestCurrentPage,
-    totalStudentRequestPages,
-    setStudentRequestCurrentPage,
+    loading,
+    error,
+    paginatedRecords,
+    currentPage,
+    totalPages,
+    setCurrentPage,
     studentRequests,
-  } = useAdminStore();
+  } = useStudentRequestsStore();
 
   useEffect(() => {
     fetchStudentRequests();
-  }, []);
+  }, [fetchStudentRequests]);
 
-  const currentRequests = paginatedStudentRequests();
+  const currentRequests = paginatedRecords();
   const totalRequests = studentRequests?.length || 0;
 
   const getInitials = (firstName, lastName) =>
     `${firstName?.charAt(0) || ""}${lastName?.charAt(0) || ""}`.toUpperCase() ||
     "?";
 
-  const indexOfLast = studentRequestCurrentPage * 10;
+  const indexOfLast = currentPage * 10;
   const indexOfFirst = indexOfLast - 10;
 
   return (
-    <main className=" bg-gray-50/50 p-4 lg:p-6">
+    <main className="bg-gray-50/50 p-4 lg:p-6">
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
@@ -77,7 +77,7 @@ const StudentApproval = () => {
                 Review student information and approve or reject applications
               </p>
             </div>
-            {!loadingStudentRequests && currentRequests.length > 0 && (
+            {!loading && currentRequests.length > 0 && (
               <div className="text-sm text-gray-500">
                 Showing {indexOfFirst + 1} to{" "}
                 {Math.min(indexOfLast, totalRequests)} of {totalRequests}{" "}
@@ -119,7 +119,7 @@ const StudentApproval = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {loadingStudentRequests ? (
+              {loading ? (
                 // Skeleton Rows
                 [...Array(5)].map((_, idx) => (
                   <tr key={idx}>
@@ -245,7 +245,7 @@ const StudentApproval = () => {
         </div>
 
         {/* Error Display */}
-        {studentRequestError && (
+        {error && (
           <div className="px-6 py-4 border-t border-red-200 bg-red-50">
             <div className="flex items-center gap-3">
               <LuTriangleAlert className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -253,32 +253,21 @@ const StudentApproval = () => {
                 <p className="text-sm font-medium text-red-800">
                   Processing Error
                 </p>
-                <p className="text-xs text-red-600 mt-1">
-                  {studentRequestError}
-                </p>
+                <p className="text-xs text-red-600 mt-1">{error}</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Pagination */}
-        {!loadingStudentRequests && currentRequests.length > 0 && (
+        {!loading && currentRequests.length > 0 && (
           <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
             <Pagination
-              currentPage={studentRequestCurrentPage}
-              totalPages={totalStudentRequestPages()}
-              onPrevious={() =>
-                setStudentRequestCurrentPage(
-                  Math.max(studentRequestCurrentPage - 1, 1)
-                )
-              }
+              currentPage={currentPage}
+              totalPages={totalPages()}
+              onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
               onNext={() =>
-                setStudentRequestCurrentPage(
-                  Math.min(
-                    studentRequestCurrentPage + 1,
-                    totalStudentRequestPages()
-                  )
-                )
+                setCurrentPage(Math.min(currentPage + 1, totalPages()))
               }
             />
           </div>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { LuCalendar, LuPrinter } from "react-icons/lu";
-import { useAdminStore } from "../../stores/admin";
 import ConferenceMain from "../../components/admin/ConferenceMain";
 import ConferenceSidebar from "../../components/admin/ConferenceSidebar";
+import useParentConferenceStore from "../../stores/admin/parentConference";
 
 const ParentConference = () => {
   const {
@@ -13,9 +13,9 @@ const ParentConference = () => {
     selectedConferenceStudent,
     downloadStudentReportCard,
     downloadAllStudentReportCards,
-    conferenceLoading,
-    conferenceError,
-  } = useAdminStore();
+    loading,
+    error,
+  } = useParentConferenceStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
@@ -23,11 +23,11 @@ const ParentConference = () => {
 
   useEffect(() => {
     fetchConferenceDashboard();
-  }, []);
+  }, [fetchConferenceDashboard]);
 
   useEffect(() => {
     const filtered = conferenceStudents.filter((student) =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase())
+      (student.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredStudents(filtered);
   }, [searchTerm, conferenceStudents]);
@@ -53,14 +53,14 @@ const ParentConference = () => {
     downloadAllStudentReportCards();
   };
 
-  if (conferenceError) {
+  if (error) {
     return (
-      <main className="p-4">
+      <main className="p-4 lg:p-6">
         <div className="text-center py-8">
           <div className="text-red-600 text-lg font-medium mb-2">Error</div>
-          <p className="text-gray-600">{conferenceError}</p>
+          <p className="text-gray-600">{error}</p>
           <button
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             onClick={fetchConferenceDashboard}
           >
             Try Again
@@ -71,54 +71,57 @@ const ParentConference = () => {
   }
 
   return (
-    <main className="p-4">
-      <div className="between">
-        <div className="page-title">Parent-Teacher Conference</div>
-        <div className="items-center">
-          <div className="flex space-x-3">
-            <button
-              className="gray-button"
-              onClick={() => alert("Schedule feature coming soon!")}
-            >
-              <LuCalendar size={15} />
-              <span className="ml-2">Schedule Conferences</span>
-            </button>
-            <button
-              className="brand-button"
-              onClick={handlePrintAllReportCards}
-              disabled={conferenceLoading || conferenceStudents.length === 0}
-            >
-              <LuPrinter size={15} />
-              <span className="ml-2">Print All Report Cards</span>
-            </button>
-          </div>
+    <main className="p-4 lg:p-6 bg-gray-50/50">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Parent-Teacher Conference
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage student profiles and report cards
+          </p>
+        </div>
+        <div className="flex space-x-3">
+          <button
+            className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            onClick={() => alert("Schedule feature coming soon!")}
+          >
+            <LuCalendar size={15} />
+            <span>Schedule Conferences</span>
+          </button>
+          <button
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
+            onClick={handlePrintAllReportCards}
+            disabled={loading || conferenceStudents.length === 0}
+          >
+            <LuPrinter size={15} />
+            <span>Print All Report Cards</span>
+          </button>
         </div>
       </div>
 
       {conferenceSection && (
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mb-6 text-sm text-gray-600">
           <strong>Section (Advisory Class):</strong>{" "}
           <span className="font-medium">{conferenceSection}</span>
         </div>
       )}
 
-      <div className="mt-5">
-        <div className="grid grid-cols-12 gap-4 max-h-screen">
-          <ConferenceSidebar
-            conferenceLoading={conferenceLoading}
-            students={filteredStudents}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedStudentId={selectedStudentId}
-            onSelectStudent={handleSelectStudent}
-          />
-          <ConferenceMain
-            conferenceLoading={conferenceLoading}
-            selectedConferenceStudent={selectedConferenceStudent}
-            onContactParent={handleContactParent}
-            onPrintReportCard={handlePrintReportCard}
-          />
-        </div>
+      <div className="grid grid-cols-12 gap-4 max-h-[calc(100vh-200px)]">
+        <ConferenceSidebar
+          loading={loading}
+          students={filteredStudents}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedStudentId={selectedStudentId}
+          onSelectStudent={handleSelectStudent}
+        />
+        <ConferenceMain
+          loading={loading}
+          selectedConferenceStudent={selectedConferenceStudent}
+          onContactParent={handleContactParent}
+          onPrintReportCard={handlePrintReportCard}
+        />
       </div>
     </main>
   );

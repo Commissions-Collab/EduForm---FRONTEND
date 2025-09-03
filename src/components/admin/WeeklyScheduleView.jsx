@@ -8,26 +8,19 @@ import {
   LuChevronLeft,
   LuChevronRight,
 } from "react-icons/lu";
-
+import toast from "react-hot-toast";
 import { getItem, setItem } from "../../lib/utils";
-import { useAdminStore } from "../../stores/admin";
+import useAttendanceStore from "../../stores/admin/attendanceStore";
+import useFilterStore from "../../stores/admin/filterStore";
 
 const WeeklyScheduleView = ({ onScheduleClick }) => {
-  const {
-    fetchWeeklySchedule,
-    weeklySchedule,
-    loading,
-    error,
-    globalFilters,
-    fetchGlobalFilterOptions,
-    getCurrentFilters,
-  } = useAdminStore();
+  const { fetchWeeklySchedule, weeklySchedule, loading, error } =
+    useAttendanceStore();
+  const { globalFilters } = useFilterStore();
 
-  // Get current filters with fallbacks
-  const currentFilters = getCurrentFilters();
-  const academicYearId = currentFilters.academicYearId;
-  const sectionId = currentFilters.sectionId;
-  const quarterId = currentFilters.quarterId;
+  const academicYearId = globalFilters?.academicYearId;
+  const sectionId = globalFilters?.sectionId;
+  const quarterId = globalFilters?.quarterId;
 
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -36,24 +29,54 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
     return monday;
   });
 
-  // Initialize filters on component mount
   useEffect(() => {
-    fetchGlobalFilterOptions();
-  }, [fetchGlobalFilterOptions]);
-
-  // Fetch schedule when filters or week changes
-  useEffect(() => {
-    if (academicYearId && sectionId) {
+    if (academicYearId && sectionId && quarterId) {
+      if (!(currentWeekStart instanceof Date) || isNaN(currentWeekStart)) {
+        toast.error("Invalid week start date");
+        return;
+      }
       const weekStart = currentWeekStart.toISOString().split("T")[0];
-      console.log("Fetching schedule with:", {
-        sectionId,
-        academicYearId,
-        quarterId,
-        weekStart,
-      });
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+        toast.error("Invalid week start date format");
+        return;
+      }
       fetchWeeklySchedule(sectionId, academicYearId, quarterId, weekStart);
     }
   }, [
+    academicYearId,
+    sectionId,
+    quarterId,
+    currentWeekStart,
+    fetchWeeklySchedule,
+  ]);
+
+  // Display toast for errors
+  useEffect(() => {
+    if (error) {
+      toast.error(`Failed to load schedule: ${error}`, {
+        duration: 5000,
+        action: {
+          text: "Retry",
+          onClick: () => {
+            if (academicYearId && sectionId) {
+              const weekStart = currentWeekStart.toISOString().split("T")[0];
+              if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+                toast.error("Invalid week start date format");
+                return;
+              }
+              fetchWeeklySchedule(
+                sectionId,
+                academicYearId,
+                quarterId,
+                weekStart
+              );
+            }
+          },
+        },
+      });
+    }
+  }, [
+    error,
     academicYearId,
     sectionId,
     quarterId,
@@ -137,11 +160,11 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
         <div className="text-center py-8">
           <LuCalendar size={48} className="mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-medium text-gray-600 mb-2">
-            Setting up your schedule...
+            Please select filters
           </h3>
           <p className="text-gray-500">
-            Please wait while we load your academic year and section
-            information.
+            Select an Academic Year and Section from the header to view the
+            schedule.
           </p>
         </div>
       </div>
@@ -190,8 +213,28 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-600 font-medium">Error</p>
+          <p className="text-red-600 font-medium">Failed to load schedule</p>
           <p className="text-red-500 text-sm">{error}</p>
+          <button
+            onClick={() => {
+              if (academicYearId && sectionId) {
+                const weekStart = currentWeekStart.toISOString().split("T")[0];
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+                  toast.error("Invalid week start date format");
+                  return;
+                }
+                fetchWeeklySchedule(
+                  sectionId,
+                  academicYearId,
+                  quarterId,
+                  weekStart
+                );
+              }
+            }}
+            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       )}
 

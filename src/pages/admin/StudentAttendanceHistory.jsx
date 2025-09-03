@@ -1,27 +1,44 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
-
-import { setItem } from "../../lib/utils";
-import { useAdminStore } from "../../stores/admin";
+import { LuArrowLeft } from "react-icons/lu";
+import useAttendanceStore from "../../stores/admin/attendanceStore";
+import useFilterStore from "../../stores/admin/filterStore";
 
 const StudentAttendanceHistory = () => {
   const { studentId, scheduleId } = useParams();
   const navigate = useNavigate();
-
+  const { globalFilters } = useFilterStore();
   const { fetchStudentAttendanceHistory, studentAttendance, loading, error } =
-    useAdminStore();
+    useAttendanceStore();
+
+  // State for date range
+  const [dateRange, setDateRange] = useState({
+    startDate: "",
+    endDate: "",
+  });
 
   useEffect(() => {
-    if (studentId && scheduleId) {
-      // Set the required items in localStorage as expected by the store
-      setItem("studentId", studentId);
-      setItem("scheduleId", scheduleId);
+    if (studentId && scheduleId && globalFilters.academicYearId) {
+      // Default to current academic year if no date range is provided
+      const now = new Date();
+      const defaultStartDate = `${now.getFullYear() - 1}-08-01`; // Start of academic year
+      const defaultEndDate = `${now.getFullYear()}-07-31`; // End of academic year
 
-      // Fetch the student attendance history
-      fetchStudentAttendanceHistory();
+      fetchStudentAttendanceHistory(
+        studentId,
+        scheduleId,
+        dateRange.startDate || defaultStartDate,
+        dateRange.endDate || defaultEndDate
+      );
     }
-  }, [studentId, scheduleId, fetchStudentAttendanceHistory]);
+  }, [
+    studentId,
+    scheduleId,
+    globalFilters.academicYearId,
+    dateRange,
+    fetchStudentAttendanceHistory,
+  ]);
 
   const data = studentAttendance;
 
@@ -39,21 +56,76 @@ const StudentAttendanceHistory = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "Invalid Date";
+    }
+  };
+
+  const handleRetry = () => {
+    if (studentId && scheduleId && globalFilters.academicYearId) {
+      const now = new Date();
+      const defaultStartDate = `${now.getFullYear() - 1}-08-01`;
+      const defaultEndDate = `${now.getFullYear()}-07-31`;
+      fetchStudentAttendanceHistory(
+        studentId,
+        scheduleId,
+        dateRange.startDate || defaultStartDate,
+        dateRange.endDate || defaultEndDate
+      );
+    }
   };
 
   return (
-    <main className="p-4">
-      <div className="between mb-4">
-        <h2 className="page-title">Student Attendance History</h2>
-        <button onClick={() => navigate(-1)} className="gray-button text-sm">
-          ← Back
+    <main className="p-4 lg:p-6 bg-gray-50 min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">
+          Student Attendance History
+        </h2>
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+        >
+          <LuArrowLeft className="w-4 h-4" />
+          Back
         </button>
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="mb-6 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+          Filter by Date Range
+        </h3>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div>
+            <label className="text-sm text-gray-600">Start Date</label>
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) =>
+                setDateRange({ ...dateRange, startDate: e.target.value })
+              }
+              className="mt-1 block w-full border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-gray-600">End Date</label>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) =>
+                setDateRange({ ...dateRange, endDate: e.target.value })
+              }
+              className="mt-1 block w-full border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -61,9 +133,15 @@ const StudentAttendanceHistory = () => {
           <ClipLoader color="#3730A3" size={40} />
         </div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-600 font-medium">Error</p>
-          <p className="text-red-500 text-sm">{error}</p>
+          <p className="text-red-500 text-sm mt-2">{error}</p>
+          <button
+            onClick={handleRetry}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       ) : data && Object.keys(data).length > 0 ? (
         <>
@@ -118,23 +196,28 @@ const StudentAttendanceHistory = () => {
           </div>
 
           {/* Attendance Summary Card */}
-          {data.attendance_summary && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Attendance Summary
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(data.attendance_summary).map(([key, value]) => (
-                  <div key={key} className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{value}</p>
-                    <p className="text-sm font-medium text-gray-500 capitalize">
-                      {key.replace(/_/g, " ")}
-                    </p>
-                  </div>
-                ))}
+          {data.attendance_summary &&
+            Object.keys(data.attendance_summary).length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Attendance Summary
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(data.attendance_summary).map(
+                    ([key, value]) => (
+                      <div key={key} className="text-center">
+                        <p className="text-2xl font-bold text-gray-900">
+                          {value}
+                        </p>
+                        <p className="text-sm font-medium text-gray-500 capitalize">
+                          {key.replace(/_/g, " ")}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Monthly Breakdown Card */}
           {data.monthly_breakdown &&
@@ -214,7 +297,7 @@ const StudentAttendanceHistory = () => {
                               record.status
                             )}`}
                           >
-                            {record.status}
+                            {record.status || "Unknown"}
                           </span>
                         </td>
                         {data.attendance_records.some((r) => r.reason) && (
@@ -243,11 +326,17 @@ const StudentAttendanceHistory = () => {
       ) : (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
           <p className="text-gray-600 font-medium">
-            No attendance data available
+            No Attendance Data Available
           </p>
           <p className="text-gray-500 text-sm mt-1">
-            Please check if the student and schedule are valid.
+            Please check if the student, schedule, and academic year are valid.
           </p>
+          <button
+            onClick={handleRetry}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       )}
     </main>

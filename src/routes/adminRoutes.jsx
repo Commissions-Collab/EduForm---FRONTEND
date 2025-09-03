@@ -9,7 +9,6 @@ import Workload from "../pages/admin/forms/Workload";
 import Attendance from "../pages/admin/forms/Attendance";
 import Grades from "../pages/admin/forms/AcademicRecords";
 import HealthProfile from "../pages/admin/forms/HealthProfile";
-import PromotionSummary from "../pages/admin/forms/PromotionSummary";
 import PermanentRecords from "../pages/admin/forms/PermanentRecords";
 import ProtectedRoute from "./ProtectedRoute";
 import StudentApproval from "../pages/admin/forms/StudentApproval";
@@ -45,7 +44,6 @@ const AdminRoutes = (
     <Route path="workload" element={<Workload />} />
     <Route path="studentApproval" element={<StudentApproval />} />
     <Route path="healthProfile" element={<HealthProfile />} />
-    <Route path="promotionSummary" element={<PromotionSummary />} />
     <Route path="permanentRecords" element={<PermanentRecords />} />
   </Route>
 );

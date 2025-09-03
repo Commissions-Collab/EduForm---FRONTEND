@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   LuPrinter,
   LuEye,
@@ -11,7 +11,7 @@ import {
   LuCalendar,
 } from "react-icons/lu";
 import PaginationControls from "./Pagination";
-import { useAdminStore } from "../../stores/admin";
+import useCertificatesStore from "../../stores/admin/certificateStore";
 
 const HonorsCertificateTable = ({
   searchName,
@@ -21,28 +21,28 @@ const HonorsCertificateTable = ({
 }) => {
   const {
     honorCertificates,
-    certificateCurrentPage,
-    setCertificateCurrentPage,
+    currentPage,
+    setCurrentPage,
     loading,
     error,
-  } = useAdminStore();
+    paginatedRecords,
+    totalPages,
+  } = useCertificatesStore();
 
-  // --- Filtering ---
-  const filteredRecords = honorCertificates.filter((record) => {
-    const matchesName = (record.student_name || "")
-      .toLowerCase()
-      .includes(searchName.toLowerCase());
-    const matchesHonor =
-      filterType === "All" || record.honor_type === filterType;
-    return matchesName && matchesHonor;
-  });
+  // Filter logic (memoized for performance)
+  const filteredRecords = useMemo(() => {
+    return honorCertificates.filter((record) => {
+      const matchesName = (record.student_name || "")
+        .toLowerCase()
+        .includes(searchName.toLowerCase());
+      const matchesHonor =
+        filterType === "All" || record.honor_type === filterType;
+      return matchesName && matchesHonor;
+    });
+  }, [honorCertificates, searchName, filterType]);
 
-  // --- Pagination ---
-  const pageSize = 5;
-  const indexOfLast = certificateCurrentPage * pageSize;
-  const indexOfFirst = indexOfLast - pageSize;
-  const records = filteredRecords.slice(indexOfFirst, indexOfLast);
-  const total = Math.ceil(filteredRecords.length / pageSize);
+  const records = paginatedRecords("honors");
+  const total = totalPages("honors");
 
   const honorTypeColors = {
     "With Honors": "bg-blue-100 text-blue-800 border-blue-200",
@@ -135,7 +135,7 @@ const HonorsCertificateTable = ({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              // --- Skeleton Loader ---
+              // Skeleton Loader
               [...Array(5)].map((_, idx) => (
                 <tr key={idx} className="animate-pulse">
                   <td className="px-6 py-4">
@@ -256,23 +256,15 @@ const HonorsCertificateTable = ({
         <div className="border-t border-gray-200 bg-white px-6 py-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
-              Showing {indexOfFirst + 1} to{" "}
-              {Math.min(indexOfLast, filteredRecords.length)} of{" "}
+              Showing {currentPage * 10 - 9} to{" "}
+              {Math.min(currentPage * 10, filteredRecords.length)} of{" "}
               {filteredRecords.length} results
             </p>
             <PaginationControls
-              currentPage={certificateCurrentPage}
+              currentPage={currentPage}
               totalPages={total}
-              onPrevious={() =>
-                setCertificateCurrentPage(
-                  Math.max(certificateCurrentPage - 1, 1)
-                )
-              }
-              onNext={() =>
-                setCertificateCurrentPage(
-                  Math.min(certificateCurrentPage + 1, total)
-                )
-              }
+              onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+              onNext={() => setCurrentPage(Math.min(currentPage + 1, total))}
             />
           </div>
         </div>

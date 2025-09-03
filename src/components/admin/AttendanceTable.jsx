@@ -11,7 +11,8 @@ import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
 import PaginationControls from "./Pagination";
 import { useNavigate } from "react-router-dom";
-import { useAdminStore } from "../../stores/admin";
+import useAttendanceStore from "../../stores/admin/attendanceStore";
+import useFilterStore from "../../stores/admin/filterStore";
 
 const RECORDS_PER_PAGE = 10;
 
@@ -23,10 +24,8 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
     fetchScheduleAttendance,
     loading,
     error,
-    globalFilters,
-  } = useAdminStore();
-
-  const filters = globalFilters || {};
+  } = useAttendanceStore();
+  const { globalFilters } = useFilterStore();
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,12 +94,16 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
       });
 
       // Refresh data
-      if (filters.sectionId && filters.academicYearId && filters.quarterId) {
+      if (
+        globalFilters.sectionId &&
+        globalFilters.academicYearId &&
+        globalFilters.quarterId
+      ) {
         fetchScheduleAttendance({
           scheduleId: selectedSchedule.id,
-          sectionId: filters.sectionId,
-          academicYearId: filters.academicYearId,
-          quarterId: filters.quarterId,
+          sectionId: globalFilters.sectionId,
+          academicYearId: globalFilters.academicYearId,
+          quarterId: globalFilters.quarterId,
           date: selectedDate,
         });
       }
@@ -187,12 +190,16 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
       setShowBulkActions(false);
       setBulkReason("");
 
-      if (filters.sectionId && filters.academicYearId && filters.quarterId) {
+      if (
+        globalFilters.sectionId &&
+        globalFilters.academicYearId &&
+        globalFilters.quarterId
+      ) {
         fetchScheduleAttendance({
           scheduleId: selectedSchedule.id,
-          sectionId: filters.sectionId,
-          academicYearId: filters.academicYearId,
-          quarterId: filters.quarterId,
+          sectionId: globalFilters.sectionId,
+          academicYearId: globalFilters.academicYearId,
+          quarterId: globalFilters.quarterId,
           date: selectedDate,
         });
       }

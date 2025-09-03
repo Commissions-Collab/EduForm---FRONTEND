@@ -1,3 +1,4 @@
+// components/GlobalFilterDropdown.jsx
 import React, { useEffect, useState, useRef } from "react";
 import {
   LuChevronDown,
@@ -9,7 +10,7 @@ import {
   LuUsers,
   LuLoader,
 } from "react-icons/lu";
-import { useAdminStore } from "../../stores/admin";
+import useFilterStore from "../../stores/admin/filterStore";
 
 const GlobalFilterDropdown = ({ userRole }) => {
   const {
@@ -22,7 +23,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
     clearGlobalFilters,
     updateQuartersForAcademicYear,
     updateSectionsForAcademicYear,
-  } = useAdminStore();
+  } = useFilterStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [draftFilters, setDraftFilters] = useState(globalFilters);
@@ -41,11 +42,9 @@ const GlobalFilterDropdown = ({ userRole }) => {
   }, [initializeGlobalFilters, fetchGlobalFilterOptions]);
 
   useEffect(() => {
-    // Keep draft in sync when global filters change externally
     setDraftFilters(globalFilters);
   }, [globalFilters]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -56,23 +55,23 @@ const GlobalFilterDropdown = ({ userRole }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle academic year change with cascade updates
   const handleAcademicYearChange = async (value) => {
     const academicYearId = value ? parseInt(value, 10) : null;
 
     setDraftFilters((prev) => ({
       ...prev,
       academicYearId,
-      quarterId: null, // Reset quarter when year changes
-      sectionId: null, // Reset section when year changes
+      quarterId: null,
+      sectionId: null,
     }));
 
-    // Update quarters and sections for the new academic year
     if (academicYearId) {
       setIsUpdatingFilters(true);
       try {
-        await updateQuartersForAcademicYear(academicYearId);
-        await updateSectionsForAcademicYear(academicYearId);
+        await Promise.all([
+          updateQuartersForAcademicYear(academicYearId),
+          updateSectionsForAcademicYear(academicYearId),
+        ]);
       } catch (error) {
         console.error("Error updating filters:", error);
       } finally {
@@ -145,19 +144,13 @@ const GlobalFilterDropdown = ({ userRole }) => {
     }
   };
 
-  const getSelectedYear = () => {
-    if (!draftFilters.academicYearId) return null;
-    return filterOptions.academicYears?.find(
+  const getAvailableQuarters = () => {
+    const selectedYear = filterOptions.academicYears?.find(
       (y) => y.id === draftFilters.academicYearId
     );
-  };
-
-  const getAvailableQuarters = () => {
-    const selectedYear = getSelectedYear();
-    if (selectedYear?.quarters?.length) {
-      return selectedYear.quarters;
-    }
-    return filterOptions.quarters || [];
+    return selectedYear?.quarters?.length
+      ? selectedYear.quarters
+      : filterOptions.quarters || [];
   };
 
   const applyFilters = () => {
@@ -209,7 +202,6 @@ const GlobalFilterDropdown = ({ userRole }) => {
       {/* Dropdown Panel */}
       {isExpanded && (
         <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 min-w-[320px]">
-          {/* Header */}
           <div className="bg-[#3730A3] px-6 py-4 text-white flex justify-between">
             <h3 className="font-semibold text-base">Filter Settings</h3>
             <button
@@ -220,7 +212,6 @@ const GlobalFilterDropdown = ({ userRole }) => {
             </button>
           </div>
 
-          {/* Content */}
           <div className="p-6 space-y-6">
             {/* Academic Year */}
             <div>

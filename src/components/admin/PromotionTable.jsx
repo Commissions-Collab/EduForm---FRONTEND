@@ -1,62 +1,93 @@
 import React from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
-import { LuBadgeAlert, LuLoader, LuUser } from "react-icons/lu";
-import { useAdminStore } from "../../stores/admin";
+import { LuBadgeAlert, LuUser } from "react-icons/lu";
+import usePromotionStore from "../../stores/admin/promotionStore";
 
 const PromotionTable = () => {
   const {
     promotionStudents,
-    promotionCurrentPage,
-    setPromotionCurrentPage,
-    totalPromotionPages,
-    paginatedPromotionRecords,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedRecords,
     loading,
-    error,
-  } = useAdminStore();
+  } = usePromotionStore();
 
-  const records = paginatedPromotionRecords();
-  const pages = totalPromotionPages();
+  const records = paginatedRecords();
+  const pages = totalPages();
   const hasRecords = Array.isArray(records) && records.length > 0;
 
-  // Loading
   if (loading) {
     return (
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mt-6">
-        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Promotion Records
-          </h3>
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <div className="h-6 w-48 bg-gray-200 animate-pulse rounded"></div>
+            <div className="h-4 w-64 bg-gray-200 animate-pulse rounded mt-1"></div>
+          </div>
+          <div className="h-6 w-24 bg-gray-200 animate-pulse rounded-full"></div>
         </div>
-        <div className="py-20 flex flex-col items-center space-y-3">
-          <LuLoader className="w-6 h-6 text-blue-700 animate-spin" />
-          <p className="text-gray-500 text-sm">Loading promotion records...</p>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-4 text-left">
+                  <div className="h-4 w-32 bg-gray-200 animate-pulse rounded"></div>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <div className="h-4 w-32 bg-gray-200 animate-pulse rounded"></div>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {[...Array(5)].map((_, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-5 flex items-center">
+                    <div className="w-10 h-10 bg-gray-200 animate-pulse rounded-full mr-3"></div>
+                    <div className="h-4 w-48 bg-gray-200 animate-pulse rounded"></div>
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <div className="h-4 w-16 bg-gray-200 animate-pulse rounded mx-auto"></div>
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <div className="h-4 w-16 bg-gray-200 animate-pulse rounded mx-auto"></div>
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mx-auto"></div>
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <div className="h-4 w-20 bg-gray-200 animate-pulse rounded mx-auto"></div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
+            <div className="h-4 w-32 bg-gray-200 animate-pulse rounded"></div>
+            <div className="h-8 w-24 bg-gray-200 animate-pulse rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Error
-  if (error) {
-    return (
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mt-6">
-        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Promotion Records
-          </h3>
-        </div>
-        <div className="py-20 text-center text-red-600">
-          Failed to fetch promotion data. Please try again.
-        </div>
-      </div>
-    );
-  }
-
-  // No Records
   if (!hasRecords) {
     return (
       <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border-2 border-amber-200 p-6 shadow-lg mt-6">
-        <div className="flex items-start space-x-4">
+        <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
             <LuBadgeAlert className="w-6 h-6 text-amber-600" />
           </div>
@@ -64,7 +95,7 @@ const PromotionTable = () => {
             <h3 className="text-xl font-bold text-amber-800 mb-2">
               Promotion Report Not Available
             </h3>
-            <p className="text-amber-700 mb-4">
+            <p className="text-amber-700">
               Promotion data may not be accessible due to incomplete grades,
               attendance records, or unfinalized results.
             </p>
@@ -74,12 +105,10 @@ const PromotionTable = () => {
     );
   }
 
-  // Records Table
   return (
     <div className="space-y-6 mt-6">
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        {/* Header */}
-        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
               Promotion Records
@@ -93,8 +122,7 @@ const PromotionTable = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="hidden lg:block overflow-x-auto">
+        <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -131,10 +159,10 @@ const PromotionTable = () => {
                       {student.student_name}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-center">
+                  <td className="px-6 py-5 text-center text-sm">
                     {student.final_average?.toFixed(2) ?? "0.00"}
                   </td>
-                  <td className="px-6 py-5 text-center">
+                  <td className="px-6 py-5 text-center text-sm">
                     {student.attendance_percentage?.toFixed(2) ?? "0.00"}%
                   </td>
                   <td className="px-6 py-5 text-center">
@@ -161,17 +189,12 @@ const PromotionTable = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
           <PaginationControls
-            currentPage={promotionCurrentPage}
+            currentPage={currentPage}
             totalPages={pages}
-            onPrevious={() =>
-              setPromotionCurrentPage(Math.max(promotionCurrentPage - 1, 1))
-            }
-            onNext={() =>
-              setPromotionCurrentPage(Math.min(promotionCurrentPage + 1, pages))
-            }
+            onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+            onNext={() => setCurrentPage(Math.min(currentPage + 1, pages))}
           />
         </div>
       </div>

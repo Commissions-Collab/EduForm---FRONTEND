@@ -7,11 +7,11 @@ import {
   LuUserCheck,
 } from "react-icons/lu";
 import WorkloadTable from "../../../components/admin/WorkloadTable";
-import { useAdminStore } from "../../../stores/admin";
+import useWorkloadsStore from "../../../stores/admin/workloadStore";
 
 const Workload = () => {
   // Destructure state and actions from the store
-  const { fetchWorkloads, workloadSummary, loading } = useAdminStore();
+  const { fetchWorkloads, workloadSummary, loading } = useWorkloadsStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch data when the component mounts
@@ -67,7 +67,7 @@ const Workload = () => {
             </div>
           </div>
 
-          {/* Total Students Card (Changed Icon to LuUsers for relevance) */}
+          {/* Total Students Card */}
           <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 border border-green-200 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>

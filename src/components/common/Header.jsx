@@ -1,9 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import MobileNavigation from "./MobileNavigation";
-import GlobalFilterDropdown from "../admin/GlobalFilterDropdown";
-import { LuMenu, LuBell, LuRefreshCw, LuFilter, LuX } from "react-icons/lu";
+import { LuMenu, LuBell, LuRefreshCw, LuX } from "react-icons/lu";
 import { useAuthStore } from "../../stores/auth";
-import { useAdminStore } from "../../stores/admin";
+import useFilterStore from "../../stores/admin/filterStore";
+import useDashboardStore from "../../stores/admin/dashboardStore";
+import useGradesStore from "../../stores/admin/gradeStore";
+import useCertificatesStore from "../../stores/admin/certificateStore";
+import useAttendanceStore from "../../stores/admin/attendanceStore";
+import useBmiStore from "../../stores/admin/bmiStore";
+import GlobalFilterDropdown from "../admin/GlobalFilterDropdown";
+import MobileNavigation from "./MobileNavigation";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,10 +16,24 @@ const Header = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const notifDropdownRef = useRef();
 
-  // Get role and refresh function from stores
+  // Get user role from auth store
   const userRole = useAuthStore((state) => state.user?.role);
-  const { refreshAllData, globalFilters, clearGlobalFilters, filterOptions } =
-    useAdminStore();
+
+  // Get filter state and options from filter store
+  const { globalFilters, filterOptions, clearGlobalFilters } = useFilterStore();
+
+  // Get fetch functions from relevant stores
+  const fetchDashboardData = useDashboardStore(
+    (state) => state.fetchDashboardData
+  );
+  const fetchGrades = useGradesStore((state) => state.fetchGrades);
+  const fetchCertificateData = useCertificatesStore(
+    (state) => state.fetchCertificateData
+  );
+  const fetchMonthlyAttendance = useAttendanceStore(
+    (state) => state.fetchMonthlyAttendance
+  );
+  const fetchBmiStudents = useBmiStore((state) => state.fetchBmiStudents);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -57,7 +76,13 @@ const Header = () => {
 
     setIsRefreshing(true);
     try {
-      await refreshAllData();
+      await Promise.all([
+        fetchDashboardData(),
+        fetchGrades(),
+        fetchCertificateData(),
+        fetchMonthlyAttendance(),
+        fetchBmiStudents(),
+      ]);
     } catch (error) {
       console.error("Failed to refresh data:", error);
     } finally {
@@ -81,9 +106,9 @@ const Header = () => {
 
     if (globalFilters.academicYearId) {
       const year = filterOptions.academicYears?.find(
-        (y) => y.id == globalFilters.academicYearId
+        (y) => y.id === globalFilters.academicYearId
       );
-      if (year) labels.push(`${year.year_start}-${year.year_end}`);
+      if (year) labels.push(year.name);
     }
 
     if (globalFilters.quarterId) {
@@ -183,7 +208,6 @@ const Header = () => {
                 {/* Notifications Dropdown */}
                 {isNotifOpen && (
                   <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 overflow-hidden">
-                    {/* Header */}
                     <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-white">
                       <div className="flex items-center justify-between">
                         <div>
@@ -202,8 +226,6 @@ const Header = () => {
                         </button>
                       </div>
                     </div>
-
-                    {/* Notifications List */}
                     <div className="max-h-64 overflow-y-auto">
                       <div className="p-4 text-center text-gray-500 text-sm">
                         No new notifications

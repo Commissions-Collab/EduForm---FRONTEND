@@ -9,15 +9,15 @@ import {
   LuCircleCheck,
 } from "react-icons/lu";
 import TextbookTable from "../../../components/admin/TextbookTable";
-import { useAdminStore } from "../../../stores/admin";
+import useTextbooksStore from "../../../stores/admin/textbookStore";
 
 const Textbook = () => {
-  const { fetchTextbooks, textbooks, loading } = useAdminStore();
+  const { fetchTextbooks, textbooks, loading } = useTextbooksStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchTextbooks();
-  }, []);
+  }, [fetchTextbooks]);
 
   // Calculate statistics
   const totalBooks = textbooks?.length || 0;
@@ -78,7 +78,7 @@ const Textbook = () => {
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
-            <h1 className="page-title">Textbook </h1>
+            <h1 className="page-title">Textbook</h1>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
                 SF3

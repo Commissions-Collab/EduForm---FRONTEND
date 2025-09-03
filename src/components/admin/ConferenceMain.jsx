@@ -10,15 +10,14 @@ import {
 } from "react-icons/lu";
 
 const ConferenceMain = ({
-  conferenceLoading,
+  loading,
   selectedConferenceStudent,
   onContactParent,
   onPrintReportCard,
 }) => {
   const StudentProfileSkeleton = () => (
     <div className="p-6 space-y-6 animate-pulse">
-      {/* Header */}
-      <div className="border-b pb-4">
+      <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="h-6 w-48 bg-gray-200 rounded mb-2" />
@@ -30,10 +29,8 @@ const ConferenceMain = ({
           </div>
         </div>
       </div>
-
-      {/* Guardian Information */}
       <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-        <div className="h-5 w-44 bg-gray-300 rounded" />
+        <div className="h-5 w-44 bg-gray-200 rounded" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -43,12 +40,9 @@ const ConferenceMain = ({
           ))}
         </div>
       </div>
-
-      {/* Academic & Attendance (2-column grid) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Academic */}
         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-          <div className="h-5 w-52 bg-gray-300 rounded" />
+          <div className="h-5 w-52 bg-gray-200 rounded" />
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex justify-between items-center py-1">
               <div className="h-4 w-28 bg-gray-200 rounded" />
@@ -56,10 +50,8 @@ const ConferenceMain = ({
             </div>
           ))}
         </div>
-
-        {/* Attendance */}
         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-          <div className="h-5 w-52 bg-gray-300 rounded" />
+          <div className="h-5 w-52 bg-gray-200 rounded" />
           <div className="grid grid-cols-3 gap-2">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-16 bg-gray-200 rounded" />
@@ -73,10 +65,8 @@ const ConferenceMain = ({
           </div>
         </div>
       </div>
-
-      {/* Health Profile / BMI */}
       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-        <div className="h-5 w-60 bg-gray-300 rounded" />
+        <div className="h-5 w-60 bg-gray-200 rounded" />
         <div className="overflow-x-auto">
           <div className="space-y-2">
             {[...Array(4)].map((_, i) => (
@@ -119,44 +109,42 @@ const ConferenceMain = ({
 
     return (
       <div className="p-6 space-y-6">
-        {/* Student Header */}
-        <div className="border-b pb-4">
-          <div className="flex items-center justify-between">
+        <div className="border-b border-gray-200 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-2xl font-bold text-gray-900">
                 {student.name}
               </h3>
               <p className="text-sm text-gray-600">
-                Student ID: {student.student_id}
+                Student ID: {student.student_id || "N/A"}
               </p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <button
-                className="gray-button"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400"
                 onClick={onContactParent}
                 disabled={!student.guardian_email}
               >
                 <LuMail size={15} />
-                <span className="ml-2">Contact Parent</span>
+                <span>Contact Parent</span>
               </button>
               <button
-                className="flex text-[12.5px] bg-[#E0E7FF] hover:bg-[#C7D2FE] text-[#3730A3] font-semibold py-2 px-4 rounded-lg transition-all duration-200"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                 onClick={() => onPrintReportCard(student.id)}
               >
                 <LuPrinter size={15} />
-                <span className="ml-2">Print Report Card</span>
+                <span>Print Report Card</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Guardian Information */}
         <ProfileSection title="Guardian Information" icon={LuUser}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
               <LuUser className="w-4 h-4 text-gray-500" />
               <span className="text-sm">
-                <strong>Name:</strong> {student.guardian || "Not provided"}
+                <strong>Name:</strong> {student.guardian}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -177,7 +165,6 @@ const ConferenceMain = ({
         </ProfileSection>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Academic Performance */}
           <ProfileSection title="Academic Performance" icon={LuGraduationCap}>
             {student.grades && student.grades.length > 0 ? (
               <div className="space-y-2">
@@ -212,7 +199,6 @@ const ConferenceMain = ({
             )}
           </ProfileSection>
 
-          {/* Attendance Summary */}
           <ProfileSection title="Attendance Summary" icon={LuCalendarDays}>
             {student.attendance_summary ? (
               <div className="space-y-3">
@@ -268,7 +254,6 @@ const ConferenceMain = ({
           </ProfileSection>
         </div>
 
-        {/* Health Profile */}
         {student.bmi_records && student.bmi_records.length > 0 && (
           <ProfileSection
             title="Health Profile (BMI Records)"
@@ -319,12 +304,13 @@ const ConferenceMain = ({
   };
 
   return (
-    <div className="col-span-8 shad-container">
-      <div className="flex justify-between p-6 border-b">
-        <h2 className="text-xl font-semibold">Student 360° Profile</h2>
+    <div className="col-span-8 bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="flex justify-between p-6 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Student 360° Profile
+        </h2>
       </div>
-
-      {conferenceLoading ? (
+      {loading ? (
         <StudentProfileSkeleton />
       ) : (
         <StudentProfile

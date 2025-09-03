@@ -1,17 +1,17 @@
+// components/admin/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
-import DashboardCard from "../../components/admin/DashboardCard";
-import { useAdminStore } from "../../stores/admin";
+
 import {
   LuTrendingUp,
   LuCalendar,
   LuUsers,
-  LuBookOpen,
   LuRefreshCw,
   LuBadgeAlert,
-  LuActivity,
-  LuFilter,
   LuClock,
 } from "react-icons/lu";
+import useDashboardStore from "../../stores/admin/dashboardStore";
+import useFilterStore from "../../stores/admin/filterStore";
+import DashboardCard from "../../components/admin/DashboardCard";
 
 const AdminDashboard = () => {
   const {
@@ -25,7 +25,9 @@ const AdminDashboard = () => {
     getResourcesData,
     getWeeklySummary,
     getSectionInfo,
-  } = useAdminStore();
+  } = useDashboardStore();
+
+  const { filterOptions } = useFilterStore();
 
   const [selectedQuarter, setSelectedQuarter] = useState(null);
   const [attendanceDate, setAttendanceDate] = useState(
@@ -197,7 +199,7 @@ const AdminDashboard = () => {
               {/* Controls */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
                 <div className="flex items-center space-x-2">
-                  <LuFilter className="w-4 h-4 text-gray-400" />
+                  <LuCalendar className="w-4 h-4 text-gray-400" />
                   <input
                     type="date"
                     value={attendanceDate}
@@ -207,14 +209,19 @@ const AdminDashboard = () => {
                 </div>
                 <select
                   value={selectedQuarter || ""}
-                  onChange={(e) => setSelectedQuarter(e.target.value || null)}
+                  onChange={(e) =>
+                    setSelectedQuarter(
+                      e.target.value ? parseInt(e.target.value, 10) : null
+                    )
+                  }
                   className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 >
                   <option value="">All Quarters</option>
-                  <option value="1">1st Quarter</option>
-                  <option value="2">2nd Quarter</option>
-                  <option value="3">3rd Quarter</option>
-                  <option value="4">4th Quarter</option>
+                  {filterOptions.quarters?.map((quarter) => (
+                    <option key={quarter.id} value={quarter.id}>
+                      {quarter.name}
+                    </option>
+                  ))}
                 </select>
                 <button
                   onClick={handleRefresh}

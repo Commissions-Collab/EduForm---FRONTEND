@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   LuPrinter,
   LuEye,
@@ -12,18 +12,18 @@ import {
   LuCalendar,
 } from "react-icons/lu";
 import PaginationControls from "./Pagination";
-import { useAdminStore } from "../../stores/admin";
+import useCertificatesStore from "../../stores/admin/certificateStore";
 
-const PerfectAttendanceTable = () => {
+const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
   const {
     attendanceCertificates,
-    certificateCurrentPage,
-    setCertificateCurrentPage,
+    currentPage,
+    setCurrentPage,
     loading,
     error,
-  } = useAdminStore();
-
-  const [searchName, setSearchName] = useState("");
+    paginatedRecords,
+    totalPages,
+  } = useCertificatesStore();
 
   // Filter logic (memoized for performance)
   const filteredRecords = useMemo(() => {
@@ -34,10 +34,8 @@ const PerfectAttendanceTable = () => {
     );
   }, [attendanceCertificates, searchName]);
 
-  const indexOfLast = certificateCurrentPage * 5;
-  const indexOfFirst = indexOfLast - 5;
-  const records = filteredRecords.slice(indexOfFirst, indexOfLast);
-  const total = Math.ceil(filteredRecords.length / 5);
+  const records = paginatedRecords("attendance");
+  const total = totalPages("attendance");
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -107,7 +105,7 @@ const PerfectAttendanceTable = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              // --- Skeleton Rows ---
+              // Skeleton Rows
               [...Array(5)].map((_, idx) => (
                 <tr key={idx} className="animate-pulse">
                   <td className="px-6 py-4">
@@ -215,23 +213,15 @@ const PerfectAttendanceTable = () => {
         <div className="border-t border-gray-200 bg-white px-6 py-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
-              Showing {indexOfFirst + 1} to{" "}
-              {Math.min(indexOfLast, filteredRecords.length)} of{" "}
+              Showing {currentPage * 10 - 9} to{" "}
+              {Math.min(currentPage * 10, filteredRecords.length)} of{" "}
               {filteredRecords.length} results
             </p>
             <PaginationControls
-              currentPage={certificateCurrentPage}
+              currentPage={currentPage}
               totalPages={total}
-              onPrevious={() =>
-                setCertificateCurrentPage(
-                  Math.max(certificateCurrentPage - 1, 1)
-                )
-              }
-              onNext={() =>
-                setCertificateCurrentPage(
-                  Math.min(certificateCurrentPage + 1, total)
-                )
-              }
+              onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+              onNext={() => setCurrentPage(Math.min(currentPage + 1, total))}
             />
           </div>
         </div>
