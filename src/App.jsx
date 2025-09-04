@@ -12,16 +12,15 @@ import UserRoutes from "./routes/userRoutes";
 import LoadingPage from "./components/common/LoadingPage";
 
 function App() {
-  const { initializeAuth, checkAuth, isCheckingAuth } = useAuthStore();
+  const { initializeAuth, checkAuth, isCheckingAuth, isPostLoginLoading } =
+    useAuthStore();
 
-  // Initialize auth state and check token on app load
   useEffect(() => {
     initializeAuth();
     checkAuth();
   }, [initializeAuth, checkAuth]);
 
-  // Show loading spinner while checking auth
-  if (isCheckingAuth) {
+  if (isCheckingAuth || isPostLoginLoading) {
     return <LoadingPage />;
   }
 
@@ -31,19 +30,16 @@ function App() {
       <BrowserRouter>
         <Suspense fallback={<LoadingPage />}>
           <Routes>
-            {/* Public Routes */}
             <Route element={<AuthLayout />}>
               <Route index element={<SignIn />} />
               <Route path="sign-in" element={<SignIn />} />
               <Route path="sign-up" element={<SignUp />} />
             </Route>
 
-            {/* Role-based Routes */}
             {SuperAdminRoutes}
             {AdminRoutes}
             {UserRoutes}
 
-            {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

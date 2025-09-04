@@ -27,6 +27,7 @@ export const useAuthStore = create((set, get) => ({
   isRegistering: false,
   isCheckingAuth: true,
   isLoggingOut: false,
+  isPostLoginLoading: false,
   authError: null,
 
   initializeAuth: () => {
@@ -59,9 +60,12 @@ export const useAuthStore = create((set, get) => ({
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${token}`;
-        set({ user, token, isLoggingIn: false });
-        toast.success("Welcome! You have logged in successfully.");
-        return { success: true, user };
+        set({ user, token, isLoggingIn: false, isCheckingAuth: false });
+        // Trigger post-login loading screen
+        set({ isPostLoginLoading: true });
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        set({ isPostLoginLoading: false });
+        return { success: true, user, role: user.role };
       } else {
         throw new Error(
           data?.message || "Login failed: Invalid response from server"
@@ -71,7 +75,7 @@ export const useAuthStore = create((set, get) => ({
       console.error("Login error:", error.response?.data, error.message, error);
       const message =
         error?.response?.data?.message || error.message || "Login failed";
-      set({ authError: message, isLoggingIn: false });
+      set({ authError: message, isLoggingIn: false, isCheckingAuth: false });
       toast.error(message);
       return { success: false, message };
     }
@@ -99,6 +103,38 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  resetAuth: () => {
+    clearStorage();
+    delete axiosInstance.defaults.headers.common["Authorization"];
+    // Reset Admin stores
+    useFilterStore.getState().resetFilterStore();
+    usePromotionStore.getState().resetPromotionStore();
+    useAttendanceStore.getState().resetAttendanceStore();
+    useBmiStore.getState().resetBmiStore();
+    useCertificatesStore.getState().resetCertificatesStore();
+    useDashboardStore.getState().resetDashboardStore();
+    useStudentRequestsStore.getState().resetStudentRequestsStore();
+    useTextbooksStore.getState().resetTextbooksStore();
+    useWorkloadsStore.getState().resetWorkloadsStore();
+    useGradesStore.getState().resetGradesStore();
+    useParentConferenceStore.getState().resetParentConferenceStore();
+    // Reset Super Admin stores
+    useAcademicYearManagementStore.getState().resetAcademicYearStore();
+    useCalendarManagementStore.getState().resetCalendarStore();
+    useAcademicManagementStore.getState().resetAcademicManagementStore();
+    useTeacherManagementStore.getState().resetTeacherManagementStore();
+    useFormsManagementStore.getState().resetFormsManagementStore();
+    useSuperAdminDashboardStore.getState().resetDashboardStore();
+    set({
+      user: null,
+      token: null,
+      isLoggingOut: false,
+      authError: null,
+      isCheckingAuth: false,
+      isPostLoginLoading: false,
+    });
+  },
+
   logout: async () => {
     set({ isLoggingOut: true, authError: null });
     try {
@@ -111,35 +147,7 @@ export const useAuthStore = create((set, get) => ({
         toast.error(message);
       }
     } finally {
-      clearStorage();
-      delete axiosInstance.defaults.headers.common["Authorization"];
-      // Reset Admin stores
-      useFilterStore.getState().resetFilterStore();
-      usePromotionStore.getState().resetPromotionStore();
-      useAttendanceStore.getState().resetAttendanceStore();
-      useBmiStore.getState().resetBmiStore();
-      useCertificatesStore.getState().resetCertificatesStore();
-      useDashboardStore.getState().resetDashboardStore();
-      useStudentRequestsStore.getState().resetStudentRequestsStore();
-      useTextbooksStore.getState().resetTextbooksStore();
-      useWorkloadsStore.getState().resetWorkloadsStore();
-      useGradesStore.getState().resetGradesStore();
-      useParentConferenceStore.getState().resetParentConferenceStore();
-      // Reset Super Admin stores
-      useAcademicYearManagementStore.getState().resetAcademicYearStore();
-      useCalendarManagementStore.getState().resetCalendarStore();
-      useAcademicManagementStore.getState().resetAcademicManagementStore();
-      useTeacherManagementStore.getState().resetTeacherManagementStore();
-      useFormsManagementStore.getState().resetFormsManagementStore();
-      useSuperAdminDashboardStore.getState().resetDashboardStore();
-      set({
-        user: null,
-        token: null,
-        isLoggingOut: false,
-        authError: null,
-        isCheckingAuth: false,
-      });
-      window.location.href = "/sign-in";
+      get().resetAuth();
     }
   },
 
@@ -186,7 +194,7 @@ export const useAuthStore = create((set, get) => ({
 
 // Listen for unauthorized event to reset all stores
 window.addEventListener("unauthorized", () => {
-  useAuthStore.getState().logout();
+  useAuthStore.getState().resetAuth();
 });
 
 export default useAuthStore;

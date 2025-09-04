@@ -14,8 +14,10 @@ const SidebarFooter = () => {
   if (!user) return null;
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple logout attempts
+    setShowDropdown(false); // Close dropdown immediately
     await logout();
-    navigate("/sign-in");
+    navigate("/sign-in", { replace: true }); // Use replace to prevent back navigation
   };
 
   const getRoleDisplayName = (role) => {
