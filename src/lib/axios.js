@@ -31,9 +31,7 @@ export const fetchCsrfToken = async () => {
 
 axiosInstance.interceptors.request.use(
   async (config) => {
-    if (["post", "put", "patch"].includes(config.method.toLowerCase())) {
-      await fetchCsrfToken();
-    }
+    await fetchCsrfToken();
     const token = getItem("token", false);
     if (token && typeof token === "string" && token.length > 0) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -42,6 +40,24 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     console.error("Request interceptor error:", error);
+    return Promise.reject(error);
+  }
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 419) {
+      console.error("Unauthorized error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      removeItem("token");
+      removeItem("user");
+      csrfTokenFetched = false;
+      window.dispatchEvent(new Event("unauthorized"));
+      toast.error("Session expired. Please log in again.");
+    }
     return Promise.reject(error);
   }
 );

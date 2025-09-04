@@ -1,26 +1,31 @@
 import { Route } from "react-router-dom";
 import SuperAdminLayout from "../layouts/superAdminLayout";
-import SuperAdminDashboard from "../pages/superadmin/Dashboard";
-import Users from "../pages/superadmin/Users";
-import Forms from "../pages/superadmin/Forms";
-import Records from "../pages/superadmin/Records";
-import Calendar from "../pages/superadmin/Calendar";
 import ProtectedRoute from "./ProtectedRoute";
+import AcademicManagement from "../pages/superadmin/AcademicManagement";
+import AcademicYear from "../pages/superadmin/AcademicYear";
+import CalendarManagement from "../pages/superadmin/CalendarManagement";
+import FormsManagement from "../pages/superadmin/FormsManagement";
+import SuperAdminDashboard from "../pages/superadmin/SuperAdminDashboard";
+import TeacherManagement from "../pages/superadmin/TeacherManagement";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 const SuperAdminRoutes = (
   <Route
     path="/super_admin"
     element={
       <ProtectedRoute allowedRoles={["super_admin"]}>
-        <SuperAdminLayout />
+        <ErrorBoundary>
+          <SuperAdminLayout />
+        </ErrorBoundary>
       </ProtectedRoute>
     }
   >
     <Route path="dashboard" element={<SuperAdminDashboard />} />
-    <Route path="users" element={<Users />} />
-    <Route path="forms" element={<Forms />} />
-    <Route path="records" element={<Records />} />
-    <Route path="calendar" element={<Calendar />} />
+    <Route path="academicManagement" element={<AcademicManagement />} />
+    <Route path="academicYear" element={<AcademicYear />} />
+    <Route path="calendar" element={<CalendarManagement />} />
+    <Route path="forms" element={<FormsManagement />} />
+    <Route path="teacher" element={<TeacherManagement />} />
   </Route>
 );
 

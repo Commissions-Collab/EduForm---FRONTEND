@@ -31,14 +31,19 @@ export const superAdminNav = [
     url: "/super_admin/dashboard",
   },
   {
-    name: "User Management",
+    name: "Academic Management",
     icon: LuUsers,
-    url: "/super_admin/users",
+    url: "/super_admin/academicManagement",
   },
   {
-    name: "System Records",
-    icon: LuClipboardList,
-    url: "/super_admin/records",
+    name: "Academic Year",
+    icon: LuUsers,
+    url: "/super_admin/academicYear",
+  },
+  {
+    name: "Calendar Management",
+    icon: LuCalendarDays,
+    url: "/super_admin/calendar",
   },
   {
     name: "Forms Management",
@@ -46,9 +51,9 @@ export const superAdminNav = [
     url: "/super_admin/forms",
   },
   {
-    name: "Calendar",
-    icon: LuCalendarDays,
-    url: "/super_admin/calendar",
+    name: "Teacher Management",
+    icon: LuClipboardList,
+    url: "/super_admin/teacher",
   },
 ];
 

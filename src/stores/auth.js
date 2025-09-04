@@ -13,6 +13,12 @@ import useTextbooksStore from "./admin/textbookStore";
 import useWorkloadsStore from "./admin/workloadStore";
 import useGradesStore from "./admin/gradeStore";
 import useParentConferenceStore from "./admin/parentConference";
+import useAcademicYearManagementStore from "./superAdmin/academicYearManagementStore";
+import useCalendarManagementStore from "./superAdmin/calendarManagementStore";
+import useAcademicManagementStore from "./superAdmin/academicManagementStore";
+import useTeacherManagementStore from "./superAdmin/teacherManagementStore";
+import useFormsManagementStore from "./superAdmin/formsManagementStore";
+import useSuperAdminDashboardStore from "./superAdmin/superAdminDashboardStore";
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -22,6 +28,19 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   isLoggingOut: false,
   authError: null,
+
+  initializeAuth: () => {
+    const token = getItem("token", false, localStorage);
+    const user = getItem("user", true, localStorage);
+    if (token && user) {
+      set({ token, user, isAuthenticated: true, isCheckingAuth: false });
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${token}`;
+    } else {
+      set({ isCheckingAuth: false });
+    }
+  },
 
   login: async ({ email, password }) => {
     set({ isLoggingIn: true, authError: null });
@@ -34,10 +53,12 @@ export const useAuthStore = create((set, get) => ({
       });
       console.log("Login response:", { status, data });
       if (data?.token && data?.user) {
-        // Check for data.token instead of data.access_token
-        const { user, token } = data; // Use token directly
+        const { user, token } = data;
         setItem("user", user, localStorage);
         setItem("token", token, localStorage);
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
         set({ user, token, isLoggingIn: false });
         toast.success("Welcome! You have logged in successfully.");
         return { success: true, user };
@@ -91,6 +112,8 @@ export const useAuthStore = create((set, get) => ({
       }
     } finally {
       clearStorage();
+      delete axiosInstance.defaults.headers.common["Authorization"];
+      // Reset Admin stores
       useFilterStore.getState().resetFilterStore();
       usePromotionStore.getState().resetPromotionStore();
       useAttendanceStore.getState().resetAttendanceStore();
@@ -102,13 +125,20 @@ export const useAuthStore = create((set, get) => ({
       useWorkloadsStore.getState().resetWorkloadsStore();
       useGradesStore.getState().resetGradesStore();
       useParentConferenceStore.getState().resetParentConferenceStore();
+      // Reset Super Admin stores
+      useAcademicYearManagementStore.getState().resetAcademicYearStore();
+      useCalendarManagementStore.getState().resetCalendarStore();
+      useAcademicManagementStore.getState().resetAcademicManagementStore();
+      useTeacherManagementStore.getState().resetTeacherManagementStore();
+      useFormsManagementStore.getState().resetFormsManagementStore();
+      useSuperAdminDashboardStore.getState().resetDashboardStore();
       set({
         user: null,
         token: null,
         isLoggingOut: false,
         authError: null,
+        isCheckingAuth: false,
       });
-      toast.success("Logged out successfully");
       window.location.href = "/sign-in";
     }
   },
@@ -118,25 +148,33 @@ export const useAuthStore = create((set, get) => ({
     const token = getItem("token", false, localStorage);
     if (!token) {
       set({ user: null, token: null, isCheckingAuth: false });
-      clearStorage();
-      return;
+      return false;
     }
     try {
-      const { data } = await axiosInstance.get("/api/user");
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.get("/user");
+      console.log("checkAuth success:", data);
       if (data) {
         setItem("user", data, localStorage);
         set({ user: data, token, isCheckingAuth: false });
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
+        return true;
       } else {
         throw new Error("Invalid user data");
       }
     } catch (error) {
-      clearStorage();
+      console.error("checkAuth failed:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
       set({
-        user: null,
-        token: null,
         authError: error?.response?.data?.message || "Authentication failed",
         isCheckingAuth: false,
       });
+      return false;
     }
   },
 
