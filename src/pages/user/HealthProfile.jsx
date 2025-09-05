@@ -1,269 +1,179 @@
-import React, { useEffect, useState } from "react";
-import { LuInfo } from "react-icons/lu";
-import { useStoreUser } from "../../stores/student";
-const HealthProfile = () => {
-  const {
-    healthProfileData,
-    fetchHealthProfile,
-    healthProfileLoading,
-    healthProfileError,
-    clearHealthProfileError,
-  } = useStoreUser();
+import React, { useEffect } from "react";
+import { LuHeart, LuBadgeAlert, LuCalendar } from "react-icons/lu";
+import useHealthProfileStore from "../../stores/users/healthProfileStore";
 
-  const [startHeight, setStartHeight] = useState(""); // cm
-  const [startWeight, setStartWeight] = useState(""); // kg
-  const [endHeight, setEndHeight] = useState("");
-  const [endWeight, setEndWeight] = useState("");
+const HealthProfile = () => {
+  const { bmiData, fetchBmiData } = useHealthProfileStore();
 
   useEffect(() => {
-    fetchHealthProfile();
-  }, [fetchHealthProfile]);
+    fetchBmiData();
+  }, [fetchBmiData]);
 
-  const calculateBMI = (heightCm, weightKg) => {
-    if (!heightCm || !weightKg) return "";
-    const heightM = heightCm / 100;
-    const bmi = weightKg / (heightM * heightM);
-    return bmi.toFixed(1);
+  const getBmiCategory = (bmi) => {
+    if (!bmi) return "N/A";
+    if (bmi < 18.5) return "Underweight";
+    if (bmi >= 18.5 && bmi < 25) return "Normal";
+    if (bmi >= 25 && bmi < 30) return "Overweight";
+    return "Obese";
   };
 
-  const getClassification = (bmi) => {
-    if (!bmi) return { label: "—", color: "text-gray-400", bg: "bg-gray-100" };
-    const val = parseFloat(bmi);
-    if (val < 18.5)
-      return {
-        label: "Underweight",
-        color: "text-yellow-500",
-        bg: "bg-yellow-50",
-      };
-    if (val < 25)
-      return { label: "Normal", color: "text-green-600", bg: "bg-green-50" };
-    if (val < 30)
-      return {
-        label: "Overweight",
-        color: "text-orange-500",
-        bg: "bg-orange-50",
-      };
-    return { label: "Obese", color: "text-red-600", bg: "bg-red-50" };
-  };
-
-  const startBmi = calculateBMI(startHeight, startWeight);
-  const endBmi = calculateBMI(endHeight, endWeight);
-  const startClass = getClassification(startBmi);
-  const endClass = getClassification(endBmi);
-
-  if (healthProfileLoading) {
-    return (
-      <main className="p-4">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-      </main>
-    );
-  }
-
-  if (healthProfileError) {
-    return (
-      <main className="p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700">{healthProfileError}</p>
-          <button
-            onClick={clearHealthProfileError}
-            className="mt-2 text-red-600 hover:text-red-800 underline"
-          >
-            Try again
-          </button>
-        </div>
-      </main>
-    );
-  }
+  const latestRecord = bmiData.data.length > 0 ? bmiData.data[0] : null;
+  const historicalRecords = bmiData.data.slice(1);
 
   return (
-    <main className="p-4">
-      <div className="between">
-        <div className="page-title">Health Profile (SF8)</div>
-        <div className="inline-flex items-center px-2 py-1 text-sm rounded-lg bg-[#E0E7FF] text-[#3730A3]">
-          <span className="ml-2">
-            Last Checkup: {new Date().toLocaleDateString()}
-          </span>
+    <main className="p-4 lg:p-8 min-h-screen relative overflow-hidden">
+      {/* Header Section */}
+      <div className="relative z-10 mb-8 animate-fade-in">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white bg-opacity-80 backdrop-blur-sm rounded-xl p-6 shadow-sm">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              My Health Profile
+            </h1>
+            <p className="text-sm text-gray-600 mt-2">
+              View your BMI and health metrics
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="shad-container p-4 mt-8">
-        <div className="flex items-center gap-5">
-          <LuInfo size={20} />
-          Note:
-          <span className="text-sm text-gray-500 items-center">
-            Health data can only be updated by authorized school health
-            personnel. If you notice any discrepancies, please report them to
-            the health office.
-          </span>
-        </div>
-      </div>
-
-      {/* BMI Data from API */}
-      {healthProfileData.data.length > 0 && (
-        <div className="shad-container p-5 mt-8">
-          <div className="text-xl font-medium mb-6">BMI Records</div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Height (cm)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Weight (kg)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    BMI
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Classification
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {healthProfileData.data.map((record, index) => {
-                  const bmi = calculateBMI(record.height, record.weight);
-                  const classification = getClassification(bmi);
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(record.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.height}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.weight}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {bmi}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${classification.bg} ${classification.color}`}
-                        >
-                          {classification.label}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      {/* Summary Banner */}
+      {latestRecord && (
+        <div className="relative z-10 bg-white bg-opacity-80 backdrop-blur-sm rounded-xl p-6 mb-8 flex flex-col sm:flex-row sm:items-center gap-6 shadow-lg animate-slide-up">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-blue-600 mb-1">
+              Current BMI
+            </p>
+            <p className="text-3xl font-bold text-blue-900 animate-count-up">
+              {bmiData.isLoading ? "..." : latestRecord.bmi || "-"}
+            </p>
+            <span
+              className={`inline-flex items-center px-3 py-1 mt-2 text-sm font-medium rounded-full ${
+                getBmiCategory(latestRecord.bmi) === "Normal"
+                  ? "bg-green-100 text-green-800"
+                  : getBmiCategory(latestRecord.bmi) === "Underweight"
+                  ? "bg-blue-100 text-blue-800"
+                  : getBmiCategory(latestRecord.bmi) === "Overweight"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : getBmiCategory(latestRecord.bmi) === "Obese"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {getBmiCategory(latestRecord.bmi)}
+            </span>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-blue-600 mb-1">Height</p>
+            <p className="text-3xl font-bold text-blue-900 animate-count-up">
+              {bmiData.isLoading ? "..." : `${latestRecord.height || "-"} cm`}
+            </p>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-blue-600 mb-1">Weight</p>
+            <p className="text-3xl font-bold text-blue-900 animate-count-up">
+              {bmiData.isLoading ? "..." : `${latestRecord.weight || "-"} kg`}
+            </p>
+          </div>
+          <div className="p-3 bg-blue-100 rounded-full">
+            <LuHeart className="w-8 h-8 text-blue-600" />
           </div>
         </div>
       )}
 
-      <div className="shad-container p-5 mt-8">
-        <div className="text-xl font-medium">BMI Tracker</div>
-
-        <div className="grid grid-cols-12 gap-6">
-          {/* Start of School Year */}
-          <div className="col-span-12 xl:col-span-6 mt-8 bg-gray-50 p-5 border border-gray-200 rounded-lg">
-            <div className="flex justify-between text-sm">
-              <h1 className="text-sm font-medium text-gray-500">
-                Beginning of the School Year
-              </h1>
-              <h1 className="text-sm font-medium text-gray-500">
-                {new Date().toLocaleDateString()}
-              </h1>
+      {/* Error or No Data */}
+      {bmiData.error ? (
+        <div className="relative z-10 text-center py-16">
+          <div className="flex flex-col items-center gap-4 animate-fade-in">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <LuBadgeAlert className="w-8 h-8 text-red-600" />
             </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Height (cm)</label>
-              <input
-                type="number"
-                value={startHeight}
-                onChange={(e) => setStartHeight(e.target.value)}
-                placeholder="Enter height"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Weight (kg)</label>
-              <input
-                type="number"
-                value={startWeight}
-                onChange={(e) => setStartWeight(e.target.value)}
-                placeholder="Enter Weight"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">BMI</label>
-              <div className="font-semibold">{startBmi || "—"}</div>
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">
-                Classification
-              </label>
-              <div
-                className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${startClass.bg} ${startClass.color}`}
+            <div>
+              <p className="font-medium text-red-900 text-lg">
+                Failed to load health profile
+              </p>
+              <p className="text-sm text-red-600 mt-2">{bmiData.error}</p>
+              <button
+                onClick={fetchBmiData}
+                disabled={bmiData.isLoading}
+                className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200"
               >
-                {startClass.label}
-              </div>
-            </div>
-          </div>
-
-          {/* End of School Year */}
-          <div className="col-span-12 xl:col-span-6 mt-8 bg-gray-50 p-5 border border-gray-200 rounded-lg">
-            <div className="flex justify-between text-sm">
-              <h1 className="text-sm font-medium text-gray-500">
-                End of the School Year
-              </h1>
-              <h1 className="text-sm font-medium text-gray-500">
-                {new Date().toLocaleDateString()}
-              </h1>
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Height (cm)</label>
-              <input
-                type="number"
-                value={endHeight}
-                onChange={(e) => setEndHeight(e.target.value)}
-                placeholder="Enter Height"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Weight (kg)</label>
-              <input
-                type="number"
-                value={endWeight}
-                onChange={(e) => setEndWeight(e.target.value)}
-                placeholder="Enter Weight"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">BMI</label>
-              <div className="font-semibold">{endBmi || "—"}</div>
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">
-                Classification
-              </label>
-              <div
-                className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${endClass.bg} ${endClass.color}`}
-              >
-                {endClass.label}
-              </div>
+                Try Again
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      ) : !latestRecord && !bmiData.isLoading ? (
+        <div className="relative z-10 text-center py-16">
+          <div className="flex flex-col items-center gap-4 animate-fade-in">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+              <LuHeart className="w-8 h-8 text-gray-400" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 text-lg">
+                No health profile available
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Contact your school administrator for assistance
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Health Records Timeline */}
+      {historicalRecords.length > 0 && (
+        <div className="relative z-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">
+            Your Health Journey
+          </h2>
+          <div className="relative space-y-8 lg:space-y-12">
+            {/* Timeline Line */}
+            <div className="absolute left-4 lg:left-8 top-0 h-full w-1 bg-blue-300 rounded-full"></div>
+            {historicalRecords.map((record, index) => (
+              <div
+                key={record.id}
+                className="relative pl-12 lg:pl-16 transform transition-all duration-300 hover:scale-105 animate-slide-up"
+              >
+                <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                  <LuCalendar className="w-5 h-5" />
+                </div>
+                <div className="bg-white bg-opacity-80 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-blue-200 hover:shadow-blue-100/50">
+                  <p className="text-lg font-semibold text-gray-900">
+                    BMI: {record.bmi || "-"}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Measured:{" "}
+                    {record.measurement_date
+                      ? new Date(record.measurement_date).toLocaleDateString()
+                      : "-"}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Height: {record.height || "-"} cm
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Weight: {record.weight || "-"} kg
+                  </p>
+                  <span
+                    className={`inline-flex items-center px-3 py-1 mt-3 text-sm font-medium rounded-full ${
+                      getBmiCategory(record.bmi) === "Normal"
+                        ? "bg-green-100 text-green-800"
+                        : getBmiCategory(record.bmi) === "Underweight"
+                        ? "bg-blue-100 text-blue-800"
+                        : getBmiCategory(record.bmi) === "Overweight"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : getBmiCategory(record.bmi) === "Obese"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {getBmiCategory(record.bmi)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </main>
   );
 };

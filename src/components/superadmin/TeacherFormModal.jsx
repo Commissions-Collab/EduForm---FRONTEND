@@ -1,44 +1,37 @@
-import React from "react";
-
-import toast from "react-hot-toast";
-import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
+import React, { useState } from "react";
 import useFormsManagementStore from "../../stores/superAdmin/formsManagementStore";
 
-const TeacherFormModal = ({ isOpen, onClose, modalType }) => {
-  const { createTeacher, updateTeacher, isLoading } =
-    useTeacherManagementStore();
-  const { formData, formErrors, updateFormData, setFormErrors, clearForm } =
-    useFormsManagementStore();
+const TeacherFormModal = ({ isOpen, onClose, formType, itemId, onSubmit }) => {
+  const { formData, updateFormData, setFormErrors } = useFormsManagementStore();
+  const [localFormData, setLocalFormData] = useState(formData[formType] || {});
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleChange = (e) => {
+    setLocalFormData({ ...localFormData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const formType = "teacher";
-    const teacherData = formData[formType];
-
-    // Basic client-side validation
-    if (!teacherData.name || !teacherData.email) {
-      setFormErrors(formType, "Name and email are required");
+    if (!formType) {
+      setFormErrors("general", "No form type selected");
       return;
     }
-
-    try {
-      let result;
-      if (modalType === "edit" && teacherData.id) {
-        result = await updateTeacher(teacherData.id, teacherData);
-      } else {
-        result = await createTeacher(teacherData);
-      }
-
-      if (result.success) {
-        clearForm(formType);
-        onClose();
-      } else {
-        setFormErrors(formType, result.message);
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred");
+    if (formType === "teacher" && !localFormData.name) {
+      setFormErrors("teacher", "Name is required");
+      return;
     }
+    if (
+      formType === "schedule" &&
+      (!localFormData.title ||
+        !localFormData.day ||
+        !localFormData.start_time ||
+        !localFormData.end_time)
+    ) {
+      setFormErrors("schedule", "All schedule fields are required");
+      return;
+    }
+    updateFormData(formType, localFormData);
+    setFormErrors(formType, null);
+    onSubmit(localFormData);
   };
 
   if (!isOpen) return null;
@@ -46,63 +39,129 @@ const TeacherFormModal = ({ isOpen, onClose, modalType }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          {modalType === "edit" ? "Edit Teacher" : "Create Teacher"}
-        </h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              className="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={formData.teacher.name || ""}
-              onChange={(e) =>
-                updateFormData("teacher", { name: e.target.value })
-              }
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              className="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={formData.teacher.email || ""}
-              onChange={(e) =>
-                updateFormData("teacher", { email: e.target.value })
-              }
-            />
-          </div>
-          {formErrors.teacher && (
-            <p className="text-sm text-red-600 mb-4">{formErrors.teacher}</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {formType === "teacher"
+            ? itemId
+              ? "Edit Teacher"
+              : "Create Teacher"
+            : "Create Schedule"}
+        </h3>
+        <div className="space-y-4">
+          {formType === "teacher" ? (
+            <>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={localFormData.name || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={localFormData.email || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={localFormData.title || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Day</label>
+                <select
+                  name="day"
+                  value={localFormData.day || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                >
+                  <option value="">Select Day</option>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Start Time
+                </label>
+                <input
+                  type="time"
+                  name="start_time"
+                  value={localFormData.start_time || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  name="end_time"
+                  value={localFormData.end_time || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Section (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="section"
+                  value={localFormData.section || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </>
           )}
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl"
-              onClick={() => {
-                clearForm("teacher");
-                onClose();
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
-              disabled={isLoading}
-            >
-              {isLoading
-                ? "Saving..."
-                : modalType === "edit"
-                ? "Update"
-                : "Create"}
-            </button>
-          </div>
-        </form>
+        </div>
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            {formType === "teacher" && itemId ? "Update" : "Create"}
+          </button>
+        </div>
       </div>
     </div>
   );

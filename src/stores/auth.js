@@ -19,6 +19,11 @@ import useAcademicManagementStore from "./superAdmin/academicManagementStore";
 import useTeacherManagementStore from "./superAdmin/teacherManagementStore";
 import useFormsManagementStore from "./superAdmin/formsManagementStore";
 import useSuperAdminDashboardStore from "./superAdmin/superAdminDashboardStore";
+import useAchievementsStore from "./users/achievementStore";
+import useStudentDashboardStore from "./users/studentDashboardStore";
+import useStudentGradeStore from "./users/studentGradeStore";
+import useHealthProfileStore from "./users/healthProfileStore";
+import useStudentAttendanceStore from "./users/studentAttendanceStore";
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -125,6 +130,12 @@ export const useAuthStore = create((set, get) => ({
     useTeacherManagementStore.getState().resetTeacherManagementStore();
     useFormsManagementStore.getState().resetFormsManagementStore();
     useSuperAdminDashboardStore.getState().resetDashboardStore();
+    // Reset Student stores
+    useAchievementsStore.getState().resetAchievementsStore();
+    useStudentDashboardStore.getState().resetStudentDashboardStore();
+    useStudentGradeStore.getState().resetGradeStore();
+    useHealthProfileStore.getState().resetHealthProfileStore();
+    useStudentAttendanceStore.getState().resetStudentAttendanceStore();
     set({
       user: null,
       token: null,
@@ -161,7 +172,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.get("/user");
-      console.log("checkAuth success:", data);
+
       if (data) {
         setItem("user", data, localStorage);
         set({ user: data, token, isCheckingAuth: false });
@@ -173,7 +184,7 @@ export const useAuthStore = create((set, get) => ({
         throw new Error("Invalid user data");
       }
     } catch (error) {
-      console.error("checkAuth failed:", {
+      toast.error("checkAuth failed:", {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
