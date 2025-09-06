@@ -1,28 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { LuSearch, LuUsers, LuUserCheck } from "react-icons/lu";
-import toast from "react-hot-toast";
-import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
-import TeacherModal from "../../components/superadmin/TeacherModal";
-import TeacherManagementTable from "../../components/superadmin/TeacherManagementTable";
 
-const TeacherManagement = () => {
+import toast from "react-hot-toast";
+import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
+import EnrollmentTable from "../../components/superadmin/EnrollmentTable";
+import EnrollmentModal from "../../components/superadmin/EnrollmentModal";
+
+const Enrollment = () => {
   const {
-    teachers,
+    enrollments,
     pagination,
     loading,
     error,
-    fetchTeachers,
-    deleteTeacher,
+    fetchEnrollments,
+    deleteEnrollment,
     clearError,
-  } = useTeacherManagementStore();
+  } = useEnrollmentStore();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
 
   useEffect(() => {
-    fetchTeachers(1, 25); // Fetch first page with 25 teachers
-  }, [fetchTeachers]);
+    fetchEnrollments(1, 25); // Fetch first page with 25 enrollments
+  }, [fetchEnrollments]);
 
   useEffect(() => {
     if (error) {
@@ -32,9 +33,9 @@ const TeacherManagement = () => {
   }, [error, clearError]);
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this teacher?")) {
+    if (window.confirm("Are you sure you want to delete this enrollment?")) {
       try {
-        await deleteTeacher(id);
+        await deleteEnrollment(id);
       } catch (err) {
         // Error handled by store
       }
@@ -42,10 +43,13 @@ const TeacherManagement = () => {
   };
 
   const summary = {
-    totalTeachers: pagination.total,
-    activeTeachers: teachers.filter((t) => t.employment_status === "active")
-      .length,
-    advisers: teachers.filter((t) => t.section_advisors?.length > 0).length,
+    totalEnrollments: pagination.total,
+    enrolledStudents: enrollments.filter(
+      (e) => e.enrollment_status === "enrolled"
+    ).length,
+    pendingEnrollments: enrollments.filter(
+      (e) => e.enrollment_status === "pending"
+    ).length,
   };
 
   return (
@@ -54,7 +58,7 @@ const TeacherManagement = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Teacher Management
+              Enrollment Management
             </h1>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-medium">
@@ -69,7 +73,7 @@ const TeacherManagement = () => {
             <input
               type="text"
               className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all duration-200"
-              placeholder="Search teachers by name or email..."
+              placeholder="Search enrollments by student name or LRN..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -81,10 +85,10 @@ const TeacherManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-600 mb-1">
-                  Total Teachers
+                  Total Enrollments
                 </p>
                 <p className="text-2xl font-bold text-blue-900">
-                  {loading ? "..." : summary.totalTeachers}
+                  {loading ? "..." : summary.totalEnrollments}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -96,10 +100,10 @@ const TeacherManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-600 mb-1">
-                  Active Teachers
+                  Enrolled Students
                 </p>
                 <p className="text-2xl font-bold text-green-900">
-                  {loading ? "..." : summary.activeTeachers}
+                  {loading ? "..." : summary.enrolledStudents}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -111,10 +115,10 @@ const TeacherManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-600 mb-1">
-                  Advisers
+                  Pending Enrollments
                 </p>
                 <p className="text-2xl font-bold text-purple-900">
-                  {loading ? "..." : summary.advisers}
+                  {loading ? "..." : summary.pendingEnrollments}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
@@ -126,31 +130,31 @@ const TeacherManagement = () => {
       </div>
 
       <section className="mb-8">
-        <TeacherManagementTable
-          title="Teachers"
-          data={teachers}
+        <EnrollmentTable
+          title="Enrollments"
+          data={enrollments}
           searchTerm={searchTerm}
           loading={loading}
           error={error}
           onAdd={() => {
-            setSelectedTeacher(null);
-            setIsTeacherModalOpen(true);
+            setSelectedEnrollment(null);
+            setIsEnrollmentModalOpen(true);
           }}
-          onEdit={(teacher) => {
-            setSelectedTeacher(teacher);
-            setIsTeacherModalOpen(true);
+          onEdit={(enrollment) => {
+            setSelectedEnrollment(enrollment);
+            setIsEnrollmentModalOpen(true);
           }}
           onDelete={handleDelete}
         />
       </section>
 
-      <TeacherModal
-        isOpen={isTeacherModalOpen}
-        onClose={() => setIsTeacherModalOpen(false)}
-        selectedTeacher={selectedTeacher}
+      <EnrollmentModal
+        isOpen={isEnrollmentModalOpen}
+        onClose={() => setIsEnrollmentModalOpen(false)}
+        selectedEnrollment={selectedEnrollment}
       />
     </main>
   );
 };
 
-export default TeacherManagement;
+export default Enrollment;

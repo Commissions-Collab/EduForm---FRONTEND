@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 import { LuUsers, LuEye, LuMenu } from "react-icons/lu";
 import Pagination from "./Pagination";
-import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
+import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 
-const EnrollmentTable = ({
+const TeacherManagementTable = ({
   title,
   data,
   searchTerm,
@@ -13,20 +13,18 @@ const EnrollmentTable = ({
   onEdit,
   onDelete,
 }) => {
-  const { fetchEnrollments, pagination } = useEnrollmentStore();
+  const { fetchTeachers, pagination } = useTeacherManagementStore();
 
   const filteredRecords = useMemo(() => {
     return data.filter((item) =>
-      `${item.student?.first_name} ${item.student?.middle_name || ""} ${
-        item.student?.last_name
-      } ${item.student?.lrn} ${item.section?.name}`
+      `${item.first_name} ${item.last_name} ${item.user?.email}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
     );
   }, [data, searchTerm]);
 
   const handlePageChange = (page) => {
-    fetchEnrollments(page, pagination.per_page);
+    fetchTeachers(page, pagination.per_page);
   };
 
   const SkeletonRow = () => (
@@ -39,9 +37,6 @@ const EnrollmentTable = ({
       </td>
       <td className="px-6 py-4">
         <div className="w-32 h-4 bg-gray-200 rounded"></div>
-      </td>
-      <td className="px-6 py-4">
-        <div className="w-24 h-4 bg-gray-200 rounded"></div>
       </td>
       <td className="px-6 py-4">
         <div className="w-24 h-4 bg-gray-200 rounded"></div>
@@ -60,14 +55,12 @@ const EnrollmentTable = ({
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "enrolled":
+      case "active":
         return "bg-green-100 text-green-800 border-green-200";
-      case "pending":
+      case "inactive":
         return "bg-amber-100 text-amber-800 border-amber-200";
-      case "withdrawn":
+      case "terminated":
         return "bg-red-100 text-red-800 border-red-200";
-      case "transferred":
-        return "bg-blue-100 text-blue-800 border-blue-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -81,14 +74,14 @@ const EnrollmentTable = ({
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">{title}</h2>
               <p className="text-sm text-gray-600">
-                Manage student enrollments
+                Manage teacher profiles and assignments
               </p>
             </div>
             <div className="flex items-center gap-4">
               {!loading && (
                 <div className="text-sm text-gray-500">
                   {pagination.total}{" "}
-                  {pagination.total === 1 ? "enrollment" : "enrollments"} found
+                  {pagination.total === 1 ? "teacher" : "teachers"} found
                   {searchTerm && (
                     <span className="ml-1">
                       for "
@@ -105,7 +98,7 @@ const EnrollmentTable = ({
                 className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
               >
                 <LuUsers className="w-4 h-4" />
-                <span>Add Enrollment</span>
+                <span>Add Teacher</span>
               </button>
             </div>
           </div>
@@ -119,17 +112,14 @@ const EnrollmentTable = ({
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
                   <LuUsers className="w-4 h-4" />
-                  Student
+                  Name
                 </div>
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                LRN
+                Email
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Grade Level
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Section
+                Specialization
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Status
@@ -144,14 +134,14 @@ const EnrollmentTable = ({
               Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : error ? (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center">
+                <td colSpan={5} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                       <LuUsers className="w-6 h-6 text-red-600" />
                     </div>
                     <div>
                       <p className="font-medium text-red-900">
-                        Failed to load enrollment data
+                        Failed to load teacher data
                       </p>
                       <p className="text-sm text-red-600 mt-1">{error}</p>
                     </div>
@@ -160,28 +150,28 @@ const EnrollmentTable = ({
               </tr>
             ) : filteredRecords.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center">
+                <td colSpan={5} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                       <LuUsers className="w-6 h-6 text-gray-400" />
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
-                        No enrollments found
+                        No teachers found
                       </p>
                       <p className="text-sm text-gray-500 mt-1">
                         {searchTerm
                           ? "Try adjusting your search criteria"
-                          : "No enrollments available"}
+                          : "No teachers available"}
                       </p>
                     </div>
                   </div>
                 </td>
               </tr>
             ) : (
-              filteredRecords.map((enrollment) => (
+              filteredRecords.map((teacher) => (
                 <tr
-                  key={enrollment.id}
+                  key={teacher.id}
                   className="hover:bg-gray-50/50 transition-colors"
                 >
                   <td className="px-6 py-4">
@@ -191,42 +181,37 @@ const EnrollmentTable = ({
                       </div>
                       <div>
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border bg-blue-100 text-blue-800 border-blue-200">
-                          {enrollment.student?.first_name}{" "}
-                          {enrollment.student?.middle_name || ""}{" "}
-                          {enrollment.student?.last_name}
+                          {teacher.first_name} {teacher.last_name}
                         </span>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {enrollment.student?.lrn || "N/A"}
+                    {teacher.user?.email || "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {enrollment.yearLevel?.name || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {enrollment.section?.name || "-"}
+                    {teacher.specialization || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                        enrollment.enrollment_status
+                        teacher.employment_status
                       )}`}
                     >
-                      {enrollment.enrollment_status}
+                      {teacher.employment_status}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
                       <button
-                        onClick={() => onEdit(enrollment)}
+                        onClick={() => onEdit(teacher)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                       >
                         <LuEye className="w-3.5 h-3.5" />
                         Edit
                       </button>
                       <button
-                        onClick={() => onDelete(enrollment.id)}
+                        onClick={() => onDelete(teacher.id)}
                         className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <LuMenu className="w-4 h-4" />
@@ -265,4 +250,4 @@ const EnrollmentTable = ({
   );
 };
 
-export default EnrollmentTable;
+export default TeacherManagementTable;

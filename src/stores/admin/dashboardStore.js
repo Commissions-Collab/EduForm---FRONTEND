@@ -2,6 +2,32 @@ import { create } from "zustand";
 import useFilterStore from "./filterStore";
 import { axiosInstance } from "../../lib/axios";
 
+// Helper function to handle errors
+const handleError = (error, defaultMessage, set) => {
+  console.error("Dashboard Store Error:", error);
+
+  let errorMessage = defaultMessage;
+
+  if (error.response) {
+    // Server responded with error status
+    errorMessage =
+      error.response.data?.message ||
+      error.response.data?.error ||
+      `Server Error: ${error.response.status}`;
+  } else if (error.request) {
+    // Network error
+    errorMessage = "Network error - please check your connection";
+  } else if (error.message) {
+    // Other error
+    errorMessage = error.message;
+  }
+
+  set({
+    loading: false,
+    error: errorMessage,
+  });
+};
+
 const useDashboardStore = create((set, get) => ({
   dashboardData: null,
   loading: false,

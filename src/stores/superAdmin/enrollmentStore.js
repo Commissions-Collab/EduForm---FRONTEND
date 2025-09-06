@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 import toast from "react-hot-toast";
 
-const useTeacherManagementStore = create((set, get) => ({
-  teachers: [],
+const useEnrollmentStore = create((set, get) => ({
+  enrollments: [],
   pagination: {
     current_page: 1,
     per_page: 25,
@@ -12,18 +12,18 @@ const useTeacherManagementStore = create((set, get) => ({
   loading: false,
   error: null,
 
-  fetchTeachers: async (page = 1, perPage = 25) => {
+  fetchEnrollments: async (page = 1, perPage = 25) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
-        `/admin/teacher?page=${page}&per_page=${perPage}`
+        `/admin/enrollments?page=${page}&per_page=${perPage}`
       );
-      console.log("fetchTeachers Response:", data);
+      console.log("fetchEnrollments Response:", data);
       if (data.success === false) {
-        throw new Error(data.message || "Failed to fetch teachers");
+        throw new Error(data.message || "Failed to fetch enrollments");
       }
       set({
-        teachers: data.data?.data || [],
+        enrollments: data.data?.data || [],
         pagination: {
           current_page: data.data?.current_page || 1,
           per_page: data.data?.per_page || perPage,
@@ -32,9 +32,10 @@ const useTeacherManagementStore = create((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      const message = err?.response?.data?.message || "Could not load teachers";
+      const message =
+        err?.response?.data?.message || "Could not load enrollments";
       console.error(
-        "fetchTeachers Error:",
+        "fetchEnrollments Error:",
         err.response?.status,
         err.response?.data
       );
@@ -46,17 +47,20 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
-  createTeacher: async (teacherData) => {
+  createEnrollment: async (enrollmentData) => {
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
-      const { data } = await axiosInstance.post("/admin/teacher", teacherData);
-      console.log("createTeacher Response:", data);
+      const { data } = await axiosInstance.post(
+        "/admin/enrollments",
+        enrollmentData
+      );
+      console.log("createEnrollment Response:", data);
       if (data.success === false) {
-        throw new Error(data.message || "Failed to create teacher");
+        throw new Error(data.message || "Failed to create enrollment");
       }
-      toast.success("Teacher created successfully!");
-      get().fetchTeachers(
+      toast.success("Enrollment created successfully!");
+      get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
@@ -64,9 +68,9 @@ const useTeacherManagementStore = create((set, get) => ({
       return data;
     } catch (err) {
       const message =
-        err?.response?.data?.message || "Failed to create teacher";
+        err?.response?.data?.message || "Failed to create enrollment";
       console.error(
-        "createTeacher Error:",
+        "createEnrollment Error:",
         err.response?.status,
         err.response?.data
       );
@@ -79,25 +83,83 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
-  updateTeacher: async (id, teacherData) => {
+  bulkCreateEnrollments: async (bulkData) => {
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
-      const dataToSubmit = { ...teacherData };
-      if (!dataToSubmit.password) {
-        delete dataToSubmit.password;
-        delete dataToSubmit.password_confirmation;
+      const { data } = await axiosInstance.post(
+        "/admin/enrollments/bulk",
+        bulkData
+      );
+      console.log("bulkCreateEnrollments Response:", data);
+      if (data.success === false) {
+        throw new Error(data.message || "Failed to create bulk enrollments");
       }
+      toast.success("Bulk enrollments created successfully!");
+      get().fetchEnrollments(
+        get().pagination.current_page,
+        get().pagination.per_page
+      );
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || "Failed to create bulk enrollments";
+      console.error(
+        "bulkCreateEnrollments Error:",
+        err.response?.status,
+        err.response?.data
+      );
+      set({ error: message, loading: false });
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        window.dispatchEvent(new Event("unauthorized"));
+      }
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  fetchEnrollment: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(`/admin/enrollments/${id}`);
+      console.log("fetchEnrollment Response:", data);
+      if (data.success === false) {
+        throw new Error(data.message || "Failed to fetch enrollment");
+      }
+      set({ loading: false });
+      return data.data;
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || "Could not load enrollment";
+      console.error(
+        "fetchEnrollment Error:",
+        err.response?.status,
+        err.response?.data
+      );
+      set({ error: message, loading: false });
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        window.dispatchEvent(new Event("unauthorized"));
+      }
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  updateEnrollment: async (id, enrollmentData) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
       const { data } = await axiosInstance.patch(
-        `/admin/teacher/${id}`,
-        dataToSubmit
+        `/admin/enrollments/${id}`,
+        enrollmentData
       );
-      console.log("updateTeacher Response:", data);
+      console.log("updateEnrollment Response:", data);
       if (data.success === false) {
-        throw new Error(data.message || "Failed to update teacher");
+        throw new Error(data.message || "Failed to update enrollment");
       }
-      toast.success("Teacher updated successfully!");
-      get().fetchTeachers(
+      toast.success("Enrollment updated successfully!");
+      get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
@@ -105,9 +167,9 @@ const useTeacherManagementStore = create((set, get) => ({
       return data;
     } catch (err) {
       const message =
-        err?.response?.data?.message || "Failed to update teacher";
+        err?.response?.data?.message || "Failed to update enrollment";
       console.error(
-        "updateTeacher Error:",
+        "updateEnrollment Error:",
         err.response?.status,
         err.response?.data
       );
@@ -120,17 +182,17 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
-  deleteTeacher: async (id) => {
+  deleteEnrollment: async (id) => {
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
-      const { data } = await axiosInstance.delete(`/admin/teacher/${id}`);
-      console.log("deleteTeacher Response:", data);
+      const { data } = await axiosInstance.delete(`/admin/enrollments/${id}`);
+      console.log("deleteEnrollment Response:", data);
       if (data.success === false) {
-        throw new Error(data.message || "Failed to delete teacher");
+        throw new Error(data.message || "Failed to delete enrollment");
       }
-      toast.success("Teacher deleted successfully!");
-      get().fetchTeachers(
+      toast.success("Enrollment deleted successfully!");
+      get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
@@ -138,9 +200,9 @@ const useTeacherManagementStore = create((set, get) => ({
       return data;
     } catch (err) {
       const message =
-        err?.response?.data?.message || "Failed to delete teacher";
+        err?.response?.data?.message || "Failed to delete enrollment";
       console.error(
-        "deleteTeacher Error:",
+        "deleteEnrollment Error:",
         err.response?.status,
         err.response?.data
       );
@@ -153,26 +215,30 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
-  createTeacherSchedule: async (scheduleData) => {
+  promoteStudents: async (promotionData) => {
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.post(
-        "/admin/teacher/schedule",
-        scheduleData
+        "/admin/enrollments/promote",
+        promotionData
       );
-      console.log("createTeacherSchedule Response:", data);
+      console.log("promoteStudents Response:", data);
       if (data.success === false) {
-        throw new Error(data.message || "Failed to create teacher schedule");
+        throw new Error(data.message || "Failed to promote students");
       }
-      toast.success("Teacher schedule created successfully!");
+      toast.success("Students promoted successfully!");
+      get().fetchEnrollments(
+        get().pagination.current_page,
+        get().pagination.per_page
+      );
       set({ loading: false });
       return data;
     } catch (err) {
       const message =
-        err?.response?.data?.message || "Failed to create teacher schedule";
+        err?.response?.data?.message || "Failed to promote students";
       console.error(
-        "createTeacherSchedule Error:",
+        "promoteStudents Error:",
         err.response?.status,
         err.response?.data
       );
@@ -185,41 +251,13 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
-  assignAdviser: async (adviserData) => {
-    set({ loading: true, error: null });
-    try {
-      await fetchCsrfToken();
-      const { data } = await axiosInstance.post(
-        "/admin/teacher/assign-adviser",
-        adviserData
-      );
-      console.log("assignAdviser Response:", data);
-      if (data.success === false) {
-        throw new Error(data.message || "Failed to assign adviser");
-      }
-      toast.success("Teacher assigned as adviser successfully!");
-      set({ loading: false });
-      return data;
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to assign adviser";
-      console.error(
-        "assignAdviser Error:",
-        err.response?.status,
-        err.response?.data
-      );
-      set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
-      }
-      toast.error(message);
-      throw err;
-    }
+  clearError: () => {
+    set({ error: null });
   },
 
-  resetTeacherManagementStore: () => {
+  resetEnrollmentStore: () => {
     set({
-      teachers: [],
+      enrollments: [],
       pagination: {
         current_page: 1,
         per_page: 25,
@@ -232,7 +270,7 @@ const useTeacherManagementStore = create((set, get) => ({
 }));
 
 window.addEventListener("unauthorized", () => {
-  useTeacherManagementStore.getState().resetTeacherManagementStore();
+  useEnrollmentStore.getState().resetEnrollmentStore();
 });
 
-export default useTeacherManagementStore;
+export default useEnrollmentStore;

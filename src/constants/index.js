@@ -31,24 +31,19 @@ export const superAdminNav = [
     url: "/super_admin/dashboard",
   },
   {
-    name: "Academic Management",
-    icon: LuUsers,
-    url: "/super_admin/academicManagement",
+    name: "Enrollment",
+    icon: LuFileText,
+    url: "/super_admin/enrollment",
   },
   {
-    name: "Academic Year",
-    icon: LuUsers,
-    url: "/super_admin/academicYear",
-  },
-  {
-    name: "Calendar Management",
+    name: "Academic Calendar",
     icon: LuCalendarDays,
     url: "/super_admin/calendar",
   },
   {
-    name: "Forms Management",
-    icon: LuFileText,
-    url: "/super_admin/forms",
+    name: "Class Management",
+    icon: LuUsers,
+    url: "/super_admin/class",
   },
   {
     name: "Teacher Management",

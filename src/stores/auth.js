@@ -13,12 +13,10 @@ import useTextbooksStore from "./admin/textbookStore";
 import useWorkloadsStore from "./admin/workloadStore";
 import useGradesStore from "./admin/gradeStore";
 import useParentConferenceStore from "./admin/parentConference";
-import useAcademicYearManagementStore from "./superAdmin/academicYearManagementStore";
-import useCalendarManagementStore from "./superAdmin/calendarManagementStore";
-import useAcademicManagementStore from "./superAdmin/academicManagementStore";
+import useAcademicCalendarStore from "./superAdmin/calendarStore";
+import useEnrollmentStore from "./superAdmin/enrollmentStore";
 import useTeacherManagementStore from "./superAdmin/teacherManagementStore";
-import useFormsManagementStore from "./superAdmin/formsManagementStore";
-import useSuperAdminDashboardStore from "./superAdmin/superAdminDashboardStore";
+import useClassManagementStore from "./superAdmin/classManagementStore";
 import useAchievementsStore from "./users/achievementStore";
 import useStudentDashboardStore from "./users/studentDashboardStore";
 import useStudentGradeStore from "./users/studentGradeStore";
@@ -124,12 +122,11 @@ export const useAuthStore = create((set, get) => ({
     useGradesStore.getState().resetGradesStore();
     useParentConferenceStore.getState().resetParentConferenceStore();
     // Reset Super Admin stores
-    useAcademicYearManagementStore.getState().resetAcademicYearStore();
-    useCalendarManagementStore.getState().resetCalendarStore();
-    useAcademicManagementStore.getState().resetAcademicManagementStore();
+    useAcademicCalendarStore.getState().resetAcademicCalendarStore();
+    useEnrollmentStore.getState().resetEnrollmentStore();
     useTeacherManagementStore.getState().resetTeacherManagementStore();
-    useFormsManagementStore.getState().resetFormsManagementStore();
-    useSuperAdminDashboardStore.getState().resetDashboardStore();
+    useClassManagementStore.getState().resetClassManagementStore();
+
     // Reset Student stores
     useAchievementsStore.getState().resetAchievementsStore();
     useStudentDashboardStore.getState().resetStudentDashboardStore();

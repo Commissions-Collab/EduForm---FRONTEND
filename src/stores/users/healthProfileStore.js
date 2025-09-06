@@ -3,37 +3,54 @@ import toast from "react-hot-toast";
 import { axiosInstance } from "../../lib/axios";
 
 const useHealthProfileStore = create((set) => ({
-  bmiData: {
-    data: [],
-    isLoading: false,
-    error: null,
-  },
+  data: [],
+  loading: false,
+  error: null,
+
   fetchBmiData: async () => {
-    set((state) => ({
-      bmiData: { ...state.bmiData, isLoading: true, error: null },
-    }));
+    set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get("/student/health-profile");
-      set((state) => ({
-        bmiData: { ...state.bmiData, data: data.data, isLoading: false },
-      }));
+      console.log("fetchBmiData Response:", data);
+      set({
+        data: data.data || [],
+        loading: false,
+      });
     } catch (error) {
       const message =
         error?.response?.data?.message || "Failed to fetch BMI data";
-      set((state) => ({
-        bmiData: { ...state.bmiData, error: message, isLoading: false },
-      }));
+      console.error("fetchBmiData Error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      set({
+        error: message,
+        loading: false,
+        data: [],
+      });
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        window.dispatchEvent(new Event("unauthorized"));
+      }
       toast.error(message);
     }
   },
+
+  clearError: () => {
+    set({ error: null });
+  },
+
   resetHealthProfileStore: () => {
     set({
-      bmiData: { data: [], isLoading: false, error: null },
+      data: [],
+      loading: false,
+      error: null,
     });
   },
 }));
-// Reset store on unauthorized event
+
 window.addEventListener("unauthorized", () => {
   useHealthProfileStore.getState().resetHealthProfileStore();
 });
+
 export default useHealthProfileStore;
