@@ -1,40 +1,32 @@
-// src/pages/SignIn.jsx
 import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ClipLoader } from "react-spinners";
-import { useAuthStore } from "../../stores/auth";
+import useAuthStore from "../../stores/auth";
+import { clearStorage } from "../../lib/utils";
+
 const SignIn = () => {
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
-  const user = useAuthStore((state) => state.user);
-  const isLoggingIn = useAuthStore((state) => state.isLoggingIn);
-
+  const { login, user, isLoggingIn, authError } = useAuthStore();
   const {
     register,
     handleSubmit,
     setValue,
     clearErrors,
+    setError,
     formState: { errors },
   } = useForm();
 
   const onSubmit = async (formData) => {
-    // Clear any existing API errors before attempting login
     clearErrors("api");
-
+    clearStorage();
     const result = await login(formData);
-
     if (result.success && result.user) {
       navigate(`/${result.user.role}/dashboard`, { replace: true });
     } else {
-      setError("api", {
-        type: "manual",
-        message: result.message || "Login failed. Please try again.",
-      });
+      setError("api", { message: result.message });
     }
   };
 
-  // Clear API errors when user starts typing in either field
   const handleInputChange = (fieldName) => (e) => {
     if (errors.api) {
       clearErrors("api");
@@ -64,12 +56,21 @@ const SignIn = () => {
           Login to Your Account
         </h2>
 
+        {errors.api && (
+          <p className="text-red-500 text-sm text-center mt-2">
+            {errors.api.message}
+          </p>
+        )}
+        {authError && !errors.api && (
+          <p className="text-red-500 text-sm text-center mt-2">{authError}</p>
+        )}
+
         <div className="space-y-4">
           <div>
             <input
               type="email"
               placeholder="Email address"
-              className="form-input"
+              className={`form-input ${errors.email ? "border-red-500" : ""}`}
               {...register("email", {
                 required: "Email is required",
                 pattern: {
@@ -90,7 +91,9 @@ const SignIn = () => {
             <input
               type="password"
               placeholder="Password"
-              className="form-input"
+              className={`form-input ${
+                errors.password ? "border-red-500" : ""
+              }`}
               {...register("password", {
                 required: "Password is required",
                 minLength: {
@@ -108,12 +111,6 @@ const SignIn = () => {
           </div>
         </div>
 
-        {errors.api && (
-          <p className="text-red-500 text-sm text-center mt-2">
-            {errors.api.message}
-          </p>
-        )}
-
         <div className="flex justify-end pt-2">
           <Link
             to="/forgot-password"
@@ -122,25 +119,18 @@ const SignIn = () => {
             Forgot password?
           </Link>
         </div>
+
         <button
           type="submit"
           disabled={isLoggingIn}
           className={`w-full flex justify-center items-center gap-2 font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5
-    ${
-      isLoggingIn
-        ? "bg-gray-400 text-white cursor-not-allowed"
-        : "bg-[#3730A3] hover:bg-[#2C268C] text-white"
-    }
-  `}
+            ${
+              isLoggingIn
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-[#3730A3] hover:bg-[#2C268C] text-white"
+            }`}
         >
-          {isLoggingIn ? (
-            <>
-              <span>Logging in...</span>
-              <ClipLoader size={18} color="#ffffff" />
-            </>
-          ) : (
-            "Login"
-          )}
+          {isLoggingIn ? "Logging in..." : "Login"}
         </button>
 
         <div className="flex justify-center mt-5">

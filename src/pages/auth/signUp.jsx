@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useAuthStore } from "../../stores/auth";
-
+import { clearStorage } from "../../lib/utils";
 const SignUp = () => {
   const navigate = useNavigate();
-  const registerUser = useAuthStore((state) => state.register);
-  const isRegistering = useAuthStore((state) => state.isRegistering);
-
+  const { register: registerUser, isRegistering } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -55,11 +53,20 @@ const SignUp = () => {
       case 4:
         fieldsToValidate = ["email", "password", "password_confirmation"];
         break;
+      default:
+        break;
     }
 
     if (fieldsToValidate.length > 0) {
       const isValid = await trigger(fieldsToValidate);
       if (!isValid) return;
+      // Validate password confirmation
+      if (
+        currentStep === 4 &&
+        getValues("password") !== getValues("password_confirmation")
+      ) {
+        return;
+      }
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
@@ -70,8 +77,11 @@ const SignUp = () => {
   };
 
   const onSubmit = async (data) => {
+    if (data.password !== data.password_confirmation) {
+      return;
+    }
+    clearStorage(); // Clear storage before registration
     const formData = new FormData();
-
     formData.append("LRN", data.LRN);
     formData.append("first_name", data.first_name);
     formData.append("middle_name", data.middle_name || "");
@@ -88,13 +98,11 @@ const SignUp = () => {
     );
     formData.append("parents_number", data.parents_number || "");
     formData.append("parents_email", data.parents_email || "");
-
     if (imageFile) {
       formData.append("image", imageFile);
     }
 
-    const result = await registerUser(formData, true); // true = isFormData
-
+    const result = await registerUser(formData);
     if (result.success) {
       navigate("/sign-in");
     }
@@ -108,7 +116,6 @@ const SignUp = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Personal Information
             </h3>
-
             <div>
               <input
                 {...register("LRN", { required: "LRN is required" })}
@@ -121,7 +128,6 @@ const SignUp = () => {
                 </p>
               )}
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <input
@@ -139,7 +145,6 @@ const SignUp = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <input
                   {...register("middle_name")}
@@ -148,7 +153,6 @@ const SignUp = () => {
                 />
               </div>
             </div>
-
             <div>
               <input
                 {...register("last_name", {
@@ -165,7 +169,6 @@ const SignUp = () => {
                 </p>
               )}
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -186,7 +189,6 @@ const SignUp = () => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Gender
@@ -214,6 +216,9 @@ const SignUp = () => {
       case 2:
         return (
           <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Parent/Guardian Information
+            </h3>
             <input
               {...register("parents_fullname")}
               placeholder="Parent's Full Name"
@@ -245,7 +250,6 @@ const SignUp = () => {
             <p className="text-gray-600 text-sm mb-4">
               Add a profile picture to personalize your account (Optional).
             </p>
-
             <div className="flex flex-col items-center space-y-4">
               {imagePreview ? (
                 <div className="relative">
@@ -279,7 +283,6 @@ const SignUp = () => {
                   </svg>
                 </div>
               )}
-
               <label className="cursor-pointer bg-blue-50 hover:bg-blue-100 text-[#3730A3] px-4 py-2 rounded-lg border border-[#3730A3] transition-colors">
                 <input
                   type="file"
@@ -289,7 +292,6 @@ const SignUp = () => {
                 />
                 {imagePreview ? "Change Picture" : "Upload Picture"}
               </label>
-
               {imageFile && (
                 <p className="text-sm text-gray-600">
                   Selected: {imageFile.name}
@@ -301,23 +303,67 @@ const SignUp = () => {
       case 4:
         return (
           <div className="space-y-4">
-            <input
-              {...register("email", { required: true })}
-              placeholder="Email"
-              className="form-input"
-            />
-            <input
-              type="password"
-              {...register("password", { required: true })}
-              placeholder="Password"
-              className="form-input"
-            />
-            <input
-              type="password"
-              {...register("password_confirmation", { required: true })}
-              placeholder="Confirm Password"
-              className="form-input"
-            />
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Account Details
+            </h3>
+            <div>
+              <input
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^\S+@\S+\.\S+$/,
+                    message: "Enter a valid email address",
+                  },
+                })}
+                placeholder="Email"
+                className={`form-input ${errors.email ? "border-red-500" : ""}`}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <input
+                type="password"
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters",
+                  },
+                })}
+                placeholder="Password"
+                className={`form-input ${
+                  errors.password ? "border-red-500" : ""
+                }`}
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <input
+                type="password"
+                {...register("password_confirmation", {
+                  required: "Password confirmation is required",
+                  validate: (value) =>
+                    value === getValues("password") || "Passwords do not match",
+                })}
+                placeholder="Confirm Password"
+                className={`form-input ${
+                  errors.password_confirmation ? "border-red-500" : ""
+                }`}
+              />
+              {errors.password_confirmation && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password_confirmation.message}
+                </p>
+              )}
+            </div>
           </div>
         );
       default:
@@ -327,7 +373,6 @@ const SignUp = () => {
 
   return (
     <div className="w-full max-w-2xl bg-white p-6 sm:p-8 md:p-10 max-h-[calc(100vh-80px)] overflow-y-auto">
-      {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-extrabold text-[#3730A3] mb-2">
           AcadFlow
@@ -337,8 +382,6 @@ const SignUp = () => {
           Create Your Account
         </h2>
       </div>
-
-      {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">
@@ -355,12 +398,8 @@ const SignUp = () => {
           ></div>
         </div>
       </div>
-
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Step Content */}
         <div className="min-h-[300px]">{renderStepContent()}</div>
-
-        {/* Navigation Buttons */}
         <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
           <button
             type="button"
@@ -374,7 +413,6 @@ const SignUp = () => {
           >
             Previous
           </button>
-
           {currentStep < totalSteps ? (
             <button
               type="button"
@@ -398,8 +436,6 @@ const SignUp = () => {
           )}
         </div>
       </form>
-
-      {/* Sign In Link */}
       <div className="flex justify-center mt-6 pt-6 border-t border-gray-200">
         <span className="text-gray-600 text-sm">Already have an account?</span>
         <Link

@@ -1,13 +1,12 @@
-// src/pages/admin/health/HealthProfile.jsx
 import React, { useEffect, useState } from "react";
 import { LuActivity } from "react-icons/lu";
 import { getItem } from "../../../lib/utils";
 import BmiStudentTable from "../../../components/admin/BmiStudentTable";
-import { useAdminStore } from "../../../stores/admin";
-
+import useBmiStore from "../../../stores/admin/bmiStore";
+import useFilterStore from "../../../stores/admin/filterStore";
 const HealthProfile = () => {
-  const { bmiStudents, bmiLoading, bmiError, fetchBmiStudents } =
-    useAdminStore();
+  const { bmiStudents, loading, error, fetchBmiStudents } = useBmiStore();
+  const { globalFilters } = useFilterStore();
 
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
   const [selectedQuarter, setSelectedQuarter] = useState("");
@@ -52,15 +51,23 @@ const HealthProfile = () => {
   }, [fetchBmiStudents]);
 
   useEffect(() => {
-    if (selectedAcademicYear && selectedQuarter && selectedSection) {
-      fetchBmiStudents(selectedSection, selectedAcademicYear, selectedQuarter);
+    // Sync with global filters from useFilterStore
+    setSelectedAcademicYear(globalFilters.academicYearId || "");
+    setSelectedQuarter(globalFilters.quarterId || "");
+    setSelectedSection(globalFilters.sectionId || "");
+
+    if (
+      globalFilters.academicYearId &&
+      globalFilters.quarterId &&
+      globalFilters.sectionId
+    ) {
+      fetchBmiStudents(
+        globalFilters.sectionId,
+        globalFilters.academicYearId,
+        globalFilters.quarterId
+      );
     }
-  }, [
-    selectedAcademicYear,
-    selectedQuarter,
-    selectedSection,
-    fetchBmiStudents,
-  ]);
+  }, [globalFilters, fetchBmiStudents]);
 
   const hasAllFilters =
     selectedAcademicYear && selectedQuarter && selectedSection;
@@ -108,8 +115,8 @@ const HealthProfile = () => {
         {hasAllFilters && (
           <BmiStudentTable
             students={bmiStudents}
-            loading={bmiLoading}
-            error={bmiError}
+            loading={loading}
+            error={error}
           />
         )}
       </main>

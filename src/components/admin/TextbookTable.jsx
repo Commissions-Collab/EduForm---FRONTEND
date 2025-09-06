@@ -9,20 +9,20 @@ import {
   LuMenu,
 } from "react-icons/lu";
 import Pagination from "./Pagination";
-import { useAdminStore } from "../../stores/admin";
+import useTextbooksStore from "../../stores/admin/textbookStore";
 
 const TextbookTable = ({ searchTerm }) => {
   const {
     textbooks,
-    paginatedTextbookRecords,
-    textbookCurrentPage,
-    totalTextbookPages,
-    setTextbookCurrentPage,
+    paginatedRecords,
+    currentPage,
+    totalPages,
+    setCurrentPage,
     loading,
     error,
-  } = useAdminStore();
+  } = useTextbooksStore();
 
-  const filteredRecords = paginatedTextbookRecords().filter((book) => {
+  const filteredRecords = paginatedRecords().filter((book) => {
     return book.title?.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
@@ -50,7 +50,7 @@ const TextbookTable = ({ searchTerm }) => {
     return colors[subject] || colors.default;
   };
 
-  const indexOfLast = textbookCurrentPage * 10; // Assuming 10 items per page
+  const indexOfLast = currentPage * 10; // Assuming 10 items per page
   const indexOfFirst = indexOfLast - 10;
   const totalRecords = filteredRecords.length;
 
@@ -229,10 +229,10 @@ const TextbookTable = ({ searchTerm }) => {
                           </p>
                           <span
                             className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getSubjectColor(
-                              book.subject?.name
+                              book.subject?.name || book.subject // Handle both cases
                             )}`}
                           >
-                            {book.subject?.name || "N/A"}
+                            {book.subject?.name || book.subject || "N/A"}
                           </span>
                         </div>
                       </div>
@@ -338,15 +338,11 @@ const TextbookTable = ({ searchTerm }) => {
               {Math.min(indexOfLast, totalRecords)} of {totalRecords} results
             </p>
             <Pagination
-              currentPage={textbookCurrentPage}
-              totalPages={totalTextbookPages()}
-              onPrevious={() =>
-                setTextbookCurrentPage(Math.max(textbookCurrentPage - 1, 1))
-              }
+              currentPage={currentPage}
+              totalPages={totalPages()}
+              onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
               onNext={() =>
-                setTextbookCurrentPage(
-                  Math.min(textbookCurrentPage + 1, totalTextbookPages())
-                )
+                setCurrentPage(Math.min(currentPage + 1, totalPages()))
               }
             />
           </div>

@@ -4,13 +4,9 @@ import StatusBadge from "./StatusBadge";
 import { LuLoader, LuUser, LuSave, LuFilter } from "react-icons/lu";
 import { VscLayoutStatusbar } from "react-icons/vsc";
 import toast from "react-hot-toast";
-import { useAdminStore } from "../../stores/admin";
-
-const GradesTable = ({
-  selectedAcademicYear,
-  selectedQuarter,
-  selectedSection,
-}) => {
+import useGradesStore from "../../stores/admin/gradeStore";
+import useFilterStore from "../../stores/admin/filterStore";
+const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
   const {
     students,
     subjects,
@@ -22,7 +18,9 @@ const GradesTable = ({
     updateMultipleGrades,
     loading,
     error,
-  } = useAdminStore();
+  } = useGradesStore();
+
+  const { globalFilters, filterOptions } = useFilterStore();
 
   const [localGradeState, setLocalGradeState] = useState({});
   const [savingGrades, setSavingGrades] = useState({});
@@ -91,8 +89,8 @@ const GradesTable = ({
       const payload = {
         student_id: Number(studentId),
         subject_id: Number(subjectId),
-        quarter_id: Number(selectedQuarter),
-        academic_year_id: Number(selectedAcademicYear),
+        quarter_id: Number(quarterId),
+        academic_year_id: Number(academicYearId),
         grade:
           gradeValue === "" || gradeValue === null || gradeValue === undefined
             ? null
@@ -137,8 +135,8 @@ const GradesTable = ({
       return {
         student_id: change.studentId,
         subject_id: change.subjectId,
-        quarter_id: Number(selectedQuarter),
-        academic_year_id: Number(selectedAcademicYear),
+        quarter_id: Number(quarterId),
+        academic_year_id: Number(academicYearId),
         grade:
           change.grade === "" ||
           change.grade === null ||
@@ -166,8 +164,7 @@ const GradesTable = ({
     }
   };
 
-  const showFiltersMessage =
-    !selectedAcademicYear || !selectedQuarter || !selectedSection;
+  const showFiltersMessage = !academicYearId || !quarterId || !sectionId;
 
   if (showFiltersMessage) {
     return (
@@ -197,6 +194,11 @@ const GradesTable = ({
       </div>
     );
   }
+
+  // Get quarter name for display
+  const quarterName =
+    filterOptions.quarters?.find((q) => q.id === quarterId)?.name ||
+    `Quarter ${quarterId}`;
 
   return (
     <div className="space-y-6">
@@ -231,7 +233,7 @@ const GradesTable = ({
                 </button>
               )}
               <div className="text-sm font-medium text-gray-700">
-                Quarter: {selectedQuarter}
+                Quarter: {quarterName}
               </div>
             </div>
           </div>

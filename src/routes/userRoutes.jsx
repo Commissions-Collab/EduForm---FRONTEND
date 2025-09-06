@@ -7,12 +7,15 @@ import HealthProfile from "../pages/user/HealthProfile";
 import TextBooks from "../pages/user/TextBooks";
 import Achievements from "../pages/user/Achievements";
 import ProtectedRoute from "./ProtectedRoute";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 const UserRoutes = (
   <Route
     element={
       <ProtectedRoute allowedRoles={["student"]}>
-        <UserLayout />
+        <ErrorBoundary>
+          <UserLayout />
+        </ErrorBoundary>
       </ProtectedRoute>
     }
   >

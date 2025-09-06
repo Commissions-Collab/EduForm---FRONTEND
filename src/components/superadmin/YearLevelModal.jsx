@@ -1,0 +1,137 @@
+import React, { useState, useEffect } from "react";
+import { LuX, LuSave } from "react-icons/lu";
+import useClassManagementStore from "../../stores/superAdmin/classManagementStore";
+
+const YearLevelModal = ({ isOpen, onClose, selectedYearLevel }) => {
+  const { createYearLevel, updateYearLevel } = useClassManagementStore();
+  const [formData, setFormData] = useState({
+    name: "",
+    code: "",
+    sort_order: "",
+  });
+
+  useEffect(() => {
+    if (selectedYearLevel) {
+      setFormData({
+        name: selectedYearLevel.name || "",
+        code: selectedYearLevel.code || "",
+        sort_order: selectedYearLevel.sort_order || "",
+      });
+    } else {
+      setFormData({ name: "", code: "", sort_order: "" });
+    }
+  }, [selectedYearLevel]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === "sort_order" ? parseInt(value) || "" : value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (selectedYearLevel) {
+        await updateYearLevel(selectedYearLevel.id, formData);
+      } else {
+        await createYearLevel(formData);
+      }
+      onClose();
+    } catch (err) {
+      // Error handled by store
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {selectedYearLevel ? "Edit Year Level" : "Add Year Level"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <LuX className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                required
+                placeholder="e.g., Grade 1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Code
+              </label>
+              <input
+                type="text"
+                name="code"
+                value={formData.code}
+                onChange={handleChange}
+                className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                required
+                placeholder="e.g., G1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Sort Order
+              </label>
+              <input
+                type="number"
+                name="sort_order"
+                value={formData.sort_order}
+                onChange={handleChange}
+                className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                required
+                placeholder="e.g., 1"
+              />
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
+            >
+              <LuSave className="w-4 h-4" />
+              <span>{selectedYearLevel ? "Update" : "Save"}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default YearLevelModal;

@@ -1,125 +1,98 @@
 import React, { useEffect } from "react";
-import AttendanceCards from "../../components/user/AttendanceCards";
-import { useStoreUser } from "../../stores/student";
+import { LuUser, LuCircleAlert } from "react-icons/lu";
+
+import toast from "react-hot-toast";
+import AttendanceMonthFilter from "../../components/user/AttendanceMonthFilter";
+import AttendanceSummary from "../../components/user/AttendanceSummary";
+import AttendanceDailyStatus from "../../components/user/AttendanceDailyStatus";
+import AttendanceQuarterlySummary from "../../components/user/AttendanceQuarterlySummary";
+import useStudentAttendanceStore from "../../stores/users/studentAttendanceStore";
 
 const UserAttendance = () => {
   const {
-    attendanceData,
-    fetchAttendance,
-    fetchMonthOptions,
-    monthOptions,
+    data,
+    months,
     selectedMonth,
+    loading,
+    error,
+    monthsLoading,
+    monthsError,
+    fetchAttendance,
+    fetchMonthFilter,
     setSelectedMonth,
-    attendanceLoading,
-    attendanceError,
-    clearAttendanceError,
-  } = useStoreUser();
+    clearError,
+  } = useStudentAttendanceStore();
 
   useEffect(() => {
-    fetchMonthOptions();
-  }, [fetchMonthOptions]);
+    fetchMonthFilter();
+    fetchAttendance(selectedMonth || new Date().toISOString().slice(0, 7)); // Default to current month
+  }, [fetchMonthFilter, fetchAttendance, selectedMonth]);
 
   useEffect(() => {
-    // Always fetch attendance data with a month parameter
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-    fetchAttendance(selectedMonth || currentMonth);
-  }, [fetchAttendance, selectedMonth]);
+    if (error || monthsError) {
+      toast.error(error || monthsError);
+      clearError();
+    }
+  }, [error, monthsError, clearError]);
 
-  if (attendanceLoading) {
+  if (error && monthsError) {
     return (
-      <div className="p-5">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <LuCircleAlert className="w-12 h-12 text-red-600" />
+          <p className="text-red-600 font-medium">Error loading attendance</p>
         </div>
-      </div>
-    );
-  }
-
-  if (attendanceError) {
-    return (
-      <div className="p-5">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700">{attendanceError}</p>
-          <button
-            onClick={clearAttendanceError}
-            className="mt-2 text-red-600 hover:text-red-800 underline"
-          >
-            Try again
-          </button>
-        </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="p-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4">
-        <h2 className="text-md sm:text-lg lg:text-1xl font-bold text-gray-800 mb-4 sm:mb-0">
-          Attendance Records (SF2/SF4)
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-gray-600">Month: </span>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            value={selectedMonth || new Date().toISOString().slice(0, 7)}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            {monthOptions.map((month, index) => (
-              <option key={index} value={month.value}>
-                {month.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Attendance Summary */}
-      {attendanceData.attendance_rate > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-700">
-                Attendance Rate
-              </h3>
-              <p className="text-2xl font-bold text-green-600">
-                {attendanceData.attendance_rate}%
-              </p>
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-700">
-                Late Arrivals
-              </h3>
-              <p className="text-2xl font-bold text-yellow-600">
-                {attendanceData.late_arrivals.count}
-              </p>
-              {attendanceData.late_arrivals.pattern && (
-                <p className="text-sm text-gray-500">
-                  Mostly on {attendanceData.late_arrivals.pattern}
-                </p>
-              )}
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Absences</h3>
-              <p className="text-2xl font-bold text-red-600">
-                {attendanceData.absences.count}
-              </p>
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-700">
-                Total Days
-              </h3>
-              <p className="text-2xl font-bold text-blue-600">
-                {attendanceData.daily_status.length}
-              </p>
+    <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen">
+      <div className="mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Your Attendance
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-medium">
+                Student Panel
+              </span>
             </div>
           </div>
+          <AttendanceMonthFilter
+            months={months}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+            loading={monthsLoading}
+            error={monthsError}
+          />
         </div>
-      )}
 
-      {/* Attendance Cards Component */}
-      <AttendanceCards />
-    </div>
+        <AttendanceSummary
+          attendanceRate={data.attendance_rate}
+          lateArrivals={data.late_arrivals}
+          absences={data.absences}
+          loading={loading}
+        />
+      </div>
+
+      <section className="mb-8">
+        <AttendanceDailyStatus
+          dailyStatus={data.daily_status}
+          loading={loading}
+          error={error}
+        />
+      </section>
+
+      <section>
+        <AttendanceQuarterlySummary
+          quarterlySummary={data.quarterly_summary}
+          loading={loading}
+          error={error}
+        />
+      </section>
+    </main>
   );
 };
 

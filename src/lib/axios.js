@@ -1,31 +1,68 @@
 import axios from "axios";
-import { getItem } from "./utils";
+import { getItem, removeItem } from "./utils";
+import toast from "react-hot-toast";
+
+const BASE_URL = "http://127.0.0.1:8000/api";
 
 export const axiosInstance = axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
-  withCredentials: false,
+  withCredentials: true,
 });
 
-axiosInstance.interceptors.request.use((config) => {
-  const token = getItem("token", false);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+let csrfTokenFetched = false;
+
+export const fetchCsrfToken = async () => {
+  if (csrfTokenFetched) return;
+  try {
+    await axios.get("/sanctum/csrf-cookie", {
+      baseURL: BASE_URL.replace("/api", ""),
+      withCredentials: true,
+    });
+    csrfTokenFetched = true;
+  } catch (error) {
+    console.error("Failed to fetch CSRF token:", error);
+    toast.error("Failed to initialize session. Please try again.");
   }
-  return config;
-});
+};
 
-// Optional: Add response interceptor for better error handling
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    await fetchCsrfToken();
+    const token = getItem("token", false);
+    if (token && typeof token === "string" && token.length > 0) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    console.error("Request interceptor error:", error);
+    return Promise.reject(error);
+  }
+);
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 errors globally if needed
-    if (error.response?.status === 401) {
-      // Token might be expired - could dispatch logout here if needed
-      // Note: Avoid circular imports with auth store
+    if (error.response?.status === 401 || error.response?.status === 419) {
+      console.error("Unauthorized error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      removeItem("token");
+      removeItem("user");
+      csrfTokenFetched = false;
+      window.dispatchEvent(new Event("unauthorized"));
+      toast.error("Session expired. Please log in again.");
     }
     return Promise.reject(error);
   }
 );
+
+// Reset csrfTokenFetched on unauthorized event
+window.addEventListener("unauthorized", () => {
+  csrfTokenFetched = false;
+});

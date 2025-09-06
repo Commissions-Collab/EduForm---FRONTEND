@@ -1,17 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  LuUsers,
-  LuCalendar,
-  LuBook,
-  LuCircle,
-  LuClock,
-  LuCheckCheck,
-  LuX,
-} from "react-icons/lu";
+import { LuCalendar, LuBook, LuArrowLeft } from "react-icons/lu";
 import { getItem, setItem } from "../../../lib/utils";
 import WeeklyScheduleView from "../../../components/admin/WeeklyScheduleView";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
-import { useAdminStore } from "../../../stores/admin";
+import useAttendanceStore from "../../../stores/admin/attendanceStore";
+import useFilterStore from "../../../stores/admin/filterStore";
 
 const DailyAttendance = () => {
   const {
@@ -20,13 +13,12 @@ const DailyAttendance = () => {
     scheduleAttendance,
     loading,
     error,
-    globalFilters,
-  } = useAdminStore();
+  } = useAttendanceStore();
+  const { globalFilters } = useFilterStore();
 
-  const filters = globalFilters || {};
-  const academicYearId = filters.academicYearId ?? null;
-  const quarterId = filters.quarterId ?? null;
-  const sectionId = filters.sectionId ?? null;
+  const academicYearId = globalFilters?.academicYearId ?? null;
+  const quarterId = globalFilters?.quarterId ?? null;
+  const sectionId = globalFilters?.sectionId ?? null;
 
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
@@ -44,12 +36,22 @@ const DailyAttendance = () => {
     }
 
     if (savedScheduleId) {
-      // You would need to fetch schedule details here or store more info
-      // For now, we'll set it when a schedule is clicked from weekly view
+      // Assuming schedule data can be fetched or retrieved from store
+      fetchScheduleAttendance({
+        scheduleId: savedScheduleId,
+        sectionId: sectionId,
+        academicYearId: academicYearId,
+        quarterId: quarterId,
+        date: savedDate || selectedDate,
+      }).then((data) => {
+        if (data?.schedule) {
+          setSelectedSchedule(data.schedule);
+          setShowWeeklyView(false);
+        }
+      });
     }
-  }, []);
+  }, [fetchScheduleAttendance, academicYearId, quarterId, sectionId]);
 
-  // Fetch attendance data when schedule and date change
   useEffect(() => {
     if (
       selectedSchedule &&
@@ -87,11 +89,10 @@ const DailyAttendance = () => {
     setItem("selectedDate", date || selectedDate);
   };
 
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const handleMarkAllPresent = async () => {
-    if (!selectedSchedule) {
-      alert("Please select a schedule first");
-      return;
-    }
+    if (!selectedSchedule) return alert("Please select a schedule first");
 
     try {
       await updateAllStudentsAttendance({
@@ -101,23 +102,23 @@ const DailyAttendance = () => {
       });
 
       // Refresh attendance data
-      fetchScheduleAttendance({
+      await fetchScheduleAttendance({
         scheduleId: selectedSchedule.id,
         sectionId: sectionId,
         academicYearId: academicYearId,
         quarterId: quarterId,
         date: selectedDate,
       });
+
+      // Trigger table refresh
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Failed to mark all present:", error);
     }
   };
 
   const handleMarkAllAbsent = async () => {
-    if (!selectedSchedule) {
-      alert("Please select a schedule first");
-      return;
-    }
+    if (!selectedSchedule) return alert("Please select a schedule first");
 
     try {
       await updateAllStudentsAttendance({
@@ -127,13 +128,16 @@ const DailyAttendance = () => {
       });
 
       // Refresh attendance data
-      fetchScheduleAttendance({
+      await fetchScheduleAttendance({
         scheduleId: selectedSchedule.id,
         sectionId: sectionId,
         academicYearId: academicYearId,
         quarterId: quarterId,
         date: selectedDate,
       });
+
+      // Trigger table refresh
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Failed to mark all absent:", error);
     }
@@ -179,26 +183,37 @@ const DailyAttendance = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        {selectedSchedule && (
-          <div className="flex space-x-3">
-            <button
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center disabled:opacity-50 transition-colors"
-              onClick={handleMarkAllPresent}
-              disabled={loading}
-            >
-              <LuCheckCheck size={16} />
-              <span className="ml-2">Mark All Present</span>
-            </button>
-
-            <button
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center disabled:opacity-50 transition-colors"
-              onClick={handleMarkAllAbsent}
-              disabled={loading}
-            >
-              <LuX size={16} />
-              <span className="ml-2">Mark All Absent</span>
-            </button>
+        {/* Quick Actions for selected schedule */}
+        {selectedSchedule && !showWeeklyView && summary && (
+          <div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleMarkAllPresent}
+                disabled={loading}
+                className="px-3 py-2 text-sm bg-green-100 text-green-800 rounded-lg hover:bg-green-200 disabled:opacity-50 transition-colors"
+              >
+                Mark All Present ({summary.total})
+              </button>
+              <button
+                onClick={handleMarkAllAbsent}
+                disabled={loading}
+                className="px-3 py-2 text-sm bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50 transition-colors"
+              >
+                Mark All Absent ({summary.total})
+              </button>
+              <button
+                onClick={() => {
+                  console.log(
+                    "Export attendance for",
+                    selectedSchedule.subject?.name,
+                    selectedDate
+                  );
+                }}
+                className="px-3 py-2 text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors"
+              >
+                Export Attendance
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -210,36 +225,17 @@ const DailyAttendance = () => {
 
       {/* Selected Schedule Info */}
       {selectedSchedule && !showWeeklyView && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleBackToWeekly}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                ← Back to Weekly Schedule
-              </button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center space-x-2">
-                <LuBook className="text-blue-600" size={20} />
-                <div>
-                  <h3 className="font-semibold text-gray-900">
-                    {selectedSchedule.subject?.name}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {selectedSchedule.section?.name} •{" "}
-                    {selectedSchedule.time?.start} -{" "}
-                    {selectedSchedule.time?.end}
-                    {selectedSchedule.room &&
-                      ` • Room ${selectedSchedule.room}`}
-                  </p>
-                </div>
-              </div>
-            </div>
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={handleBackToWeekly}
+              className="text-blue-600 flex gap-2 items-center underline hover:text-blue-800 text-base font-medium"
+            >
+              <LuArrowLeft /> Weekly Schedule
+            </button>
 
             {/* Date Selector */}
             <div className="flex items-center space-x-2">
-              <LuCalendar className="text-gray-400" size={16} />
               <input
                 type="date"
                 value={selectedDate}
@@ -251,7 +247,7 @@ const DailyAttendance = () => {
 
           {/* Attendance Summary */}
           {summary && (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="bg-blue-50 p-3 rounded-lg text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {summary.total}
@@ -298,6 +294,7 @@ const DailyAttendance = () => {
       {/* Attendance Table */}
       {selectedSchedule && !showWeeklyView ? (
         <AttendanceTable
+          key={refreshKey}
           selectedDate={selectedDate}
           selectedSchedule={selectedSchedule}
         />
@@ -319,42 +316,6 @@ const DailyAttendance = () => {
             </button>
           </div>
         )
-      )}
-
-      {/* Quick Actions for selected schedule */}
-      {selectedSchedule && !showWeeklyView && summary && (
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h4 className="font-medium text-gray-900 mb-3">Quick Actions</h4>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={handleMarkAllPresent}
-              disabled={loading}
-              className="px-3 py-2 text-sm bg-green-100 text-green-800 rounded-lg hover:bg-green-200 disabled:opacity-50 transition-colors"
-            >
-              Mark All Present ({summary.total})
-            </button>
-            <button
-              onClick={handleMarkAllAbsent}
-              disabled={loading}
-              className="px-3 py-2 text-sm bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50 transition-colors"
-            >
-              Mark All Absent ({summary.total})
-            </button>
-            <button
-              onClick={() => {
-                // This could export attendance or generate reports
-                console.log(
-                  "Export attendance for",
-                  selectedSchedule.subject?.name,
-                  selectedDate
-                );
-              }}
-              className="px-3 py-2 text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors"
-            >
-              Export Attendance
-            </button>
-          </div>
-        </div>
       )}
     </main>
   );

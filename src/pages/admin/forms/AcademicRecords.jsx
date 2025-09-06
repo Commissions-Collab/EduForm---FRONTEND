@@ -1,22 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { LuDownload } from "react-icons/lu";
 import GradesTable from "../../../components/admin/GradesTable";
-import { getItem } from "../../../lib/utils";
-import { useAdminStore } from "../../../stores/admin";
+import useFilterStore from "../../../stores/admin/filterStore";
+import useGradesStore from "../../../stores/admin/gradeStore";
 
 const Grades = () => {
   const {
-    fetchGrades,
-    students,
-    subjects,
-    loading,
+    globalFilters,
+    filterOptions,
+    loading: filterLoading,
     initializeGlobalFilters,
     fetchGlobalFilterOptions,
-  } = useAdminStore();
+  } = useFilterStore();
 
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
-  const [selectedQuarter, setSelectedQuarter] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
+  const {
+    students,
+    subjects,
+    fetchGrades,
+    loading: gradesLoading,
+    error: gradesError,
+  } = useGradesStore();
 
   // Get stats from current data
   const totalStudents = students?.length || 0;
@@ -28,39 +31,31 @@ const Grades = () => {
     ).length || 0;
   const pendingStudents = totalStudents - completedStudents;
 
+  // Initialize filters and fetch filter options on mount
   useEffect(() => {
     initializeGlobalFilters();
     fetchGlobalFilterOptions();
-  }, []);
+  }, [initializeGlobalFilters, fetchGlobalFilterOptions]);
 
+  // Fetch grades on mount if filters are set, and handle filter changes
   useEffect(() => {
-    // Get saved filter values from localStorage on component mount
-    const savedAcademicYear = getItem("academicYearId", false);
-    const savedQuarter = getItem("quarterId", false);
-    const savedSection = getItem("sectionId", false);
+    // Check if all required filters are set on mount
+    const hasAllFilters =
+      globalFilters.academicYearId &&
+      globalFilters.quarterId &&
+      globalFilters.sectionId;
 
-    if (savedAcademicYear) setSelectedAcademicYear(savedAcademicYear);
-    if (savedQuarter) setSelectedQuarter(savedQuarter);
-    if (savedSection) setSelectedSection(savedSection);
-
-    // Fetch grades if we have all required filters
-    if (savedAcademicYear && savedQuarter && savedSection) {
-      fetchGrades(savedAcademicYear, savedQuarter, savedSection);
+    if (hasAllFilters) {
+      fetchGrades();
     }
-  }, [fetchGrades]);
 
-  useEffect(() => {
-    // Listen for global filter changes
+    // Event listener for filter changes
     const handleGlobalFiltersChanged = (event) => {
       const { academicYearId, quarterId, sectionId } = event.detail;
 
-      setSelectedAcademicYear(academicYearId || "");
-      setSelectedQuarter(quarterId || "");
-      setSelectedSection(sectionId || "");
-
       // Fetch grades if all filters are set
       if (academicYearId && quarterId && sectionId) {
-        fetchGrades(academicYearId, quarterId, sectionId);
+        fetchGrades();
       }
     };
 
@@ -72,11 +67,14 @@ const Grades = () => {
         handleGlobalFiltersChanged
       );
     };
-  }, [fetchGrades]);
+  }, [fetchGrades, globalFilters]); // Include globalFilters as a dependency
 
   const hasAllFilters =
-    selectedAcademicYear && selectedQuarter && selectedSection;
+    globalFilters.academicYearId &&
+    globalFilters.quarterId &&
+    globalFilters.sectionId;
   const hasData = students?.length > 0;
+  const isLoading = filterLoading || gradesLoading;
 
   return (
     <div className="bg-gray-50">
@@ -102,7 +100,7 @@ const Grades = () => {
             <div className="flex items-center space-x-3">
               <button
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50"
-                disabled={!hasAllFilters || !hasData}
+                disabled={!hasAllFilters || !hasData || isLoading}
               >
                 <LuDownload size={16} className="mr-2" />
                 Export Grades
@@ -235,9 +233,9 @@ const Grades = () => {
         {/* Grades Table - Only show if filters are set */}
         {hasAllFilters && (
           <GradesTable
-            selectedAcademicYear={selectedAcademicYear}
-            selectedQuarter={selectedQuarter}
-            selectedSection={selectedSection}
+            academicYearId={globalFilters.academicYearId}
+            quarterId={globalFilters.quarterId}
+            sectionId={globalFilters.sectionId}
           />
         )}
       </main>

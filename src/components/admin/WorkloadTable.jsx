@@ -9,19 +9,18 @@ import {
   LuMenu,
 } from "react-icons/lu";
 import Pagination from "./Pagination";
-import { useAdminStore } from "../../stores/admin";
-
-// The store defines 10 records per page
-const RECORDS_PER_PAGE = 10;
+import useWorkloadsStore from "../../stores/admin/workloadStore";
 
 const WorkloadTable = ({ searchTerm }) => {
   const {
     workloads,
     loading,
     error,
-    workloadCurrentPage,
-    setWorkloadCurrentPage,
-  } = useAdminStore();
+    currentPage,
+    setCurrentPage,
+    paginatedRecords,
+    totalPages,
+  } = useWorkloadsStore();
 
   // Memoize the filtered records
   const filteredRecords = useMemo(
@@ -34,16 +33,11 @@ const WorkloadTable = ({ searchTerm }) => {
 
   // Reset to page 1 when search term changes
   useEffect(() => {
-    if (workloadCurrentPage !== 1) {
-      setWorkloadCurrentPage(1);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
     }
-  }, [searchTerm, setWorkloadCurrentPage]);
+  }, [searchTerm, setCurrentPage]);
 
-  // Pagination variables
-  const totalPages = Math.ceil(filteredRecords.length / RECORDS_PER_PAGE);
-  const indexOfLast = workloadCurrentPage * RECORDS_PER_PAGE;
-  const indexOfFirst = indexOfLast - RECORDS_PER_PAGE;
-  const paginatedRecords = filteredRecords.slice(indexOfFirst, indexOfLast);
   const totalRecords = filteredRecords.length;
 
   const getWorkloadLevel = (hours) => {
@@ -208,7 +202,7 @@ const WorkloadTable = ({ searchTerm }) => {
                   </div>
                 </td>
               </tr>
-            ) : paginatedRecords.length === 0 ? (
+            ) : paginatedRecords().length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
@@ -229,7 +223,7 @@ const WorkloadTable = ({ searchTerm }) => {
                 </td>
               </tr>
             ) : (
-              paginatedRecords.map((record, index) => {
+              paginatedRecords().map((record, index) => {
                 const workloadLevel = getWorkloadLevel(
                   record.hours_per_week || 0
                 );
@@ -302,7 +296,7 @@ const WorkloadTable = ({ searchTerm }) => {
                             Advisory
                           </>
                         ) : (
-                          "No advisory"
+                          "Non advisory"
                         )}
                       </span>
                     </td>
@@ -345,13 +339,14 @@ const WorkloadTable = ({ searchTerm }) => {
         <div className="border-t border-gray-200 bg-white px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
-              Showing {indexOfFirst + 1} to{" "}
-              {Math.min(indexOfLast, totalRecords)} of {totalRecords} results
+              Showing {currentPage * 10 - 9} to{" "}
+              {Math.min(currentPage * 10, totalRecords)} of {totalRecords}{" "}
+              results
             </p>
             <Pagination
-              currentPage={workloadCurrentPage}
-              totalPages={totalPages}
-              onPageChange={setWorkloadCurrentPage}
+              currentPage={currentPage}
+              totalPages={totalPages()}
+              onPageChange={setCurrentPage}
             />
           </div>
         </div>

@@ -1,269 +1,60 @@
-import React, { useEffect, useState } from "react";
-import { LuInfo } from "react-icons/lu";
-import { useStoreUser } from "../../stores/student";
-const HealthProfile = () => {
-  const {
-    healthProfileData,
-    fetchHealthProfile,
-    healthProfileLoading,
-    healthProfileError,
-    clearHealthProfileError,
-  } = useStoreUser();
+import React, { useEffect } from "react";
+import { LuUser, LuCircleAlert } from "react-icons/lu";
+import toast from "react-hot-toast";
+import useHealthProfileStore from "../../stores/users/healthProfileStore";
+import BmiSummary from "../../components/user/BmiSummary";
+import BmiRecords from "../../components/user/BmiRecords";
 
-  const [startHeight, setStartHeight] = useState(""); // cm
-  const [startWeight, setStartWeight] = useState(""); // kg
-  const [endHeight, setEndHeight] = useState("");
-  const [endWeight, setEndWeight] = useState("");
+const HealthProfile = () => {
+  const { data, loading, error, fetchBmiData, clearError } =
+    useHealthProfileStore();
 
   useEffect(() => {
-    fetchHealthProfile();
-  }, [fetchHealthProfile]);
+    fetchBmiData();
+  }, [fetchBmiData]);
 
-  const calculateBMI = (heightCm, weightKg) => {
-    if (!heightCm || !weightKg) return "";
-    const heightM = heightCm / 100;
-    const bmi = weightKg / (heightM * heightM);
-    return bmi.toFixed(1);
-  };
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      clearError();
+    }
+  }, [error, clearError]);
 
-  const getClassification = (bmi) => {
-    if (!bmi) return { label: "—", color: "text-gray-400", bg: "bg-gray-100" };
-    const val = parseFloat(bmi);
-    if (val < 18.5)
-      return {
-        label: "Underweight",
-        color: "text-yellow-500",
-        bg: "bg-yellow-50",
-      };
-    if (val < 25)
-      return { label: "Normal", color: "text-green-600", bg: "bg-green-50" };
-    if (val < 30)
-      return {
-        label: "Overweight",
-        color: "text-orange-500",
-        bg: "bg-orange-50",
-      };
-    return { label: "Obese", color: "text-red-600", bg: "bg-red-50" };
-  };
-
-  const startBmi = calculateBMI(startHeight, startWeight);
-  const endBmi = calculateBMI(endHeight, endWeight);
-  const startClass = getClassification(startBmi);
-  const endClass = getClassification(endBmi);
-
-  if (healthProfileLoading) {
+  if (error) {
     return (
-      <main className="p-4">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-      </main>
-    );
-  }
-
-  if (healthProfileError) {
-    return (
-      <main className="p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700">{healthProfileError}</p>
-          <button
-            onClick={clearHealthProfileError}
-            className="mt-2 text-red-600 hover:text-red-800 underline"
-          >
-            Try again
-          </button>
+      <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <LuCircleAlert className="w-12 h-12 text-red-600" />
+          <p className="text-red-600 font-medium">
+            Error loading health profile
+          </p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="p-4">
-      <div className="between">
-        <div className="page-title">Health Profile (SF8)</div>
-        <div className="inline-flex items-center px-2 py-1 text-sm rounded-lg bg-[#E0E7FF] text-[#3730A3]">
-          <span className="ml-2">
-            Last Checkup: {new Date().toLocaleDateString()}
-          </span>
-        </div>
-      </div>
-
-      <div className="shad-container p-4 mt-8">
-        <div className="flex items-center gap-5">
-          <LuInfo size={20} />
-          Note:
-          <span className="text-sm text-gray-500 items-center">
-            Health data can only be updated by authorized school health
-            personnel. If you notice any discrepancies, please report them to
-            the health office.
-          </span>
-        </div>
-      </div>
-
-      {/* BMI Data from API */}
-      {healthProfileData.data.length > 0 && (
-        <div className="shad-container p-5 mt-8">
-          <div className="text-xl font-medium mb-6">BMI Records</div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Height (cm)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Weight (kg)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    BMI
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Classification
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {healthProfileData.data.map((record, index) => {
-                  const bmi = calculateBMI(record.height, record.weight);
-                  const classification = getClassification(bmi);
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(record.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.height}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.weight}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {bmi}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${classification.bg} ${classification.color}`}
-                        >
-                          {classification.label}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      <div className="shad-container p-5 mt-8">
-        <div className="text-xl font-medium">BMI Tracker</div>
-
-        <div className="grid grid-cols-12 gap-6">
-          {/* Start of School Year */}
-          <div className="col-span-12 xl:col-span-6 mt-8 bg-gray-50 p-5 border border-gray-200 rounded-lg">
-            <div className="flex justify-between text-sm">
-              <h1 className="text-sm font-medium text-gray-500">
-                Beginning of the School Year
-              </h1>
-              <h1 className="text-sm font-medium text-gray-500">
-                {new Date().toLocaleDateString()}
-              </h1>
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Height (cm)</label>
-              <input
-                type="number"
-                value={startHeight}
-                onChange={(e) => setStartHeight(e.target.value)}
-                placeholder="Enter height"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Weight (kg)</label>
-              <input
-                type="number"
-                value={startWeight}
-                onChange={(e) => setStartWeight(e.target.value)}
-                placeholder="Enter Weight"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">BMI</label>
-              <div className="font-semibold">{startBmi || "—"}</div>
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">
-                Classification
-              </label>
-              <div
-                className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${startClass.bg} ${startClass.color}`}
-              >
-                {startClass.label}
-              </div>
-            </div>
-          </div>
-
-          {/* End of School Year */}
-          <div className="col-span-12 xl:col-span-6 mt-8 bg-gray-50 p-5 border border-gray-200 rounded-lg">
-            <div className="flex justify-between text-sm">
-              <h1 className="text-sm font-medium text-gray-500">
-                End of the School Year
-              </h1>
-              <h1 className="text-sm font-medium text-gray-500">
-                {new Date().toLocaleDateString()}
-              </h1>
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Height (cm)</label>
-              <input
-                type="number"
-                value={endHeight}
-                onChange={(e) => setEndHeight(e.target.value)}
-                placeholder="Enter Height"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm items-center">
-              <label className="font-semibold text-gray-500">Weight (kg)</label>
-              <input
-                type="number"
-                value={endWeight}
-                onChange={(e) => setEndWeight(e.target.value)}
-                placeholder="Enter Weight"
-                className="border text-sm rounded px-3 py-1 w-28 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">BMI</label>
-              <div className="font-semibold">{endBmi || "—"}</div>
-            </div>
-
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="font-semibold text-gray-500">
-                Classification
-              </label>
-              <div
-                className={`inline-flex items-center px-2 py-1 text-xs rounded-sm ${endClass.bg} ${endClass.color}`}
-              >
-                {endClass.label}
-              </div>
+    <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen">
+      <div className="mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Your Health Profile
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-medium">
+                Student Panel
+              </span>
             </div>
           </div>
         </div>
+
+        <BmiSummary data={data} loading={loading} />
       </div>
+
+      <section>
+        <BmiRecords data={data} loading={loading} error={error} />
+      </section>
     </main>
   );
 };

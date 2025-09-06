@@ -1,41 +1,84 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
-import { axiosInstance } from "../lib/axios";
-import { getItem, setItem, removeItem } from "../lib/utils";
-
-// Cache initial values to avoid repeated localStorage calls
-const initialUser = getItem("user") || null;
-const initialToken = getItem("token", false) || null;
+import { axiosInstance, fetchCsrfToken } from "../lib/axios";
+import { getItem, setItem, removeItem, clearStorage } from "../lib/utils";
+import useFilterStore from "./admin/filterStore";
+import usePromotionStore from "./admin/promotionStore";
+import useAttendanceStore from "./admin/attendanceStore";
+import useBmiStore from "./admin/bmiStore";
+import useCertificatesStore from "./admin/certificateStore";
+import useDashboardStore from "./admin/dashboardStore";
+import useStudentRequestsStore from "./admin/studentRequest";
+import useTextbooksStore from "./admin/textbookStore";
+import useWorkloadsStore from "./admin/workloadStore";
+import useGradesStore from "./admin/gradeStore";
+import useParentConferenceStore from "./admin/parentConference";
+import useAcademicCalendarStore from "./superAdmin/calendarStore";
+import useEnrollmentStore from "./superAdmin/enrollmentStore";
+import useTeacherManagementStore from "./superAdmin/teacherManagementStore";
+import useClassManagementStore from "./superAdmin/classManagementStore";
+import useAchievementsStore from "./users/achievementStore";
+import useStudentDashboardStore from "./users/studentDashboardStore";
+import useStudentGradeStore from "./users/studentGradeStore";
+import useHealthProfileStore from "./users/healthProfileStore";
+import useStudentAttendanceStore from "./users/studentAttendanceStore";
 
 export const useAuthStore = create((set, get) => ({
-  user: initialUser,
-  token: initialToken,
-
+  user: null,
+  token: null,
   isLoggingIn: false,
   isRegistering: false,
   isCheckingAuth: true,
   isLoggingOut: false,
+  isPostLoginLoading: false,
   authError: null,
+
+  initializeAuth: () => {
+    const token = getItem("token", false, localStorage);
+    const user = getItem("user", true, localStorage);
+    if (token && user) {
+      set({ token, user, isAuthenticated: true, isCheckingAuth: false });
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${token}`;
+    } else {
+      set({ isCheckingAuth: false });
+    }
+  },
 
   login: async ({ email, password }) => {
     set({ isLoggingIn: true, authError: null });
-
     try {
-      const { data } = await axiosInstance.post("/login", { email, password });
-      const { user, token } = data;
-
-      // Batch localStorage operations
-      setItem("user", user);
-      setItem("token", token);
-
-      // Single state update
-      set({ user, token, authError: null, isLoggingIn: false });
-
-      toast.success("Welcome! You have logged in successfully.");
-      return { success: true, user };
+      clearStorage();
+      await fetchCsrfToken();
+      const { data, status } = await axiosInstance.post("/login", {
+        email,
+        password,
+      });
+      console.log("Login response:", { status, data });
+      if (data?.token && data?.user) {
+        const { user, token } = data;
+        setItem("user", user, localStorage);
+        setItem("token", token, localStorage);
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
+        set({ user, token, isLoggingIn: false, isCheckingAuth: false });
+        // Trigger post-login loading screen
+        set({ isPostLoginLoading: true });
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        set({ isPostLoginLoading: false });
+        return { success: true, user, role: user.role };
+      } else {
+        throw new Error(
+          data?.message || "Login failed: Invalid response from server"
+        );
+      }
     } catch (error) {
-      const message = error?.response?.data?.message || "Login failed";
-      set({ authError: message, isLoggingIn: false });
+      console.error("Login error:", error.response?.data, error.message, error);
+      const message =
+        error?.response?.data?.message || error.message || "Login failed";
+      set({ authError: message, isLoggingIn: false, isCheckingAuth: false });
       toast.error(message);
       return { success: false, message };
     }
@@ -43,14 +86,13 @@ export const useAuthStore = create((set, get) => ({
 
   register: async (formData) => {
     set({ isRegistering: true, authError: null });
-
     try {
-      await axiosInstance.post("/register", formData, {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.post("/register", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
       set({ isRegistering: false });
       toast.success(
         "Registration submitted! Please wait for teacher approval before you can log in."
@@ -64,60 +106,103 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  logout: async () => {
-    set({ isLoggingOut: true });
+  resetAuth: () => {
+    clearStorage();
+    delete axiosInstance.defaults.headers.common["Authorization"];
+    // Reset Admin stores
+    useFilterStore.getState().resetFilterStore();
+    usePromotionStore.getState().resetPromotionStore();
+    useAttendanceStore.getState().resetAttendanceStore();
+    useBmiStore.getState().resetBmiStore();
+    useCertificatesStore.getState().resetCertificatesStore();
+    useDashboardStore.getState().resetDashboardStore();
+    useStudentRequestsStore.getState().resetStudentRequestsStore();
+    useTextbooksStore.getState().resetTextbooksStore();
+    useWorkloadsStore.getState().resetWorkloadsStore();
+    useGradesStore.getState().resetGradesStore();
+    useParentConferenceStore.getState().resetParentConferenceStore();
+    // Reset Super Admin stores
+    useAcademicCalendarStore.getState().resetAcademicCalendarStore();
+    useEnrollmentStore.getState().resetEnrollmentStore();
+    useTeacherManagementStore.getState().resetTeacherManagementStore();
+    useClassManagementStore.getState().resetClassManagementStore();
 
-    try {
-      await axiosInstance.post("/logout");
-    } catch (error) {
-      const status = error?.response?.status;
-      if (status !== 401) {
-        const message = error?.response?.data?.message || "Logout failed";
-        toast.error(message);
-      }
-    }
-
-    // Always clear auth data regardless of API response
-    removeItem("user");
-    removeItem("token");
+    // Reset Student stores
+    useAchievementsStore.getState().resetAchievementsStore();
+    useStudentDashboardStore.getState().resetStudentDashboardStore();
+    useStudentGradeStore.getState().resetGradeStore();
+    useHealthProfileStore.getState().resetHealthProfileStore();
+    useStudentAttendanceStore.getState().resetStudentAttendanceStore();
     set({
       user: null,
       token: null,
       isLoggingOut: false,
       authError: null,
+      isCheckingAuth: false,
+      isPostLoginLoading: false,
     });
   },
 
-  checkAuth: async () => {
-    const token = getItem("token", false);
-
-    if (!token) {
-      set({ user: null, isCheckingAuth: false, authError: null });
-      return;
-    }
-
+  logout: async () => {
+    set({ isLoggingOut: true, authError: null });
     try {
-      const { data: user } = await axiosInstance.get("/auth/check");
-      setItem("user", user);
-      set({ user, authError: null, isCheckingAuth: false });
+      await fetchCsrfToken();
+      await axiosInstance.post("/logout");
     } catch (error) {
-      const message = error?.response?.data?.message || "Authentication failed";
-
-      // Batch cleanup operations
-      removeItem("user");
-      removeItem("token");
-      set({
-        user: null,
-        token: null,
-        authError: message,
-        isCheckingAuth: false,
-      });
+      const status = error?.response?.status;
+      if (status !== 401 && status !== 419) {
+        const message = error?.response?.data?.message || "Logout failed";
+        toast.error(message);
+      }
+    } finally {
+      get().resetAuth();
     }
   },
 
-  // Memoized getter for better performance
+  checkAuth: async () => {
+    set({ isCheckingAuth: true, authError: null });
+    const token = getItem("token", false, localStorage);
+    if (!token) {
+      set({ user: null, token: null, isCheckingAuth: false });
+      return false;
+    }
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.get("/user");
+
+      if (data) {
+        setItem("user", data, localStorage);
+        set({ user: data, token, isCheckingAuth: false });
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
+        return true;
+      } else {
+        throw new Error("Invalid user data");
+      }
+    } catch (error) {
+      toast.error("checkAuth failed:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      set({
+        authError: error?.response?.data?.message || "Authentication failed",
+        isCheckingAuth: false,
+      });
+      return false;
+    }
+  },
+
   getUserRole: () => {
     const { user } = get();
     return user?.role || null;
   },
 }));
+
+// Listen for unauthorized event to reset all stores
+window.addEventListener("unauthorized", () => {
+  useAuthStore.getState().resetAuth();
+});
+
+export default useAuthStore;
