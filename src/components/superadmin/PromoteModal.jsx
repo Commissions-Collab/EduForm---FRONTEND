@@ -2,58 +2,47 @@ import React, { useState, useEffect } from "react";
 import { LuX, LuSave } from "react-icons/lu";
 import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
 
-const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
+const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
   const {
     enrollments,
     academicYears,
     yearLevels,
     sections,
-    createEnrollment,
-    updateEnrollment,
+    promoteStudents,
     loading,
     error,
   } = useEnrollmentStore();
   const [formData, setFormData] = useState({
-    student_id: "",
-    academic_year_id: "",
-    grade_level: "",
+    student_ids: selectedStudentIds || [],
+    next_academic_year_id: "",
+    next_grade_level_id: "",
     section_id: "",
-    enrollment_status: "enrolled",
   });
 
   useEffect(() => {
-    if (selectedEnrollment) {
-      setFormData({
-        student_id: selectedEnrollment.student_id || "",
-        academic_year_id: selectedEnrollment.academic_year_id || "",
-        grade_level: selectedEnrollment.grade_level || "",
-        section_id: selectedEnrollment.section_id || "",
-        enrollment_status: selectedEnrollment.enrollment_status || "enrolled",
-      });
-    } else {
-      setFormData({
-        student_id: "",
-        academic_year_id: "",
-        grade_level: "",
-        section_id: "",
-        enrollment_status: "enrolled",
-      });
-    }
-  }, [selectedEnrollment]);
+    setFormData((prev) => ({
+      ...prev,
+      student_ids: selectedStudentIds || [],
+    }));
+  }, [selectedStudentIds]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === "student_ids") {
+      const selected = Array.from(
+        e.target.selectedOptions,
+        (option) => option.value
+      );
+      setFormData({ ...formData, [name]: selected });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (selectedEnrollment) {
-        await updateEnrollment(selectedEnrollment.id, formData);
-      } else {
-        await createEnrollment(formData);
-      }
+      await promoteStudents(formData);
       onClose();
     } catch (err) {
       // Error handled by store
@@ -82,25 +71,18 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
     <div
       className="fixed inset-0 flex items-center justify-center z-50 bg-black/30"
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="enrollment-modal-title"
     >
       <div
         className="bg-white rounded-xl shadow-xl p-6 w-full max-w-3xl mx-4 sm:mx-0"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2
-            id="enrollment-modal-title"
-            className="text-xl font-semibold text-gray-900"
-          >
-            {selectedEnrollment ? "Edit Enrollment" : "Add Enrollment"}
+          <h2 className="text-xl font-semibold text-gray-900">
+            Promote Students
           </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-colors"
-            aria-label="Close modal"
           >
             <LuX className="w-5 h-5" />
           </button>
@@ -109,7 +91,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
           <div className="space-y-8">
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-4">
-                Enrollment Details
+                Promotion Details
               </h3>
               {loading ? (
                 <p className="text-sm text-gray-500">Loading data...</p>
@@ -117,22 +99,22 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                 <p className="text-sm text-red-500">Error: {error}</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  <div className="col-span-2">
                     <label
-                      htmlFor="student_id"
+                      htmlFor="student_ids"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Student <span className="text-red-500">*</span>
+                      Students <span className="text-red-500">*</span>
                     </label>
                     <select
-                      id="student_id"
-                      name="student_id"
-                      value={formData.student_id}
+                      id="student_ids"
+                      name="student_ids"
+                      multiple
+                      value={formData.student_ids}
                       onChange={handleChange}
-                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors h-40"
                       required
                     >
-                      <option value="">Select Student</option>
                       {students.length > 0 ? (
                         students.map((student) => (
                           <option key={student.id} value={student.id}>
@@ -154,20 +136,20 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                   </div>
                   <div>
                     <label
-                      htmlFor="academic_year_id"
+                      htmlFor="next_academic_year_id"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Academic Year <span className="text-red-500">*</span>
+                      Next Academic Year <span className="text-red-500">*</span>
                     </label>
                     <select
-                      id="academic_year_id"
-                      name="academic_year_id"
-                      value={formData.academic_year_id}
+                      id="next_academic_year_id"
+                      name="next_academic_year_id"
+                      value={formData.next_academic_year_id}
                       onChange={handleChange}
                       className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                       required
                     >
-                      <option value="">Select Academic Year</option>
+                      <option value="">Select Next Academic Year</option>
                       {academicYears.length > 0 ? (
                         academicYears.map((ay) => (
                           <option key={ay.id} value={ay.id}>
@@ -187,20 +169,20 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                   </div>
                   <div>
                     <label
-                      htmlFor="grade_level"
+                      htmlFor="next_grade_level_id"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Grade Level <span className="text-red-500">*</span>
+                      Next Grade Level <span className="text-red-500">*</span>
                     </label>
                     <select
-                      id="grade_level"
-                      name="grade_level"
-                      value={formData.grade_level}
+                      id="next_grade_level_id"
+                      name="next_grade_level_id"
+                      value={formData.next_grade_level_id}
                       onChange={handleChange}
                       className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                       required
                     >
-                      <option value="">Select Grade Level</option>
+                      <option value="">Select Next Grade Level</option>
                       {yearLevels.length > 0 ? (
                         yearLevels.map((yl) => (
                           <option key={yl.id} value={yl.id}>
@@ -251,27 +233,6 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       </p>
                     )}
                   </div>
-                  <div>
-                    <label
-                      htmlFor="enrollment_status"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Enrollment Status <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="enrollment_status"
-                      name="enrollment_status"
-                      value={formData.enrollment_status}
-                      onChange={handleChange}
-                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                      required
-                    >
-                      <option value="enrolled">Enrolled</option>
-                      <option value="pending">Pending</option>
-                      <option value="withdrawn">Withdrawn</option>
-                      <option value="transferred">Transferred</option>
-                    </select>
-                  </div>
                 </div>
               )}
             </div>
@@ -303,7 +264,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
               }`}
             >
               <LuSave className="w-4 h-4" />
-              <span>{selectedEnrollment ? "Update" : "Save"}</span>
+              <span>Promote</span>
             </button>
           </div>
         </form>
@@ -312,4 +273,4 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
   );
 };
 
-export default EnrollmentModal;
+export default PromoteModal;
