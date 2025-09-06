@@ -17,6 +17,7 @@ const handleError = (err, defaultMessage, set) => {
 const useCertificatesStore = create((set, get) => ({
   attendanceCertificates: [],
   honorCertificates: [],
+  quarterComplete: false,
   currentPage: 1,
   loading: false,
   error: null,
@@ -44,10 +45,87 @@ const useCertificatesStore = create((set, get) => ({
       set({
         attendanceCertificates: data.perfect_attendance || [],
         honorCertificates: data.honor_roll || [],
+        quarterComplete: data.quarter_complete || false,
         loading: false,
       });
     } catch (err) {
       handleError(err, "Failed to fetch certificates", set);
+    }
+  },
+
+  previewCertificate: async (type, studentId, quarterId = null) => {
+    try {
+      const response = await axiosInstance.get(`/teacher/certificate/preview/${type}/${studentId}/${quarterId || ''}`, {
+        responseType: 'blob'
+      });
+      
+      // Create blob URL and open in new window
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      
+      // Clean up
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    } catch (err) {
+      const message = err?.response?.data?.message || "Failed to preview certificate";
+      toast.error(message);
+    }
+  },
+
+  downloadCertificate: async (type, studentId, quarterId = null) => {
+    try {
+      const response = await axiosInstance.get(`/teacher/certificate/download/${type}/${studentId}/${quarterId || ''}`, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `certificate-${type}-${studentId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      toast.success("Certificate downloaded successfully");
+    } catch (err) {
+      const message = err?.response?.data?.message || "Failed to download certificate";
+      toast.error(message);
+    }
+  },
+
+  printAllCertificates: async (type) => {
+    const filters = useFilterStore.getState().globalFilters;
+    
+    try {
+      const response = await axiosInstance.post('/teacher/certificate/print-all', {
+        academic_year_id: filters.academicYearId,
+        section_id: filters.sectionId,
+        quarter_id: filters.quarterId,
+        type: type
+      }, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `all_${type}_certificates.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      toast.success("All certificates downloaded successfully");
+    } catch (err) {
+      const message = err?.response?.data?.message || "Failed to print all certificates";
+      toast.error(message);
     }
   },
 
@@ -73,6 +151,7 @@ const useCertificatesStore = create((set, get) => ({
     set({
       attendanceCertificates: [],
       honorCertificates: [],
+      quarterComplete: false,
       currentPage: 1,
       loading: false,
       error: null,

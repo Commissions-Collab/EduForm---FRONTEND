@@ -9,9 +9,12 @@ import {
   LuAward,
   LuUser,
   LuCalendar,
+  LuLock,
+  LuBadgeAlert,
 } from "react-icons/lu";
 import PaginationControls from "./Pagination";
 import useCertificatesStore from "../../stores/admin/certificateStore";
+import useFilterStore from "../../stores/admin/filterStore";
 
 const HonorsCertificateTable = ({
   searchName,
@@ -21,13 +24,19 @@ const HonorsCertificateTable = ({
 }) => {
   const {
     honorCertificates,
+    quarterComplete,
     currentPage,
     setCurrentPage,
     loading,
     error,
     paginatedRecords,
     totalPages,
+    previewCertificate,
+    downloadCertificate,
+    printAllCertificates,
   } = useCertificatesStore();
+
+  const { globalFilters } = useFilterStore();
 
   // Filter logic (memoized for performance)
   const filteredRecords = useMemo(() => {
@@ -44,6 +53,21 @@ const HonorsCertificateTable = ({
   const records = paginatedRecords("honors");
   const total = totalPages("honors");
 
+  const handlePreview = (studentId) => {
+    previewCertificate('honor_roll', studentId, globalFilters.quarterId);
+  };
+
+  const handleDownload = (studentId) => {
+    downloadCertificate('honor_roll', studentId, globalFilters.quarterId);
+  };
+
+  const handlePrintAll = () => {
+    printAllCertificates('honor_roll');
+  };
+
+  // Check if any certificates can be generated
+  const hasGeneratableCertificates = honorCertificates.some(record => record.can_generate);
+
   const honorTypeColors = {
     "With Honors": "bg-blue-100 text-blue-800 border-blue-200",
     "With High Honors": "bg-purple-100 text-purple-800 border-purple-200",
@@ -55,6 +79,24 @@ const HonorsCertificateTable = ({
       {/* Header */}
       <div className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div className="p-6">
+          {/* Quarter Status Alert */}
+          {!quarterComplete && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-start gap-3">
+                <LuBadgeAlert className="w-5 h-5 text-amber-600 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-amber-800">
+                    Quarter In Progress
+                  </h4>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Certificates cannot be generated until the selected quarter ends. 
+                    Preview and download options will be available once the quarter is complete.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -96,8 +138,20 @@ const HonorsCertificateTable = ({
               </div>
 
               {/* Print All Button */}
-              <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm">
-                <LuPrinter className="w-4 h-4" />
+              <button 
+                className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors shadow-sm ${
+                  quarterComplete && hasGeneratableCertificates
+                    ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+                onClick={handlePrintAll}
+                disabled={!quarterComplete || !hasGeneratableCertificates}
+              >
+                {quarterComplete ? (
+                  <LuPrinter className="w-4 h-4" />
+                ) : (
+                  <LuLock className="w-4 h-4" />
+                )}
                 <span>Print All</span>
               </button>
             </div>
@@ -203,6 +257,12 @@ const HonorsCertificateTable = ({
                         <p className="text-sm font-medium text-gray-900">
                           {record.student_name}
                         </p>
+                        {!record.can_generate && (
+                          <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                            <LuLock className="w-3 h-3" />
+                            Cannot generate yet
+                          </p>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -230,16 +290,52 @@ const HonorsCertificateTable = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors">
-                        <LuEye className="w-3.5 h-3.5" />
+                      <button 
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                          record.can_generate 
+                            ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' 
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        onClick={() => record.can_generate && handlePreview(record.id)}
+                        disabled={!record.can_generate}
+                      >
+                        {record.can_generate ? (
+                          <LuEye className="w-3.5 h-3.5" />
+                        ) : (
+                          <LuLock className="w-3.5 h-3.5" />
+                        )}
                         Preview
                       </button>
-                      <button className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors">
-                        <LuPrinterCheck className="w-3.5 h-3.5" />
+                      <button 
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                          record.can_generate 
+                            ? 'text-green-600 hover:text-green-800 hover:bg-green-50' 
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        onClick={() => record.can_generate && handlePreview(record.id)}
+                        disabled={!record.can_generate}
+                      >
+                        {record.can_generate ? (
+                          <LuPrinterCheck className="w-3.5 h-3.5" />
+                        ) : (
+                          <LuLock className="w-3.5 h-3.5" />
+                        )}
                         Print
                       </button>
-                      <button className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors">
-                        <LuDownload className="w-3.5 h-3.5" />
+                      <button 
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                          record.can_generate 
+                            ? 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50' 
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        onClick={() => record.can_generate && handleDownload(record.id)}
+                        disabled={!record.can_generate}
+                      >
+                        {record.can_generate ? (
+                          <LuDownload className="w-3.5 h-3.5" />
+                        ) : (
+                          <LuLock className="w-3.5 h-3.5" />
+                        )}
                         Download
                       </button>
                     </div>
