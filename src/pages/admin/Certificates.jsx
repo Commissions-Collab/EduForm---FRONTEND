@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
-import { LuBadgeAlert } from "react-icons/lu";
+import { LuBadgeAlert, LuCalendarX } from "react-icons/lu";
 import useCertificatesStore from "../../stores/admin/certificateStore";
 import useFilterStore from "../../stores/admin/filterStore";
 
 const Certificates = () => {
-  const { fetchCertificateData, loading, error } = useCertificatesStore();
+  const { fetchCertificateData, loading, error, quarterComplete } = useCertificatesStore();
   const { globalFilters, initializeGlobalFilters, fetchGlobalFilterOptions } =
     useFilterStore();
   const [searchName, setSearchName] = useState("");
@@ -60,6 +60,23 @@ const Certificates = () => {
               <p className="text-sm text-blue-700 leading-relaxed">
                 Please select an academic year, section, and quarter from the
                 header to load certificate records.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quarter Status Alert */}
+      {hasAllFilters && !loading && !quarterComplete && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <LuCalendarX className="w-6 h-6 text-amber-600" />
+            <div>
+              <h3 className="text-lg font-semibold text-amber-800 mb-2">
+                Quarter In Progress
+              </h3>
+              <p className="text-sm text-amber-700 leading-relaxed">
+                The selected quarter has not ended yet. Certificate generation will be enabled once the quarter end date has passed and all required data is complete.
               </p>
             </div>
           </div>
