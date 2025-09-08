@@ -177,7 +177,7 @@ const Header = () => {
             {/* Right Section */}
             <div className="flex items-center gap-2">
               {/* Refresh Button */}
-              {shouldShowRole && hasCompleteFilters && (
+              {/* {shouldShowRole && hasCompleteFilters && (
                 <button
                   onClick={handleRefreshData}
                   disabled={isRefreshing}
@@ -190,7 +190,7 @@ const Header = () => {
                     } transition-transform duration-300`}
                   />
                 </button>
-              )}
+              )} */}
 
               {/* Notifications */}
               <div className="relative" ref={notifDropdownRef}>
