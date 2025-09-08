@@ -9,7 +9,11 @@ const EnrollmentTable = ({
   searchTerm,
   loading,
   error,
+  selectedEnrollments,
+  setSelectedEnrollments,
   onAdd,
+  onBulk,
+  onPromote,
   onEdit,
   onDelete,
 }) => {
@@ -29,8 +33,27 @@ const EnrollmentTable = ({
     fetchEnrollments(page, pagination.per_page);
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedEnrollments(filteredRecords);
+    } else {
+      setSelectedEnrollments([]);
+    }
+  };
+
+  const handleSelectEnrollment = (enrollment) => {
+    setSelectedEnrollments((prev) =>
+      prev.includes(enrollment)
+        ? prev.filter((item) => item.id !== enrollment.id)
+        : [...prev, enrollment]
+    );
+  };
+
   const SkeletonRow = () => (
     <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="w-4 h-4 bg-gray-200 rounded"></div>
+      </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
@@ -107,6 +130,30 @@ const EnrollmentTable = ({
                 <LuUsers className="w-4 h-4" />
                 <span>Add Enrollment</span>
               </button>
+              <button
+                onClick={onBulk}
+                disabled={selectedEnrollments.length === 0}
+                className={`px-4 py-2 text-sm rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow ${
+                  selectedEnrollments.length === 0
+                    ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                <LuUsers className="w-4 h-4" />
+                <span>Bulk Enroll ({selectedEnrollments.length})</span>
+              </button>
+              <button
+                onClick={onPromote}
+                disabled={selectedEnrollments.length === 0}
+                className={`px-4 py-2 text-sm rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow ${
+                  selectedEnrollments.length === 0
+                    ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                    : "bg-green-600 text-white hover:bg-green-700"
+                }`}
+              >
+                <LuUsers className="w-4 h-4" />
+                <span>Promote Selected ({selectedEnrollments.length})</span>
+              </button>
             </div>
           </div>
         </div>
@@ -116,6 +163,17 @@ const EnrollmentTable = ({
         <table className="w-full divide-y divide-gray-200">
           <thead className="bg-gray-50/50">
             <tr>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <input
+                  type="checkbox"
+                  checked={
+                    filteredRecords.length > 0 &&
+                    selectedEnrollments.length === filteredRecords.length
+                  }
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+              </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
                   <LuUsers className="w-4 h-4" />
@@ -144,7 +202,7 @@ const EnrollmentTable = ({
               Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : error ? (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center">
+                <td colSpan={7} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                       <LuUsers className="w-6 h-6 text-red-600" />
@@ -160,7 +218,7 @@ const EnrollmentTable = ({
               </tr>
             ) : filteredRecords.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center">
+                <td colSpan={7} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                       <LuUsers className="w-6 h-6 text-gray-400" />
@@ -184,6 +242,14 @@ const EnrollmentTable = ({
                   key={enrollment.id}
                   className="hover:bg-gray-50/50 transition-colors"
                 >
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedEnrollments.includes(enrollment)}
+                      onChange={() => handleSelectEnrollment(enrollment)}
+                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
