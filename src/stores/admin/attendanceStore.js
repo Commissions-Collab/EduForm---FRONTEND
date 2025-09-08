@@ -4,16 +4,22 @@ import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 import useFilterStore from "./filterStore";
 import toast from "react-hot-toast";
 
+// Configuration constants
 const RECORDS_PER_PAGE = 10;
 
 const handleError = (err, defaultMessage, set) => {
   const message = err?.response?.data?.message || defaultMessage;
+  console.error(defaultMessage, {
+    status: err?.response?.status,
+    data: err?.response?.data,
+    message: err.message,
+  });
   set({ error: message, loading: false });
-  console.error(defaultMessage, err);
   toast.error(message);
   return message;
 };
 
+/** @type {import('zustand').StoreApi<AttendanceState & AttendanceActions>} */
 const useAttendanceStore = create((set, get) => ({
   scheduleAttendance: {},
   studentAttendance: {},
@@ -26,21 +32,29 @@ const useAttendanceStore = create((set, get) => ({
   error: null,
 
   setStudentId: (id) => {
-    if (typeof id !== "string" && id !== null) {
+    try {
+      if (typeof id !== "string" && id !== null) {
+        throw new Error("Invalid student ID");
+      }
+      setItem("studentId", id, sessionStorage);
+      set({ studentId: id });
+    } catch (error) {
+      console.error("Failed to set student ID:", { error: error.message, id });
       toast.error("Invalid student ID");
-      return;
     }
-    setItem("studentId", id, sessionStorage);
-    set({ studentId: id });
   },
 
   setScheduleId: (id) => {
-    if (typeof id !== "string" && id !== null) {
+    try {
+      if (typeof id !== "string" && id !== null) {
+        throw new Error("Invalid schedule ID");
+      }
+      setItem("scheduleId", id, sessionStorage);
+      set({ scheduleId: id });
+    } catch (error) {
+      console.error("Failed to set schedule ID:", { error: error.message, id });
       toast.error("Invalid schedule ID");
-      return;
     }
-    setItem("scheduleId", id, sessionStorage);
-    set({ scheduleId: id });
   },
 
   fetchWeeklySchedule: async (
@@ -51,36 +65,33 @@ const useAttendanceStore = create((set, get) => ({
   ) => {
     set({ loading: true, error: null });
 
-    if (!sectionId || !academicYearId || !quarterId) {
-      const message = "Missing required filters for fetching weekly schedule";
-      set({ error: message, loading: false });
-      toast.error(message);
-      return;
-    }
-
-    if (weekStart && !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
-      const message = "Invalid week start date format";
-      set({ error: message, loading: false });
-      toast.error(message);
-      return;
-    }
-
     try {
+      if (!sectionId || !academicYearId || !quarterId) {
+        throw new Error(
+          "Missing required filters for fetching weekly schedule"
+        );
+      }
+
+      if (weekStart && !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+        throw new Error("Invalid week start date format");
+      }
+
       const params = new URLSearchParams();
       params.append("section_id", sectionId);
       params.append("academic_year_id", academicYearId);
       params.append("quarter_id", quarterId);
       if (weekStart) params.append("week_start", weekStart);
 
-      const { data } = await axiosInstance.get(
-        `/teacher/schedule/weekly?${params.toString()}`
+      const { data, status } = await axiosInstance.get(
+        `/teacher/schedule/weekly?${params.toString()}`,
+        { timeout: 10000 }
       );
 
-      if (data?.success) {
-        set({ weeklySchedule: data.data, loading: false });
-      } else {
-        throw new Error(data?.message || "Failed to fetch weekly schedule");
+      if (status !== 200 || !data?.success) {
+        throw new Error(data?.message || "Invalid response from server");
       }
+
+      set({ weeklySchedule: data.data, loading: false });
     } catch (err) {
       handleError(err, "Failed to fetch weekly schedule", set);
     }
@@ -88,24 +99,31 @@ const useAttendanceStore = create((set, get) => ({
 
   fetchScheduleAttendance: async ({ scheduleId, date }) => {
     set({ loading: true, error: null });
-    const filters = useFilterStore.getState().globalFilters;
-
-    if (!scheduleId) {
-      set({ error: "Schedule not selected", loading: false });
-      toast.error("Schedule not selected");
-      return;
-    }
 
     try {
-      const { data } = await axiosInstance.get(`/teacher/schedule/attendance`, {
-        params: {
-          schedule_id: scheduleId,
-          section_id: filters.sectionId,
-          academic_year_id: filters.academicYearId,
-          quarter_id: filters.quarterId,
-          date,
-        },
-      });
+      const filters = useFilterStore.getState().globalFilters;
+      if (!scheduleId) {
+        throw new Error("Schedule not selected");
+      }
+
+      const { data, status } = await axiosInstance.get(
+        `/teacher/schedule/attendance`,
+        {
+          params: {
+            schedule_id: scheduleId,
+            section_id: filters.sectionId,
+            academic_year_id: filters.academicYearId,
+            quarter_id: filters.quarterId,
+            date,
+          },
+          timeout: 10000,
+        }
+      );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       set({ scheduleAttendance: data?.data || {}, loading: false });
     } catch (err) {
       handleError(err, "Unable to fetch schedule attendance", set);
@@ -115,17 +133,20 @@ const useAttendanceStore = create((set, get) => ({
   fetchScheduleStudents: async (scheduleId, date) => {
     set({ loading: true, error: null });
 
-    if (!scheduleId) {
-      set({ error: "Schedule not selected", loading: false });
-      toast.error("Schedule not selected");
-      return;
-    }
-
     try {
-      const { data } = await axiosInstance.get(
+      if (!scheduleId) {
+        throw new Error("Schedule not selected");
+      }
+
+      const { data, status } = await axiosInstance.get(
         `/teacher/schedule/${scheduleId}/students`,
-        { params: { date } }
+        { params: { date }, timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       set({ scheduleAttendance: data?.data || {}, loading: false });
     } catch (err) {
       handleError(err, "Unable to fetch students for schedule", set);
@@ -140,22 +161,37 @@ const useAttendanceStore = create((set, get) => ({
         student_id: payload.student_id,
         schedule_id: payload.schedule_id,
         attendance_date: payload.date || payload.attendance_date,
-        status: payload.status.toLowerCase(),
+        status: payload.status?.toLowerCase(),
         time_in: payload.time_in,
         time_out: payload.time_out,
         remarks: payload.remarks || payload.reason,
       };
 
+      if (
+        !backendPayload.student_id ||
+        !backendPayload.schedule_id ||
+        !backendPayload.attendance_date
+      ) {
+        throw new Error("Missing required attendance fields");
+      }
+
       await fetchCsrfToken();
-      const { data } = await axiosInstance.post(
+      const { data, status } = await axiosInstance.post(
         `/teacher/attendance/update-individual`,
-        backendPayload
+        backendPayload,
+        { timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       set({ loading: false });
       toast.success("Attendance updated successfully");
       return data;
     } catch (err) {
       handleError(err, "Update failed", set);
+      return null;
     }
   },
 
@@ -166,25 +202,42 @@ const useAttendanceStore = create((set, get) => ({
       const backendPayload = {
         schedule_id: payload.schedule_id,
         attendance_date: payload.attendance_date,
-        attendances: payload.attendances.map((att) => ({
-          student_id: att.student_id,
-          status: att.status.toLowerCase(),
-          time_in: att.time_in,
-          time_out: att.time_out,
-          remarks: att.remarks || att.reason,
-        })),
+        attendances: Array.isArray(payload.attendances)
+          ? payload.attendances.map((att) => ({
+              student_id: att.student_id,
+              status: att.status?.toLowerCase(),
+              time_in: att.time_in,
+              time_out: att.time_out,
+              remarks: att.remarks || att.reason,
+            }))
+          : [],
       };
 
+      if (
+        !backendPayload.schedule_id ||
+        !backendPayload.attendance_date ||
+        !backendPayload.attendances.length
+      ) {
+        throw new Error("Missing required bulk attendance fields");
+      }
+
       await fetchCsrfToken();
-      const { data } = await axiosInstance.post(
+      const { data, status } = await axiosInstance.post(
         `/teacher/attendance/update-bulk`,
-        backendPayload
+        backendPayload,
+        { timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       set({ loading: false });
       toast.success("Bulk attendance updated successfully");
       return data;
     } catch (err) {
       handleError(err, "Bulk update failed", set);
+      return null;
     }
   },
 
@@ -195,42 +248,61 @@ const useAttendanceStore = create((set, get) => ({
       const backendPayload = {
         schedule_id: payload.schedule_id,
         attendance_date: payload.date || payload.attendance_date,
-        status: payload.status.toLowerCase(),
+        status: payload.status?.toLowerCase(),
         time_in: payload.time_in,
         time_out: payload.time_out,
         remarks: payload.remarks || payload.reason,
       };
 
+      if (
+        !backendPayload.schedule_id ||
+        !backendPayload.attendance_date ||
+        !backendPayload.status
+      ) {
+        throw new Error("Missing required fields for updating all students");
+      }
+
       await fetchCsrfToken();
-      const { data } = await axiosInstance.post(
+      const { data, status } = await axiosInstance.post(
         `/teacher/attendance/update-all`,
-        backendPayload
+        backendPayload,
+        { timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       set({ loading: false });
       toast.success("Attendance for all students updated successfully");
       return data;
     } catch (err) {
       handleError(err, "Update for all students failed", set);
+      return null;
     }
   },
 
   fetchScheduleAttendanceHistory: async (scheduleId, startDate, endDate) => {
     set({ loading: true, error: null });
 
-    if (!scheduleId) {
-      set({ error: "Schedule not selected", loading: false });
-      toast.error("Schedule not selected");
-      return;
-    }
-
     try {
-      const { data } = await axiosInstance.get(
+      if (!scheduleId) {
+        throw new Error("Schedule not selected");
+      }
+
+      const { data, status } = await axiosInstance.get(
         `/teacher/schedule/${scheduleId}/attendance-history`,
         {
           params: { start_date: startDate, end_date: endDate },
+          timeout: 10000,
         }
       );
-      set({ scheduleAttendance: data?.data || {}, loading: null });
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
+      set({ scheduleAttendance: data?.data || {}, loading: false });
     } catch (err) {
       handleError(err, "Unable to fetch attendance history", set);
     }
@@ -243,16 +315,14 @@ const useAttendanceStore = create((set, get) => ({
     endDate
   ) => {
     set({ loading: true, error: null });
-    const filters = useFilterStore.getState().globalFilters;
-
-    if (!studentId || !scheduleId) {
-      set({ error: "Student or schedule not selected", loading: false });
-      toast.error("Student or schedule not selected");
-      return;
-    }
 
     try {
-      const { data } = await axiosInstance.get(
+      if (!studentId || !scheduleId) {
+        throw new Error("Student or schedule not selected");
+      }
+
+      const filters = useFilterStore.getState().globalFilters;
+      const { data, status } = await axiosInstance.get(
         `/teacher/student/${studentId}/schedule/${scheduleId}/attendance-history`,
         {
           params: {
@@ -260,8 +330,13 @@ const useAttendanceStore = create((set, get) => ({
             start_date: startDate,
             end_date: endDate,
           },
+          timeout: 10000,
         }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
 
       const transformedData = {
         student: {
@@ -312,53 +387,46 @@ const useAttendanceStore = create((set, get) => ({
 
   fetchMonthlyAttendance: async (params = {}) => {
     set({ loading: true, error: null });
-    const filters = useFilterStore.getState().globalFilters;
-
-    if (!filters.sectionId) {
-      const message = "Missing section ID";
-      set({ error: message, loading: false });
-      toast.error(message);
-      return;
-    }
-
-    const now = new Date();
-    let month = params.month || now.getMonth() + 1;
-    let year = params.year || now.getFullYear();
-
-    if (
-      typeof params.month === "string" &&
-      params.month.match(/^\d{4}-\d{2}$/)
-    ) {
-      const [parsedYear, parsedMonth] = params.month.split("-").map(Number);
-      if (parsedMonth >= 1 && parsedMonth <= 12 && parsedYear >= 2000) {
-        month = parsedMonth;
-        year = parsedYear;
-      } else {
-        const message = "Invalid month format. Expected YYYY-MM";
-        set({ error: message, loading: false });
-        toast.error(message);
-        return;
-      }
-    }
-
-    if (month < 1 || month > 12 || year < 2000) {
-      const message = "Invalid month or year";
-      set({ error: message, loading: false });
-      toast.error(message);
-      return;
-    }
 
     try {
+      const filters = useFilterStore.getState().globalFilters;
+      if (!filters.sectionId) {
+        throw new Error("Missing section ID");
+      }
+
+      const now = new Date();
+      let month = params.month || now.getMonth() + 1;
+      let year = params.year || now.getFullYear();
+
+      if (
+        typeof params.month === "string" &&
+        params.month.match(/^\d{4}-\d{2}$/)
+      ) {
+        const [parsedYear, parsedMonth] = params.month.split("-").map(Number);
+        if (parsedMonth < 1 || parsedMonth > 12 || parsedYear < 2000) {
+          throw new Error("Invalid month format. Expected YYYY-MM");
+        }
+        month = parsedMonth;
+        year = parsedYear;
+      } else if (month < 1 || month > 12 || year < 2000) {
+        throw new Error("Invalid month or year");
+      }
+
       const filterParams = {
         month,
         year,
         academic_year_id: filters.academicYearId,
       };
 
-      const { data } = await axiosInstance.get(
+      const { data, status } = await axiosInstance.get(
         `/teacher/sections/${filters.sectionId}/monthly-attendance`,
-        { params: filterParams }
+        { params: filterParams, timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       set({ monthlyAttendanceData: data?.data || null, loading: false });
     } catch (err) {
       handleError(err, "Unable to fetch monthly attendance", set);
@@ -367,18 +435,13 @@ const useAttendanceStore = create((set, get) => ({
 
   downloadQuarterlyAttendancePDF: async () => {
     set({ loading: true, error: null });
-    const filters = useFilterStore.getState().globalFilters;
-
-    if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
-      set({
-        error: "Section, Academic Year, or Quarter is not selected",
-        loading: false,
-      });
-      toast.error("Section, Academic Year, or Quarter is not selected");
-      return;
-    }
 
     try {
+      const filters = useFilterStore.getState().globalFilters;
+      if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
+        throw new Error("Section, Academic Year, or Quarter is not selected");
+      }
+
       const response = await axiosInstance.get(
         `/teacher/sections/${filters.sectionId}/attendance/quarterly/pdf`,
         {
@@ -388,8 +451,13 @@ const useAttendanceStore = create((set, get) => ({
             quarter_id: filters.quarterId,
           },
           headers: { Accept: "application/pdf" },
+          timeout: 15000,
         }
       );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid PDF response from server");
+      }
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const fileName = `Quarterly_Attendance_Summary_${filters.sectionId}_${filters.quarterId}.pdf`;
@@ -403,25 +471,42 @@ const useAttendanceStore = create((set, get) => ({
   },
 
   resetAttendanceStore: () => {
-    removeItem("studentId", sessionStorage);
-    removeItem("scheduleId", sessionStorage);
-    set({
-      scheduleAttendance: {},
-      studentAttendance: {},
-      attendancePDFBlob: null,
-      weeklySchedule: null,
-      monthlyAttendanceData: null,
-      studentId: null,
-      scheduleId: null,
-      loading: false,
-      error: null,
-    });
+    try {
+      removeItem("studentId", sessionStorage);
+      removeItem("scheduleId", sessionStorage);
+      set({
+        scheduleAttendance: {},
+        studentAttendance: {},
+        attendancePDFBlob: null,
+        weeklySchedule: null,
+        monthlyAttendanceData: null,
+        studentId: null,
+        scheduleId: null,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      console.error("Failed to reset attendance store:", {
+        error: error.message,
+      });
+      toast.error("Failed to reset attendance data");
+    }
   },
 }));
 
-// Listen for unauthorized event to reset store
-window.addEventListener("unauthorized", () => {
+// Centralized unauthorized event handler
+const handleUnauthorized = () => {
   useAttendanceStore.getState().resetAttendanceStore();
-});
+};
+
+// Register event listener with proper cleanup
+window.addEventListener("unauthorized", handleUnauthorized);
+
+// Cleanup on module unload (for hot-reloading scenarios)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    window.removeEventListener("unauthorized", handleUnauthorized);
+  });
+}
 
 export default useAttendanceStore;

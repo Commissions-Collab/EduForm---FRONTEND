@@ -4,16 +4,50 @@ import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 import { paginate } from "../../lib/utils";
 import toast from "react-hot-toast";
 
+// Configuration constants
 const RECORDS_PER_PAGE = 10;
 
 const handleError = (err, defaultMessage, set) => {
-  const message = err?.response?.data?.message || defaultMessage;
-  set({ error: message, loading: false });
-  console.error(defaultMessage, err);
-  toast.error(message);
-  return message;
+  let errorMessage = defaultMessage;
+
+  if (err.response) {
+    if (err.response.status === 403) {
+      errorMessage = defaultMessage.includes("Bulk")
+        ? "You don't have permission to edit one or more grades"
+        : "You don't have permission to edit this grade";
+    } else if (err.response.status === 422) {
+      const errors = err.response.data.errors;
+      errorMessage = Array.isArray(errors)
+        ? `Some grades failed to update: ${errors
+            .map((e) => e.error)
+            .join(", ")}`
+        : Object.values(errors).flat().join(", ");
+    } else {
+      errorMessage =
+        err.response.data?.message ||
+        err.response.data?.error ||
+        `Server Error: ${err.response.status}`;
+    }
+  } else if (err.request) {
+    errorMessage = "Network error - please check your connection";
+  } else {
+    errorMessage = err.message || defaultMessage;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.error(defaultMessage, {
+      status: err.response?.status,
+      data: err.response?.data,
+      message: err.message,
+    });
+  }
+
+  set({ error: errorMessage, loading: false });
+  toast.error(errorMessage);
+  return errorMessage;
 };
 
+/** @type {import('zustand').StoreApi<GradesState & GradesActions>} */
 const useGradesStore = create((set, get) => ({
   students: [],
   subjects: [],
@@ -23,26 +57,28 @@ const useGradesStore = create((set, get) => ({
 
   fetchGrades: async () => {
     set({ loading: true, error: null });
-    const filters = useFilterStore.getState().globalFilters;
-
-    if (!filters.academicYearId || !filters.quarterId || !filters.sectionId) {
-      const message = "Missing required filter data";
-      set({ error: message, loading: false });
-      toast.error(message);
-      return;
-    }
 
     try {
-      const { data } = await axiosInstance.get(
+      const filters = useFilterStore.getState().globalFilters;
+      if (!filters.academicYearId || !filters.quarterId || !filters.sectionId) {
+        throw new Error("Missing required filter data");
+      }
+
+      const { data, status } = await axiosInstance.get(
         "/teacher/academic-records/students-grade",
         {
           params: {
-            academic_year_id: filters.academicYearId,
-            quarter_id: filters.quarterId,
-            section_id: filters.sectionId,
+            academic_year_id: Number(filters.academicYearId),
+            quarter_id: Number(filters.quarterId),
+            section_id: Number(filters.sectionId),
           },
+          timeout: 10000,
         }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
 
       const responseData = data.data || data;
       set({
@@ -67,9 +103,22 @@ const useGradesStore = create((set, get) => ({
     grade,
   }) => {
     set({ loading: true, error: null });
+
     try {
+      // Validate inputs
+      if (
+        !Number.isInteger(Number(student_id)) ||
+        !Number.isInteger(Number(subject_id)) ||
+        !Number.isInteger(Number(quarter_id)) ||
+        !Number.isInteger(Number(academic_year_id))
+      ) {
+        throw new Error("Invalid input parameters for grade update");
+      }
+
       const processedGrade =
-        grade === "" || grade === undefined ? null : Number(grade);
+        grade === "" || grade === undefined || isNaN(Number(grade))
+          ? null
+          : Number(grade);
 
       const payload = {
         student_id: Number(student_id),
@@ -80,18 +129,23 @@ const useGradesStore = create((set, get) => ({
       };
 
       await fetchCsrfToken();
-      const { data } = await axiosInstance.put(
+      const { data, status } = await axiosInstance.put(
         "/teacher/academic-records/update-grade",
-        payload
+        payload,
+        { timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
 
       const gradeData = data.grade || data;
 
       const updatedStudents = get().students.map((student) => {
-        if (student.id !== student_id) return student;
+        if (student.id !== Number(student_id)) return student;
 
         const updatedGrades = student.grades.map((g) =>
-          g.subject_id === subject_id
+          g.subject_id === Number(subject_id)
             ? { ...g, grade: gradeData.grade, grade_id: gradeData.id }
             : g
         );
@@ -119,66 +173,78 @@ const useGradesStore = create((set, get) => ({
       toast.success("Grade updated successfully");
       return gradeData;
     } catch (err) {
-      if (err.response?.status === 403) {
-        const message = "You don't have permission to edit this grade";
-        set({ error: message, loading: false });
-        toast.error(message);
-        throw new Error(message);
-      } else if (err.response?.status === 422) {
-        const validationErrors = err.response.data.errors;
-        const errorMessage = Object.values(validationErrors).flat().join(", ");
-        set({ error: errorMessage, loading: false });
-        toast.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-      handleError(err, "Grade update failed", set);
-      throw err;
+      const message = handleError(err, "Grade update failed", set);
+      throw new Error(message);
     }
   },
 
   updateMultipleGrades: async (gradeUpdates) => {
     set({ loading: true, error: null });
+
     try {
-      const processedGrades = gradeUpdates.map((update) => ({
-        student_id: Number(update.student_id),
-        subject_id: Number(update.subject_id),
-        quarter_id: Number(update.quarter_id),
-        academic_year_id: Number(update.academic_year_id),
-        grade:
-          update.grade === "" || update.grade === undefined
-            ? null
-            : Number(update.grade),
-      }));
+      if (!Array.isArray(gradeUpdates) || !gradeUpdates.length) {
+        throw new Error("Invalid or empty grade updates");
+      }
+
+      const processedGrades = gradeUpdates.map((update) => {
+        if (
+          !Number.isInteger(Number(update.student_id)) ||
+          !Number.isInteger(Number(update.subject_id)) ||
+          !Number.isInteger(Number(update.quarter_id)) ||
+          !Number.isInteger(Number(update.academic_year_id))
+        ) {
+          throw new Error("Invalid input parameters in grade updates");
+        }
+
+        return {
+          student_id: Number(update.student_id),
+          subject_id: Number(update.subject_id),
+          quarter_id: Number(update.quarter_id),
+          academic_year_id: Number(update.academic_year_id),
+          grade:
+            update.grade === "" ||
+            update.grade === undefined ||
+            isNaN(Number(update.grade))
+              ? null
+              : Number(update.grade),
+        };
+      });
 
       const payload = { grades: processedGrades };
 
       await fetchCsrfToken();
-      const { data } = await axiosInstance.put(
+      const { data, status } = await axiosInstance.put(
         "/teacher/academic-records/update-grade",
-        payload
+        payload,
+        { timeout: 15000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
 
       const updatedStudents = get().students.map((student) => {
         const studentGradeUpdates = gradeUpdates.filter(
-          (u) => u.student_id === student.id
+          (u) => Number(u.student_id) === Number(student.id)
         );
         if (!studentGradeUpdates.length) return student;
 
         const updatedGrades = student.grades.map((g) => {
           const gradeUpdate = studentGradeUpdates.find(
-            (u) => u.subject_id === g.subject_id
+            (u) => Number(u.subject_id) === Number(g.subject_id)
           );
           if (!gradeUpdate) return g;
 
           const updatedGrade = data.grades?.find(
             (gd) =>
-              gd.student_id === student.id && gd.subject_id === g.subject_id
+              Number(gd.student_id) === Number(student.id) &&
+              Number(gd.subject_id) === Number(g.subject_id)
           );
 
           return {
             ...g,
-            grade: updatedGrade?.grade || gradeUpdate.grade,
-            grade_id: updatedGrade?.id || null,
+            grade: updatedGrade?.grade ?? gradeUpdate.grade,
+            grade_id: updatedGrade?.id ?? null,
           };
         });
 
@@ -205,52 +271,36 @@ const useGradesStore = create((set, get) => ({
       toast.success("Grades updated successfully");
       return data;
     } catch (err) {
-      if (err.response?.status === 403) {
-        const message = "You don't have permission to edit one or more grades";
-        set({ error: message, loading: false });
-        toast.error(message);
-        throw new Error(message);
-      } else if (err.response?.status === 422) {
-        const errors = err.response.data.errors;
-        let errorMessage;
-        if (Array.isArray(errors)) {
-          errorMessage = `Some grades failed to update: ${errors
-            .map((e) => e.error)
-            .join(", ")}`;
-        } else {
-          errorMessage = Object.values(errors).flat().join(", ");
-        }
-        set({ error: errorMessage, loading: false });
-        toast.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-      handleError(err, "Bulk grade update failed", set);
-      throw err;
+      const message = handleError(err, "Bulk grade update failed", set);
+      throw new Error(message);
     }
   },
 
   fetchStatistics: async () => {
     set({ loading: true, error: null });
-    const filters = useFilterStore.getState().globalFilters;
-
-    if (!filters.academicYearId || !filters.quarterId || !filters.sectionId) {
-      const message = "Missing required filter data";
-      set({ error: message, loading: false });
-      toast.error(message);
-      return null;
-    }
 
     try {
-      const { data } = await axiosInstance.get(
+      const filters = useFilterStore.getState().globalFilters;
+      if (!filters.academicYearId || !filters.quarterId || !filters.sectionId) {
+        throw new Error("Missing required filter data");
+      }
+
+      const { data, status } = await axiosInstance.get(
         "/teacher/academic-records/statistics",
         {
           params: {
-            academic_year_id: filters.academicYearId,
-            quarter_id: filters.quarterId,
-            section_id: filters.sectionId,
+            academic_year_id: Number(filters.academicYearId),
+            quarter_id: Number(filters.quarterId),
+            section_id: Number(filters.sectionId),
           },
+          timeout: 10000,
         }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       set({ loading: false });
       return data.data || data;
     } catch (err) {
@@ -259,27 +309,79 @@ const useGradesStore = create((set, get) => ({
     }
   },
 
-  totalPages: () => Math.ceil(get().students.length / RECORDS_PER_PAGE),
+  totalPages: () => {
+    try {
+      return Math.ceil(get().students.length / RECORDS_PER_PAGE);
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to calculate total pages:", {
+          error: error.message,
+        });
+      }
+      return 0;
+    }
+  },
 
-  paginatedGradeRecords: () =>
-    paginate(get().students, get().currentPage, RECORDS_PER_PAGE),
+  paginatedGradeRecords: () => {
+    try {
+      return paginate(get().students, get().currentPage, RECORDS_PER_PAGE);
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to get paginated records:", {
+          error: error.message,
+        });
+      }
+      return [];
+    }
+  },
 
-  setPage: (page) => set({ currentPage: page }),
+  setPage: (page) => {
+    try {
+      if (!Number.isInteger(page) || page < 1) {
+        throw new Error("Invalid page number");
+      }
+      set({ currentPage: page });
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to set page:", { error: error.message, page });
+      }
+      toast.error("Invalid page number");
+    }
+  },
 
   resetGradesStore: () => {
-    set({
-      students: [],
-      subjects: [],
-      currentPage: 1,
-      loading: false,
-      error: null,
-    });
+    try {
+      set({
+        students: [],
+        subjects: [],
+        currentPage: 1,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to reset grades store:", {
+          error: error.message,
+        });
+      }
+      toast.error("Failed to reset grades data");
+    }
   },
 }));
 
-// Listen for unauthorized event to reset store
-window.addEventListener("unauthorized", () => {
+// Centralized unauthorized event handler
+const handleUnauthorized = () => {
   useGradesStore.getState().resetGradesStore();
-});
+};
+
+// Register event listener with proper cleanup
+window.addEventListener("unauthorized", handleUnauthorized);
+
+// Cleanup on module unload (for hot-reloading scenarios)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    window.removeEventListener("unauthorized", handleUnauthorized);
+  });
+}
 
 export default useGradesStore;
