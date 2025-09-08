@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { LuUser } from "react-icons/lu";
-
 import toast from "react-hot-toast";
 import useStudentDashboardStore from "../../stores/users/studentDashboardStore";
 import DashboardSummary from "../../components/user/DashboardSummary";
@@ -23,15 +22,15 @@ const Dashboard = () => {
   }, [error, clearError]);
 
   return (
-    <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen">
+    <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen animate-fade-in">
       <div className="mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 animate-slide-up">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               Student Dashboard
             </h1>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-medium">
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-medium animate-pulse">
                 Student Panel
               </span>
             </div>
@@ -48,15 +47,19 @@ const Dashboard = () => {
         />
       </div>
 
-      <section className="mb-8">
+      <section
+        className="mb-8 animate-slide-up"
+        style={{ animationDelay: "100ms" }}
+      >
         <DashboardNotifications
           notifications={data.notifications}
+          recentAbsents={data.attendance_rate.recent_absents}
           loading={loading}
           error={error}
         />
       </section>
 
-      <section>
+      <section className="animate-slide-up" style={{ animationDelay: "200ms" }}>
         <DashboardGrades
           grades={data.grades.subjects}
           loading={loading}

@@ -192,6 +192,30 @@ input[type="number"] {
     .animate-count-up {
         animation: countUp 1s ease-in-out;
     }
+
+    .animate-pop-in {
+        animation: popIn 0.6s ease-out forwards;
+    }
+
+    .animate-slide-in {
+        animation: slideIn 0.5s ease-in-out;
+    }
+
+    .animate-focus-glow {
+        animation: focusGlow 0.3s ease-in-out;
+    }
+
+    .animate-grow-line {
+        animation: growLine 1s ease-in-out;
+    }
+
+    .animate-sparkle {
+        animation: sparkle 2s infinite;
+    }
+
+    .animate-success-pulse {
+        animation: successPulse 0.5s ease-in-out 2;
+    }
 }
 
 @keyframes fadeIn {
@@ -225,6 +249,84 @@ input[type="number"] {
     to {
         transform: scale(1);
         opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes focusGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 10px 2px rgba(59, 130, 246, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+@keyframes growLine {
+    from {
+        transform: scaleY(0);
+        transform-origin: top;
+    }
+
+    to {
+        transform: scaleY(1);
+        transform-origin: top;
+    }
+}
+
+@keyframes sparkle {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
+}
+
+@keyframes successPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
     }
 }
 

@@ -1,13 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { LuCalendarCheck, LuCircleAlert } from "react-icons/lu";
 
 const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
+  const [animatedRates, setAnimatedRates] = useState({});
+
+  useEffect(() => {
+    if (!loading) {
+      quarterlySummary.forEach((summary) => {
+        const animate = (start, end, key) => {
+          const duration = 1000; // 1 second
+          const steps = 60; // 60 frames
+          const increment = (end - start) / steps;
+          let current = start;
+          const interval = setInterval(() => {
+            current += increment;
+            if (
+              (increment > 0 && current >= end) ||
+              (increment < 0 && current <= end)
+            ) {
+              current = end;
+              clearInterval(interval);
+            }
+            setAnimatedRates((prev) => ({ ...prev, [key]: current }));
+          }, duration / steps);
+        };
+        animate(0, summary.attendance_rate, summary.quarter);
+      });
+    }
+  }, [loading, quarterlySummary]);
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-slide-up">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Quarterly Summary</h2>
         <div className="p-2 bg-gray-100 rounded-lg">
-          <LuCalendarCheck className="w-5 h-5 text-gray-600" />
+          <LuCalendarCheck className="w-5 h-5 text-gray-600 animate-pulse" />
         </div>
       </div>
       {loading ? (
@@ -17,7 +44,7 @@ const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
           ))}
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center gap-3 py-8">
+        <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
             <LuCircleAlert className="w-6 h-6 text-red-600" />
           </div>
@@ -29,7 +56,7 @@ const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
           </div>
         </div>
       ) : quarterlySummary.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-8">
+        <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
             <LuCalendarCheck className="w-6 h-6 text-gray-400" />
           </div>
@@ -41,20 +68,23 @@ const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {quarterlySummary.map((summary, index) => (
             <div
-              key={index}
-              className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200 hover:shadow-md transition-all duration-200"
+              key={summary.quarter}
+              className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200 hover:shadow-md transition-all duration-200 animate-pop-in"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-indigo-600 mb-1">
                     {summary.quarter}
                   </p>
-                  <p className="text-xl font-bold text-indigo-900">
-                    {summary.attendance_rate}%
+                  <p className="text-xl font-bold text-indigo-900 animate-count-up">
+                    {animatedRates[summary.quarter]
+                      ? `${animatedRates[summary.quarter].toFixed(0)}%`
+                      : "0%"}
                   </p>
                 </div>
                 <div className="p-2 bg-indigo-100 rounded-lg">
-                  <LuCalendarCheck className="w-5 h-5 text-indigo-600" />
+                  <LuCalendarCheck className="w-5 h-5 text-indigo-600 animate-pulse" />
                 </div>
               </div>
             </div>

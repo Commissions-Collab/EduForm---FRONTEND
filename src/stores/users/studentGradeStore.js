@@ -24,21 +24,23 @@ const useStudentGradeStore = create((set) => ({
         : "/student/student-grade";
       const { data } = await axiosInstance.get(url);
       console.log("fetchGrades Response:", data);
-      if (data.success === false) {
-        throw new Error(data.message || "Failed to fetch grades");
-      }
       set({
-        data: data.data || {
-          quarter: "",
-          quarter_average: 0,
-          honors_eligibility: null,
-          grades: [],
+        data: {
+          quarter: data.quarter || "",
+          quarter_average: data.quarter_average || 0,
+          honors_eligibility: data.honors_eligibility || null,
+          grades: data.grades || [],
         },
         loading: false,
       });
     } catch (error) {
-      const message =
-        error?.response?.data?.message || "Failed to fetch grades";
+      let message = error?.response?.data?.error || "Failed to fetch grades";
+      if (
+        error.response &&
+        !error.response.headers["content-type"]?.includes("application/json")
+      ) {
+        message = "Server error occurred while fetching grades";
+      }
       console.error("fetchGrades Error:", {
         status: error.response?.status,
         data: error.response?.data,
@@ -66,16 +68,19 @@ const useStudentGradeStore = create((set) => ({
     try {
       const { data } = await axiosInstance.get("/student/student-grade/filter");
       console.log("fetchQuarterFilter Response:", data);
-      if (data.success === false) {
-        throw new Error(data.message || "Failed to fetch quarter filters");
-      }
       set({
-        quarters: data.data.quarters || [],
+        quarters: data.quarters || [],
         quartersLoading: false,
       });
     } catch (error) {
-      const message =
-        error?.response?.data?.message || "Failed to fetch quarter filters";
+      let message =
+        error?.response?.data?.error || "Failed to fetch quarter filters";
+      if (
+        error.response &&
+        !error.response.headers["content-type"]?.includes("application/json")
+      ) {
+        message = "Server error occurred while fetching quarter filters";
+      }
       console.error("fetchQuarterFilter Error:", {
         status: error.response?.status,
         data: error.response?.data,

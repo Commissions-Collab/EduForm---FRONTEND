@@ -21,24 +21,34 @@ const useStudentDashboardStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get("/student/dashboard");
-      "fetchDashboard Response:", data;
-      if (data.success === false) {
-        throw new Error(data.message || "Failed to fetch dashboard data");
-      }
+      console.log("fetchDashboard Response:", data);
       set({
-        data: data.data || {
-          grades: { total_average: 0, subjects: [] },
-          grade_change_percent: 0,
-          attendance_rate: { present_percent: 0, recent_absents: [] },
-          borrow_book: 0,
-          book_due_this_week: 0,
-          notifications: [],
+        data: {
+          grades: {
+            total_average: data.grades || 0,
+            subjects: data.grades_data || [], // Map backend's grades array if needed
+          },
+          grade_change_percent: data.grade_change_percent || 0,
+          attendance_rate: {
+            present_percent: data.attendance_rate?.present_percent || 0,
+            recent_absents: data.attendance_rate?.recent_absents || [],
+          },
+          borrow_book: data.borrow_book || 0,
+          book_due_this_week: data.book_due_this_week || 0,
+          notifications: data.notifications || [],
         },
         loading: false,
       });
     } catch (error) {
-      const message =
+      let message =
         error?.response?.data?.message || "Failed to fetch dashboard data";
+      // Handle non-JSON responses (e.g., HTML from 404)
+      if (
+        error.response &&
+        !error.response.headers["content-type"]?.includes("application/json")
+      ) {
+        message = "Server error occurred while fetching dashboard data";
+      }
       console.error("fetchDashboard Error:", {
         status: error.response?.status,
         data: error.response?.data,
@@ -47,7 +57,6 @@ const useStudentDashboardStore = create((set) => ({
       set({
         error: message,
         loading: false,
-        // Preserve initial data structure on error
         data: {
           grades: { total_average: 0, subjects: [] },
           grade_change_percent: 0,

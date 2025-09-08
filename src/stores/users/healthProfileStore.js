@@ -17,8 +17,14 @@ const useHealthProfileStore = create((set) => ({
         loading: false,
       });
     } catch (error) {
-      const message =
+      let message =
         error?.response?.data?.message || "Failed to fetch BMI data";
+      if (
+        error.response &&
+        !error.response.headers["content-type"]?.includes("application/json")
+      ) {
+        message = "Server error occurred while fetching BMI data";
+      }
       console.error("fetchBmiData Error:", {
         status: error.response?.status,
         data: error.response?.data,

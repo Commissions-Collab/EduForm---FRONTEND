@@ -1,5 +1,5 @@
 import React from "react";
-import { LuCalendar } from "react-icons/lu";
+import { LuCalendar, LuCircleAlert } from "react-icons/lu";
 
 const QuarterFilter = ({
   quarters,
@@ -9,31 +9,32 @@ const QuarterFilter = ({
   error,
 }) => {
   return (
-    <div className="relative">
-      <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-        <LuCalendar className="w-5 h-5 text-gray-400" />
-      </div>
+    <div className="relative animate-slide-in">
       {loading ? (
-        <div className="w-48 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+        <div className="animate-pulse h-10 w-48 bg-gray-200 rounded-lg"></div>
       ) : error ? (
-        <div className="w-48 text-sm text-red-600 font-medium">
-          Failed to load quarters
+        <div className="flex items-center gap-2 text-red-600">
+          <LuCircleAlert className="w-5 h-5" />
+          <p className="text-sm font-medium">Failed to load quarters</p>
         </div>
       ) : quarters.length === 0 ? (
-        <div className="w-48 text-sm text-gray-500">No quarters available</div>
+        <p className="text-sm text-gray-500">No quarters available</p>
       ) : (
-        <select
-          value={selectedQuarter || ""}
-          onChange={(e) => setSelectedQuarter(e.target.value || null)}
-          className="w-48 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        >
-          <option value="">Select Quarter</option>
-          {quarters.map((quarter) => (
-            <option key={quarter.id} value={quarter.id}>
-              {quarter.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <LuCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <select
+            value={selectedQuarter || ""}
+            onChange={(e) => setSelectedQuarter(e.target.value || null)}
+            className="pl-10 pr-4 py-2 w-48 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 animate-focus-glow"
+          >
+            <option value="">Select Quarter</option>
+            {quarters.map((quarter) => (
+              <option key={quarter.id} value={quarter.id}>
+                {quarter.name}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
     </div>
   );
