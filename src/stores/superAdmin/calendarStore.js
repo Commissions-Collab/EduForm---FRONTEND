@@ -2,6 +2,10 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 
+const handleError = (err, defaultMessage) => {
+  return err?.response?.data?.message || defaultMessage;
+};
+
 const useAcademicCalendarStore = create((set, get) => ({
   calendars: [],
   loading: false,
@@ -11,10 +15,9 @@ const useAcademicCalendarStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get("/admin/academic-calendar");
-      set({ calendars: data.data || [], loading: false });
+      set({ calendars: data.data ?? [], loading: false });
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Could not load academic calendars";
+      const message = handleError(err, "Failed to load academic calendars");
       set({ error: message, loading: false });
       toast.error(message);
     }
@@ -28,13 +31,12 @@ const useAcademicCalendarStore = create((set, get) => ({
         "/admin/academic-calendar",
         calendarData
       );
-      toast.success("Calendar entries created successfully!");
-      get().fetchCalendars(); // Refresh list
       set({ loading: false });
+      toast.success("Calendar entries created successfully");
+      await get().fetchCalendars();
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to create calendar entries";
+      const message = handleError(err, "Failed to create calendar entries");
       set({ error: message, loading: false });
       toast.error(message);
       throw err;
@@ -48,10 +50,9 @@ const useAcademicCalendarStore = create((set, get) => ({
         `/admin/academic-calendar/${id}`
       );
       set({ loading: false });
-      return data.calendar || data;
+      return data.calendar ?? data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Could not load calendar entry";
+      const message = handleError(err, "Failed to load calendar entry");
       set({ error: message, loading: false });
       toast.error(message);
       throw err;
@@ -66,13 +67,12 @@ const useAcademicCalendarStore = create((set, get) => ({
         `/admin/academic-calendar/${id}`,
         calendarData
       );
-      toast.success("Calendar entry updated successfully!");
-      get().fetchCalendars(); // Refresh list
       set({ loading: false });
+      toast.success("Calendar entry updated successfully");
+      await get().fetchCalendars();
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to update calendar entry";
+      const message = handleError(err, "Failed to update calendar entry");
       set({ error: message, loading: false });
       toast.error(message);
       throw err;
@@ -86,13 +86,12 @@ const useAcademicCalendarStore = create((set, get) => ({
       const { data } = await axiosInstance.delete(
         `/admin/academic-calendar/${id}`
       );
-      toast.success("Calendar entry deleted successfully!");
-      get().fetchCalendars(); // Refresh list
       set({ loading: false });
+      toast.success("Calendar entry deleted successfully");
+      await get().fetchCalendars();
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to delete calendar entry";
+      const message = handleError(err, "Failed to delete calendar entry");
       set({ error: message, loading: false });
       toast.error(message);
       throw err;
@@ -105,27 +104,27 @@ const useAcademicCalendarStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/admin/academic-calendar/year/${academicYearId}`
       );
-      set({ calendars: data.data || [], loading: false });
+      set({ calendars: data.data ?? [], loading: false });
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Could not load calendars by year";
+      const message = handleError(err, "Failed to load calendars by year");
       set({ error: message, loading: false });
       toast.error(message);
     }
   },
 
-  resetAcademicCalendarStore: () => {
-    set({
-      calendars: [],
-      loading: false,
-      error: null,
-    });
-  },
+  reset: () => set({ calendars: [], loading: false, error: null }),
 }));
 
-// Listen for unauthorized event to reset store
-window.addEventListener("unauthorized", () => {
-  useAcademicCalendarStore.getState().resetAcademicCalendarStore();
+// Centralized event listener management
+const handleUnauthorized = () => {
+  useAcademicCalendarStore.getState().reset();
+};
+
+window.addEventListener("unauthorized", handleUnauthorized);
+
+// Cleanup on module unload
+window.addEventListener("unload", () => {
+  window.removeEventListener("unauthorized", handleUnauthorized);
 });
 
 export default useAcademicCalendarStore;
