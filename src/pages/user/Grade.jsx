@@ -1,39 +1,26 @@
 import React, { useEffect } from "react";
-import { LuCircleAlert, LuUser } from "react-icons/lu";
+import { LuCircleAlert } from "react-icons/lu";
 import toast from "react-hot-toast";
 import useStudentGradeStore from "../../stores/users/studentGradeStore";
-import QuarterFilter from "../../components/user/QuarterFilter";
 import GradeSummary from "../../components/user/GradeSummary";
 import GradeList from "../../components/user/GradeList";
 
 const Grades = () => {
-  const {
-    data,
-    quarters,
-    selectedQuarter,
-    loading,
-    error,
-    quartersLoading,
-    quartersError,
-    fetchGrades,
-    fetchQuarterFilter,
-    setSelectedQuarter,
-    clearError,
-  } = useStudentGradeStore();
+  const { data, loading, error, fetchGrades, clearError } =
+    useStudentGradeStore();
 
   useEffect(() => {
-    fetchQuarterFilter();
-    fetchGrades(selectedQuarter);
-  }, [fetchQuarterFilter, fetchGrades, selectedQuarter]);
+    fetchGrades();
+  }, [fetchGrades]);
 
   useEffect(() => {
-    if (error || quartersError) {
-      toast.error(error || quartersError);
+    if (error) {
+      toast.error(error);
       clearError();
     }
-  }, [error, quartersError, clearError]);
+  }, [error, clearError]);
 
-  if (error && quartersError) {
+  if (error) {
     return (
       <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen flex items-center justify-center animate-fade-in">
         <div className="flex flex-col items-center gap-3">
@@ -56,14 +43,11 @@ const Grades = () => {
               </span>
             </div>
           </div>
-          <QuarterFilter
-            quarters={quarters}
-            selectedQuarter={selectedQuarter}
-            setSelectedQuarter={setSelectedQuarter}
-            loading={quartersLoading}
-            error={quartersError}
-          />
         </div>
+
+        <p className="text-sm text-gray-600 mb-4">
+          Showing grades for the current quarter only.
+        </p>
 
         <GradeSummary
           quarter={data.quarter}

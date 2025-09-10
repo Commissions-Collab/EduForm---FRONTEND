@@ -30,13 +30,15 @@ const useStudentAttendanceStore = create((set, get) => ({
   monthsError: null,
   hasFetchedMonths: false,
 
-  fetchAttendance: async (month = null) => {
+  fetchAttendance: async (month) => {
+    if (!month) return; // Prevent calling with null month
     set({ loading: true, error: null });
     try {
-      const params = month ? { month } : {};
-      const { data } = await axiosInstance.get("/student/student-attendance", {
-        params,
-      });
+      const { data } = await retry(() =>
+        axiosInstance.get("/student/student-attendance", {
+          params: { month },
+        })
+      );
       console.log("fetchAttendance Response:", data);
       set({
         data: {
@@ -51,7 +53,9 @@ const useStudentAttendanceStore = create((set, get) => ({
       });
     } catch (error) {
       let message =
-        error?.response?.data?.message || "Failed to fetch attendance records";
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "Failed to fetch attendance records";
       if (
         error.response &&
         !error.response.headers["content-type"]?.includes("application/json")
@@ -101,7 +105,9 @@ const useStudentAttendanceStore = create((set, get) => ({
       }
     } catch (error) {
       let message =
-        error?.response?.data?.message || "Failed to fetch month filters";
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "Failed to fetch month filters";
       if (
         error.response &&
         !error.response.headers["content-type"]?.includes("application/json")
@@ -117,7 +123,7 @@ const useStudentAttendanceStore = create((set, get) => ({
         monthsError: message,
         monthsLoading: false,
         months: [],
-        hasFetchedMonths: true, // Prevent retrying
+        hasFetchedMonths: true,
       });
       if (error.response?.status === 401 || error.response?.status === 403) {
         window.dispatchEvent(new Event("unauthorized"));

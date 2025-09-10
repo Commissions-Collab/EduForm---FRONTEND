@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { LuUser, LuCircleAlert } from "react-icons/lu";
+import { LuCircleAlert } from "react-icons/lu";
 import toast from "react-hot-toast";
 import AttendanceMonthFilter from "../../components/user/AttendanceMonthFilter";
 import AttendanceSummary from "../../components/user/AttendanceSummary";
@@ -23,19 +23,8 @@ const UserAttendance = () => {
   } = useStudentAttendanceStore();
 
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchMonthFilter(); // Fetch months first
-      const state = useStudentAttendanceStore.getState();
-      if (
-        !state.monthsLoading &&
-        state.months.length > 0 &&
-        !state.selectedMonth
-      ) {
-        setSelectedMonth(state.months[0].value); // Set default month
-      }
-    };
-    fetchData();
-  }, [fetchMonthFilter, setSelectedMonth]);
+    fetchMonthFilter();
+  }, [fetchMonthFilter]);
 
   useEffect(() => {
     if (selectedMonth) {
@@ -45,7 +34,7 @@ const UserAttendance = () => {
 
   useEffect(() => {
     if (error || monthsError) {
-      toast.error(error || monthsError, { id: "attendance-error" }); // Use id to prevent duplicate toasts
+      toast.error(error || monthsError, { id: "attendance-error" });
       clearError();
     }
   }, [error, monthsError, clearError]);

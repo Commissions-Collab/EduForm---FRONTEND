@@ -4,6 +4,7 @@ import {
   LuCircleAlert,
   LuCircleCheck,
   LuCircleX,
+  LuSquareCheck,
 } from "react-icons/lu";
 
 const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
@@ -15,6 +16,8 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
         return "bg-yellow-100 text-yellow-800 border-yellow-200 animate-pulse";
       case "absent":
         return "bg-red-100 text-red-800 border-red-200 animate-pulse";
+      case "excused":
+        return "bg-blue-100 text-blue-800 border-blue-200 animate-sparkle";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -28,6 +31,8 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
         return <LuClock className="w-5 h-5 animate-pulse" />;
       case "absent":
         return <LuCircleX className="w-5 h-5 animate-pulse" />;
+      case "excused":
+        return <LuSquareCheck className="w-5 h-5 animate-pulse" />;
       default:
         return null;
     }
