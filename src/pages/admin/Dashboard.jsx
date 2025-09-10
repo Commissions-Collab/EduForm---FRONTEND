@@ -223,7 +223,7 @@ const AdminDashboard = () => {
                     </option>
                   ))}
                 </select>
-                <button
+                {/* <button
                   onClick={handleRefresh}
                   disabled={loading}
                   className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
@@ -232,7 +232,7 @@ const AdminDashboard = () => {
                     className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
                   />
                   <span>Refresh</span>
-                </button>
+                </button> */}
               </div>
             </div>
 
