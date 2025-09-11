@@ -1,14 +1,27 @@
 import { create } from "zustand";
-import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 import toast from "react-hot-toast";
+import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
+
+const handleError = (err, defaultMessage) => {
+  const message = err?.response?.data?.message || defaultMessage;
+  if (err.response?.status === 401 || err.response?.status === 403) {
+    window.dispatchEvent(new Event("unauthorized"));
+  }
+  return message;
+};
+
+const extractData = (data, key) => {
+  return Array.isArray(data[key]?.data || data[key] || data.data || data)
+    ? data[key]?.data || data[key] || data.data || data
+    : [];
+};
 
 const useEnrollmentStore = create((set, get) => ({
   enrollments: [],
-  pagination: {
-    current_page: 1,
-    per_page: 25,
-    total: 0,
-  },
+  pagination: { current_page: 1, per_page: 25, total: 0 },
+  academicYears: [],
+  yearLevels: [],
+  sections: [],
   loading: false,
   error: null,
 
@@ -18,12 +31,12 @@ const useEnrollmentStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/admin/enrollments?page=${page}&per_page=${perPage}`
       );
-      console.log("fetchEnrollments Response:", data);
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch enrollments");
       }
+      const enrollments = extractData(data, "data");
       set({
-        enrollments: data.data?.data || [],
+        enrollments,
         pagination: {
           current_page: data.data?.current_page || 1,
           per_page: data.data?.per_page || perPage,
@@ -31,18 +44,76 @@ const useEnrollmentStore = create((set, get) => ({
         },
         loading: false,
       });
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || "Could not load enrollments";
-      console.error(
-        "fetchEnrollments Error:",
-        err.response?.status,
-        err.response?.data
-      );
-      set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
+      if (enrollments.length === 0) {
+        toast.error("No enrollments found. Please check the data source.");
       }
+    } catch (err) {
+      const message = handleError(err, "Failed to load enrollments");
+      set({ error: message, enrollments: [], loading: false });
+      toast.error(message);
+    }
+  },
+
+  fetchAcademicYears: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get("/admin/academic-years?page=1");
+      if (data.success === false) {
+        throw new Error(data.message || "Failed to fetch academic years");
+      }
+      const academicYears =
+        extractData(data, "data") || extractData(data, "academic_years");
+      set({ academicYears, loading: false });
+      if (academicYears.length === 0) {
+        toast.error(
+          "No academic years available. Please add academic years in the admin panel."
+        );
+      }
+    } catch (err) {
+      const message = handleError(err, "Failed to load academic years");
+      set({ error: message, academicYears: [], loading: false });
+      toast.error(message);
+    }
+  },
+
+  fetchYearLevels: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get("/admin/year-level?page=1");
+      if (data.success === false) {
+        throw new Error(data.message || "Failed to fetch year levels");
+      }
+      const yearLevels = extractData(data, "yearLevel");
+      set({ yearLevels, loading: false });
+      if (yearLevels.length === 0) {
+        toast.error(
+          "No grade levels available. Please add grade levels in the admin panel."
+        );
+      }
+    } catch (err) {
+      const message = handleError(err, "Failed to load year levels");
+      set({ error: message, yearLevels: [], loading: false });
+      toast.error(message);
+    }
+  },
+
+  fetchSections: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get("/admin/section?page=1");
+      if (data.success === false) {
+        throw new Error(data.message || "Failed to fetch sections");
+      }
+      const sections = extractData(data, "sections");
+      set({ sections, loading: false });
+      if (sections.length === 0) {
+        toast.error(
+          "No sections available. Please add sections in the admin panel."
+        );
+      }
+    } catch (err) {
+      const message = handleError(err, "Failed to load sections");
+      set({ error: message, sections: [], loading: false });
       toast.error(message);
     }
   },
@@ -55,29 +126,19 @@ const useEnrollmentStore = create((set, get) => ({
         "/admin/enrollments",
         enrollmentData
       );
-      console.log("createEnrollment Response:", data);
       if (data.success === false) {
         throw new Error(data.message || "Failed to create enrollment");
       }
-      toast.success("Enrollment created successfully!");
-      get().fetchEnrollments(
+      set({ loading: false });
+      toast.success("Enrollment created successfully");
+      await get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
-      set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to create enrollment";
-      console.error(
-        "createEnrollment Error:",
-        err.response?.status,
-        err.response?.data
-      );
+      const message = handleError(err, "Failed to create enrollment");
       set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
-      }
       toast.error(message);
       throw err;
     }
@@ -88,32 +149,22 @@ const useEnrollmentStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.post(
-        "/admin/enrollments/bulk",
+        "/admin/enrollments/bulk-update",
         bulkData
       );
-      console.log("bulkCreateEnrollments Response:", data);
       if (data.success === false) {
         throw new Error(data.message || "Failed to create bulk enrollments");
       }
-      toast.success("Bulk enrollments created successfully!");
-      get().fetchEnrollments(
+      set({ loading: false });
+      toast.success("Bulk enrollments created successfully");
+      await get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
-      set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to create bulk enrollments";
-      console.error(
-        "bulkCreateEnrollments Error:",
-        err.response?.status,
-        err.response?.data
-      );
+      const message = handleError(err, "Failed to create bulk enrollments");
       set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
-      }
       toast.error(message);
       throw err;
     }
@@ -123,24 +174,14 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(`/admin/enrollments/${id}`);
-      console.log("fetchEnrollment Response:", data);
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch enrollment");
       }
       set({ loading: false });
-      return data.data;
+      return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Could not load enrollment";
-      console.error(
-        "fetchEnrollment Error:",
-        err.response?.status,
-        err.response?.data
-      );
+      const message = handleError(err, "Failed to load enrollment");
       set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
-      }
       toast.error(message);
       throw err;
     }
@@ -150,33 +191,23 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
-      const { data } = await axiosInstance.patch(
+      const { data } = await axiosInstance.put(
         `/admin/enrollments/${id}`,
         enrollmentData
       );
-      console.log("updateEnrollment Response:", data);
       if (data.success === false) {
         throw new Error(data.message || "Failed to update enrollment");
       }
-      toast.success("Enrollment updated successfully!");
-      get().fetchEnrollments(
+      set({ loading: false });
+      toast.success("Enrollment updated successfully");
+      await get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
-      set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to update enrollment";
-      console.error(
-        "updateEnrollment Error:",
-        err.response?.status,
-        err.response?.data
-      );
+      const message = handleError(err, "Failed to update enrollment");
       set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
-      }
       toast.error(message);
       throw err;
     }
@@ -187,29 +218,19 @@ const useEnrollmentStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.delete(`/admin/enrollments/${id}`);
-      console.log("deleteEnrollment Response:", data);
       if (data.success === false) {
         throw new Error(data.message || "Failed to delete enrollment");
       }
-      toast.success("Enrollment deleted successfully!");
-      get().fetchEnrollments(
+      set({ loading: false });
+      toast.success("Enrollment deleted successfully");
+      await get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
-      set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to delete enrollment";
-      console.error(
-        "deleteEnrollment Error:",
-        err.response?.status,
-        err.response?.data
-      );
+      const message = handleError(err, "Failed to delete enrollment");
       set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
-      }
       toast.error(message);
       throw err;
     }
@@ -223,54 +244,48 @@ const useEnrollmentStore = create((set, get) => ({
         "/admin/enrollments/promote",
         promotionData
       );
-      console.log("promoteStudents Response:", data);
       if (data.success === false) {
         throw new Error(data.message || "Failed to promote students");
       }
-      toast.success("Students promoted successfully!");
-      get().fetchEnrollments(
+      set({ loading: false });
+      toast.success("Students promoted successfully");
+      await get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
       );
-      set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to promote students";
-      console.error(
-        "promoteStudents Error:",
-        err.response?.status,
-        err.response?.data
-      );
+      const message = handleError(err, "Failed to promote students");
       set({ error: message, loading: false });
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        window.dispatchEvent(new Event("unauthorized"));
-      }
       toast.error(message);
       throw err;
     }
   },
 
-  clearError: () => {
-    set({ error: null });
-  },
+  clearError: () => set({ error: null }),
 
-  resetEnrollmentStore: () => {
+  reset: () =>
     set({
       enrollments: [],
-      pagination: {
-        current_page: 1,
-        per_page: 25,
-        total: 0,
-      },
+      pagination: { current_page: 1, per_page: 25, total: 0 },
+      academicYears: [],
+      yearLevels: [],
+      sections: [],
       loading: false,
       error: null,
-    });
-  },
+    }),
 }));
 
-window.addEventListener("unauthorized", () => {
-  useEnrollmentStore.getState().resetEnrollmentStore();
+// Centralized event listener management
+const handleUnauthorized = () => {
+  useEnrollmentStore.getState().reset();
+};
+
+window.addEventListener("unauthorized", handleUnauthorized);
+
+// Cleanup on module unload
+window.addEventListener("unload", () => {
+  window.removeEventListener("unauthorized", handleUnauthorized);
 });
 
 export default useEnrollmentStore;

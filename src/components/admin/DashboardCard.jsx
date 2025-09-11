@@ -139,13 +139,13 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
                 </div>
               </div>
 
-              <div className="mt-5 space-y-3">
-                <Link to="/attendance">
-                  <button type="button" className="primary-button w-full">
+              <div className="mt-5 space-y-8">
+                <Link to="/teacher/attendance">
+                  <button type="button" className="primary-button w-full mb-2">
                     Update Attendance (SF2)
                   </button>
                 </Link>
-                <Link to="/monthlySummary">
+                <Link to="/teacher/attendanceMonthlySummary">
                   <button type="button" className="secondary-button w-full">
                     View Monthly Summary (SF4)
                   </button>

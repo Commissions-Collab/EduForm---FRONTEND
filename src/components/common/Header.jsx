@@ -130,6 +130,9 @@ const Header = () => {
 
   const filterLabels = getFilterLabels();
   const shouldShowRole = ["admin", "teacher"].includes(userRole?.toLowerCase());
+  const shouldShowNotifications = !["super_admin"].includes(
+    userRole?.toLowerCase()
+  );
 
   return (
     <>
@@ -177,7 +180,7 @@ const Header = () => {
             {/* Right Section */}
             <div className="flex items-center gap-2">
               {/* Refresh Button */}
-              {shouldShowRole && hasCompleteFilters && (
+              {/* {shouldShowRole && hasCompleteFilters && (
                 <button
                   onClick={handleRefreshData}
                   disabled={isRefreshing}
@@ -190,50 +193,52 @@ const Header = () => {
                     } transition-transform duration-300`}
                   />
                 </button>
-              )}
+              )} */}
 
-              {/* Notifications */}
-              <div className="relative" ref={notifDropdownRef}>
-                <button
-                  onClick={() => setIsNotifOpen(!isNotifOpen)}
-                  className="relative p-2.5 hover:bg-gray-100 text-gray-700 hover:text-gray-900 rounded-lg transition-all duration-200"
-                  aria-label="View notifications"
-                >
-                  <LuBell className="w-5 h-5" />
-                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium border-2 border-white shadow-sm">
-                    3
-                  </span>
-                </button>
+              {/* Notifications - Hidden for super_admin */}
+              {shouldShowNotifications && (
+                <div className="relative" ref={notifDropdownRef}>
+                  <button
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    className="relative p-2.5 hover:bg-gray-100 text-gray-700 hover:text-gray-900 rounded-lg transition-all duration-200"
+                    aria-label="View notifications"
+                  >
+                    <LuBell className="w-5 h-5" />
+                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium border-2 border-white shadow-sm">
+                      3
+                    </span>
+                  </button>
 
-                {/* Notifications Dropdown */}
-                {isNotifOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 overflow-hidden">
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-white">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-sm">
-                            Notifications
-                          </h3>
-                          <p className="text-xs text-indigo-100">
-                            3 unread messages
-                          </p>
+                  {/* Notifications Dropdown */}
+                  {isNotifOpen && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 overflow-hidden">
+                      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-white">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold text-sm">
+                              Notifications
+                            </h3>
+                            <p className="text-xs text-indigo-100">
+                              3 unread messages
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setIsNotifOpen(false)}
+                            className="p-1 hover:bg-white/20 rounded-md transition-colors"
+                          >
+                            <LuX className="w-4 h-4" />
+                          </button>
                         </div>
-                        <button
-                          onClick={() => setIsNotifOpen(false)}
-                          className="p-1 hover:bg-white/20 rounded-md transition-colors"
-                        >
-                          <LuX className="w-4 h-4" />
-                        </button>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                          No new notifications
+                        </div>
                       </div>
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      <div className="p-4 text-center text-gray-500 text-sm">
-                        No new notifications
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

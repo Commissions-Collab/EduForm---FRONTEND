@@ -12,13 +12,29 @@ const useHealthProfileStore = create((set) => ({
     try {
       const { data } = await axiosInstance.get("/student/health-profile");
       console.log("fetchBmiData Response:", data);
+      // Normalize field names to match frontend expectations
+      const normalizedData = data.data.map((record) => ({
+        id: record.id,
+        recorded_at: record.recorded_at,
+        height: record.height_cm,
+        weight: record.weight_kg,
+        bmi: record.bmi,
+        category: record.bmi_category,
+        quarter_id: record.quarter_id,
+        remarks: record.remarks,
+      }));
       set({
-        data: data.data || [],
+        data: normalizedData,
         loading: false,
       });
     } catch (error) {
-      const message =
-        error?.response?.data?.message || "Failed to fetch BMI data";
+      let message = error?.response?.data?.error || "Failed to fetch BMI data";
+      if (
+        error.response &&
+        !error.response.headers["content-type"]?.includes("application/json")
+      ) {
+        message = "Server error occurred while fetching BMI data";
+      }
       console.error("fetchBmiData Error:", {
         status: error.response?.status,
         data: error.response?.data,

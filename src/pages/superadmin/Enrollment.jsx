@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { LuSearch, LuUsers, LuUserCheck } from "react-icons/lu";
-
+import { LuSearch, LuUsers } from "react-icons/lu";
 import toast from "react-hot-toast";
 import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
 import EnrollmentTable from "../../components/superadmin/EnrollmentTable";
 import EnrollmentModal from "../../components/superadmin/EnrollmentModal";
+import BulkEnrollmentModal from "../../components/superadmin/BulkEnrollmentModal";
+import PromoteModal from "../../components/superadmin/PromoteModal";
 
 const Enrollment = () => {
   const {
@@ -13,17 +14,26 @@ const Enrollment = () => {
     loading,
     error,
     fetchEnrollments,
+    fetchAcademicYears,
+    fetchYearLevels,
+    fetchSections,
     deleteEnrollment,
     clearError,
   } = useEnrollmentStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [selectedEnrollments, setSelectedEnrollments] = useState([]);
 
   useEffect(() => {
-    fetchEnrollments(1, 25); // Fetch first page with 25 enrollments
-  }, [fetchEnrollments]);
+    fetchEnrollments(1, 25);
+    fetchAcademicYears();
+    fetchYearLevels();
+    fetchSections();
+  }, [fetchEnrollments, fetchAcademicYears, fetchYearLevels, fetchSections]);
 
   useEffect(() => {
     if (error) {
@@ -46,9 +56,6 @@ const Enrollment = () => {
     totalEnrollments: pagination.total,
     enrolledStudents: enrollments.filter(
       (e) => e.enrollment_status === "enrolled"
-    ).length,
-    pendingEnrollments: enrollments.filter(
-      (e) => e.enrollment_status === "pending"
     ).length,
   };
 
@@ -80,7 +87,7 @@ const Enrollment = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
@@ -111,21 +118,6 @@ const Enrollment = () => {
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200 hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600 mb-1">
-                  Pending Enrollments
-                </p>
-                <p className="text-2xl font-bold text-purple-900">
-                  {loading ? "..." : summary.pendingEnrollments}
-                </p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <LuUserCheck className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -136,10 +128,14 @@ const Enrollment = () => {
           searchTerm={searchTerm}
           loading={loading}
           error={error}
+          selectedEnrollments={selectedEnrollments}
+          setSelectedEnrollments={setSelectedEnrollments}
           onAdd={() => {
             setSelectedEnrollment(null);
             setIsEnrollmentModalOpen(true);
           }}
+          onBulk={() => setIsBulkModalOpen(true)}
+          onPromote={() => setIsPromoteModalOpen(true)}
           onEdit={(enrollment) => {
             setSelectedEnrollment(enrollment);
             setIsEnrollmentModalOpen(true);
@@ -152,6 +148,18 @@ const Enrollment = () => {
         isOpen={isEnrollmentModalOpen}
         onClose={() => setIsEnrollmentModalOpen(false)}
         selectedEnrollment={selectedEnrollment}
+      />
+
+      <BulkEnrollmentModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        selectedStudentIds={selectedEnrollments.map((e) => e.student_id)}
+      />
+
+      <PromoteModal
+        isOpen={isPromoteModalOpen}
+        onClose={() => setIsPromoteModalOpen(false)}
+        selectedStudentIds={selectedEnrollments.map((e) => e.student_id)}
       />
     </main>
   );

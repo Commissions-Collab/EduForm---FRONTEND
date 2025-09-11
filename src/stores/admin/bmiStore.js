@@ -10,103 +10,155 @@ const useBmiStore = create((set, get) => ({
 
   fetchBmiStudents: async () => {
     set({ loading: true, error: null });
-    const filters = useFilterStore.getState().globalFilters;
-
-    if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
-      const message = "Missing required parameters for BMI data";
-      set({ error: message, loading: false });
-      toast.error(message);
-      return;
-    }
 
     try {
-      const { data } = await axiosInstance.get("/teacher/student-bmi", {
+      const filters = useFilterStore.getState().globalFilters;
+      if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
+        throw new Error("Missing required parameters for BMI data");
+      }
+
+      const { data, status } = await axiosInstance.get("/teacher/student-bmi", {
         params: {
           section_id: filters.sectionId,
           academic_year_id: filters.academicYearId,
           quarter_id: filters.quarterId,
         },
+        timeout: 10000,
       });
-      set({ bmiStudents: data.students || data || [], loading: false });
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
+      const students = Array.isArray(data.students)
+        ? data.students
+        : Array.isArray(data)
+        ? data
+        : [];
+      set({ bmiStudents: students, loading: false });
     } catch (err) {
-      const message = err?.response?.data?.message || "Could not load BMI data";
-      set({ error: message, loading: false });
-      toast.error(message);
+      handleError(err, "Could not load BMI data", set);
     }
   },
 
   addStudentBmi: async (bmiData) => {
     set({ loading: true, error: null });
+
     try {
+      if (!bmiData || typeof bmiData !== "object") {
+        throw new Error("Invalid BMI data");
+      }
+
       await fetchCsrfToken();
-      const { data } = await axiosInstance.post(
+      const { data, status } = await axiosInstance.post(
         "/teacher/student-bmi",
-        bmiData
+        bmiData,
+        { timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       toast.success("BMI record added successfully!");
-      get().fetchBmiStudents(); // Refresh list
+      await get().fetchBmiStudents(); // Refresh list
       set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to add BMI record";
-      set({ error: message, loading: false });
-      toast.error(message);
-      throw err;
+      const message = handleError(err, "Failed to add BMI record", set);
+      throw new Error(message);
     }
   },
 
   updateStudentBmi: async (id, bmiData) => {
     set({ loading: true, error: null });
+
     try {
+      if (typeof id !== "string" || !id.trim()) {
+        throw new Error("Invalid BMI record ID");
+      }
+      if (!bmiData || typeof bmiData !== "object") {
+        throw new Error("Invalid BMI data");
+      }
+
       await fetchCsrfToken();
-      const { data } = await axiosInstance.put(
+      const { data, status } = await axiosInstance.put(
         `/teacher/student-bmi/${id}`,
-        bmiData
+        bmiData,
+        { timeout: 10000 }
       );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       toast.success("BMI record updated successfully!");
-      get().fetchBmiStudents(); // Refresh list
+      await get().fetchBmiStudents(); // Refresh list
       set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to update BMI record";
-      set({ error: message, loading: false });
-      toast.error(message);
-      throw err;
+      const message = handleError(err, "Failed to update BMI record", set);
+      throw new Error(message);
     }
   },
 
   deleteStudentBmi: async (id) => {
     set({ loading: true, error: null });
+
     try {
+      if (typeof id !== "string" || !id.trim()) {
+        throw new Error("Invalid BMI record ID");
+      }
+
       await fetchCsrfToken();
-      const { data } = await axiosInstance.delete(`/teacher/student-bmi/${id}`);
+      const { data, status } = await axiosInstance.delete(
+        `/teacher/student-bmi/${id}`,
+        {
+          timeout: 10000,
+        }
+      );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
       toast.success("BMI record deleted successfully!");
-      get().fetchBmiStudents(); // Refresh list
+      await get().fetchBmiStudents(); // Refresh list
       set({ loading: false });
       return data;
     } catch (err) {
-      const message =
-        err?.response?.data?.message || "Failed to delete BMI record";
-      set({ error: message, loading: false });
-      toast.error(message);
-      throw err;
+      const message = handleError(err, "Failed to delete BMI record", set);
+      throw new Error(message);
     }
   },
 
   resetBmiStore: () => {
-    set({
-      bmiStudents: [],
-      loading: false,
-      error: null,
-    });
+    try {
+      set({
+        bmiStudents: [],
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      console.error("Failed to reset BMI store:", { error: error.message });
+      toast.error("Failed to reset BMI data");
+    }
   },
 }));
 
-// Listen for unauthorized event to reset store
-window.addEventListener("unauthorized", () => {
+// Centralized unauthorized event handler
+const handleUnauthorized = () => {
   useBmiStore.getState().resetBmiStore();
-});
+};
+
+// Register event listener with proper cleanup
+window.addEventListener("unauthorized", handleUnauthorized);
+
+// Cleanup on module unload (for hot-reloading scenarios)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    window.removeEventListener("unauthorized", handleUnauthorized);
+  });
+}
 
 export default useBmiStore;
