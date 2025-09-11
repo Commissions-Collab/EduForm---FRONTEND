@@ -4,6 +4,8 @@ import toast from "react-hot-toast";
 import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 import TeacherModal from "../../components/superadmin/TeacherModal";
 import TeacherManagementTable from "../../components/superadmin/TeacherManagementTable";
+import AssignScheduleModal from "../../components/superadmin/AssignScheduleModal";
+import AssignAdviserModal from "../../components/superadmin/AssignAdviserModal";
 
 const TeacherManagement = () => {
   const {
@@ -20,6 +22,9 @@ const TeacherManagement = () => {
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
+  const [isAdviserModalOpen, setIsAdviserModalOpen] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+
   useEffect(() => {
     fetchTeachers(1, 25); // Fetch first page with 25 teachers
   }, [fetchTeachers]);
@@ -30,6 +35,23 @@ const TeacherManagement = () => {
       clearError();
     }
   }, [error, clearError]);
+
+  const handleOpenScheduleModal = (teacher) => {
+    setSelectedTeacher(teacher);
+    setIsScheduleModalOpen(true);
+  };
+
+  const handleOpenAdviserModal = (teacher) => {
+    setSelectedTeacher(teacher);
+    setIsAdviserModalOpen(true);
+  };
+
+  const handleCloseAllModals = () => {
+    setIsTeacherModalOpen(false);
+    setIsScheduleModalOpen(false);
+    setIsAdviserModalOpen(false);
+    setSelectedTeacher(null);
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this teacher?")) {
@@ -141,6 +163,8 @@ const TeacherManagement = () => {
             setIsTeacherModalOpen(true);
           }}
           onDelete={handleDelete}
+          onAssignSchedule={handleOpenScheduleModal}
+          onAssignAdviser={handleOpenAdviserModal}
         />
       </section>
 
@@ -148,6 +172,18 @@ const TeacherManagement = () => {
         isOpen={isTeacherModalOpen}
         onClose={() => setIsTeacherModalOpen(false)}
         selectedTeacher={selectedTeacher}
+      />
+
+      <AssignScheduleModal
+        isOpen={isScheduleModalOpen}
+        onClose={handleCloseAllModals}
+        teacher={selectedTeacher}
+      />
+
+      <AssignAdviserModal
+        isOpen={isAdviserModalOpen}
+        onClose={handleCloseAllModals}
+        teacher={selectedTeacher}
       />
     </main>
   );

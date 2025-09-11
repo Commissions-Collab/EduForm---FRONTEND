@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { LuX, LuSave } from "react-icons/lu";
+import { LuX, LuSave, LuEye, LuEyeOff, LuLoader } from "react-icons/lu";
 import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 
 const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
-  const { createTeacher, updateTeacher } = useTeacherManagementStore();
+  const { createTeacher, updateTeacher, loading } = useTeacherManagementStore();
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,6 +19,10 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
     hired_date: "",
     status: "active",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (selectedTeacher) {
@@ -51,21 +56,79 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
         status: "active",
       });
     }
-  }, [selectedTeacher]);
+    setErrors({});
+  }, [selectedTeacher, isOpen]);
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
+    }
+
+    // Password validation (only for new teachers or when password is provided)
+    if (!selectedTeacher && !formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password && formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    // Password confirmation
+    if (formData.password && formData.password !== formData.password_confirmation) {
+      newErrors.password_confirmation = "Passwords do not match";
+    }
+
+    // Required fields
+    if (!formData.first_name.trim()) {
+      newErrors.first_name = "First name is required";
+    }
+
+    if (!formData.last_name.trim()) {
+      newErrors.last_name = "Last name is required";
+    }
+
+    if (!formData.gender) {
+      newErrors.gender = "Gender is required";
+    }
+
+    // Phone validation (if provided)
+    if (formData.phone && !/^09[0-9]{9}$/.test(formData.phone)) {
+      newErrors.phone = "Phone must be in format 09XXXXXXXXX";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       const dataToSubmit = { ...formData };
-      if (!dataToSubmit.password) {
+      
+      // Remove empty password fields for updates
+      if (selectedTeacher && (!dataToSubmit.password || dataToSubmit.password.trim() === '')) {
         delete dataToSubmit.password;
         delete dataToSubmit.password_confirmation;
       }
+
       if (selectedTeacher) {
         await updateTeacher(selectedTeacher.id, dataToSubmit);
       } else {
@@ -73,22 +136,45 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
       }
       onClose();
     } catch (err) {
-      // Error handled by store
+      // Handle validation errors from backend
+      if (err.response?.status === 422) {
+        const backendErrors = err.response.data.errors || {};
+        setErrors(backendErrors);
+      }
     }
+  };
+
+  const handleClose = () => {
+    setFormData({
+      email: "",
+      password: "",
+      password_confirmation: "",
+      first_name: "",
+      middle_name: "",
+      last_name: "",
+      gender: "",
+      address: "",
+      phone: "",
+      specialization: "",
+      hired_date: "",
+      status: "active",
+    });
+    setErrors({});
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 "
-      onClick={onClose}
+      className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm"
+      onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="teacher-modal-title"
     >
       <div
-        className="bg-white rounded-xl shadow-xl p-6 w-full max-w-3xl mx-4 sm:mx-0 max-h-[600px] overflow-auto"
+        className="bg-white rounded-xl shadow-xl p-6 w-full max-w-4xl mx-4 sm:mx-0 max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
@@ -99,18 +185,20 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
             {selectedTeacher ? "Edit Teacher" : "Add Teacher"}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-colors"
             aria-label="Close modal"
+            disabled={loading}
           >
             <LuX className="w-5 h-5" />
           </button>
         </div>
+
         <form onSubmit={handleSubmit}>
           <div className="space-y-8">
             {/* Account Details */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-4 border-b pb-2">
                 Account Details
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -127,12 +215,18 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                      errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     required
-                    placeholder="e.g., teacher@example.com"
-                    aria-required="true"
+                    placeholder="teacher@example.com"
+                    disabled={loading}
                   />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  )}
                 </div>
+
                 <div>
                   <label
                     htmlFor="password"
@@ -145,22 +239,42 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                       <span className="text-red-500">*</span>
                     )}
                   </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    placeholder={
-                      selectedTeacher
-                        ? "Leave blank to keep unchanged"
-                        : "Enter password"
-                    }
-                    required={!selectedTeacher}
-                    aria-required={!selectedTeacher}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`mt-1 px-3 py-2 pr-10 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder={
+                        selectedTeacher
+                          ? "Leave blank to keep unchanged"
+                          : "Enter password (min 8 characters)"
+                      }
+                      required={!selectedTeacher}
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={loading}
+                    >
+                      {showPassword ? (
+                        <LuEyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <LuEye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                  )}
                 </div>
+
                 <div>
                   <label
                     htmlFor="password_confirmation"
@@ -173,28 +287,47 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                       <span className="text-red-500">*</span>
                     )}
                   </label>
-                  <input
-                    type="password"
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    value={formData.password_confirmation}
-                    onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    placeholder={
-                      selectedTeacher
-                        ? "Leave blank to keep unchanged"
-                        : "Confirm password"
-                    }
-                    required={!selectedTeacher}
-                    aria-required={!selectedTeacher}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      id="password_confirmation"
+                      name="password_confirmation"
+                      value={formData.password_confirmation}
+                      onChange={handleChange}
+                      className={`mt-1 px-3 py-2 pr-10 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        errors.password_confirmation ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder={
+                        selectedTeacher
+                          ? "Leave blank to keep unchanged"
+                          : "Confirm password"
+                      }
+                      required={!selectedTeacher}
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      disabled={loading}
+                    >
+                      {showConfirmPassword ? (
+                        <LuEyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <LuEye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password_confirmation && (
+                    <p className="text-red-500 text-xs mt-1">{errors.password_confirmation}</p>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Personal Information */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-4 border-b pb-2">
                 Personal Information
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -211,12 +344,18 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     name="first_name"
                     value={formData.first_name}
                     onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                      errors.first_name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     required
-                    placeholder="e.g., John"
-                    aria-required="true"
+                    placeholder="John"
+                    disabled={loading}
                   />
+                  {errors.first_name && (
+                    <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>
+                  )}
                 </div>
+
                 <div>
                   <label
                     htmlFor="middle_name"
@@ -231,9 +370,11 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.middle_name}
                     onChange={handleChange}
                     className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    placeholder="e.g., Michael"
+                    placeholder="Michael (optional)"
+                    disabled={loading}
                   />
                 </div>
+
                 <div>
                   <label
                     htmlFor="last_name"
@@ -247,12 +388,18 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     name="last_name"
                     value={formData.last_name}
                     onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                      errors.last_name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     required
-                    placeholder="e.g., Doe"
-                    aria-required="true"
+                    placeholder="Doe"
+                    disabled={loading}
                   />
+                  {errors.last_name && (
+                    <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>
+                  )}
                 </div>
+
                 <div>
                   <label
                     htmlFor="gender"
@@ -265,16 +412,22 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                      errors.gender ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     required
-                    aria-required="true"
+                    disabled={loading}
                   >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                   </select>
+                  {errors.gender && (
+                    <p className="text-red-500 text-xs mt-1">{errors.gender}</p>
+                  )}
                 </div>
+
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="address"
@@ -282,14 +435,15 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                   >
                     Address
                   </label>
-                  <input
-                    type="text"
+                  <textarea
                     id="address"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    placeholder="e.g., 123 Main St"
+                    rows="2"
+                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
+                    placeholder="123 Main St, Barangay, City, Province"
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -297,7 +451,7 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
 
             {/* Professional Details */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-4 border-b pb-2">
                 Professional Details
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -306,7 +460,7 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     htmlFor="phone"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Phone
+                    Phone Number
                   </label>
                   <input
                     type="tel"
@@ -314,10 +468,19 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    placeholder="e.g., 09123456789"
+                    className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                      errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    placeholder="09123456789"
+                    maxLength="11"
+                    disabled={loading}
                   />
+                  {errors.phone && (
+                    <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">Format: 09XXXXXXXXX</p>
                 </div>
+
                 <div>
                   <label
                     htmlFor="specialization"
@@ -332,9 +495,11 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.specialization}
                     onChange={handleChange}
                     className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    placeholder="e.g., Mathematics"
+                    placeholder="Mathematics, Science, English, etc."
+                    disabled={loading}
                   />
                 </div>
+
                 <div>
                   <label
                     htmlFor="hired_date"
@@ -349,8 +514,10 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.hired_date}
                     onChange={handleChange}
                     className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    disabled={loading}
                   />
                 </div>
+
                 <div>
                   <label
                     htmlFor="status"
@@ -365,7 +532,7 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     onChange={handleChange}
                     className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     required
-                    aria-required="true"
+                    disabled={loading}
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -376,20 +543,31 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end space-x-3">
+          <div className="mt-8 flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              onClick={handleClose}
+              className="px-6 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
+              disabled={loading}
+              className="px-6 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <LuSave className="w-4 h-4" />
-              <span>{selectedTeacher ? "Update" : "Save"}</span>
+              {loading ? (
+                <>
+                  <LuLoader className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <LuSave className="w-4 h-4" />
+                  <span>{selectedTeacher ? "Update Teacher" : "Create Teacher"}</span>
+                </>
+              )}
             </button>
           </div>
         </form>

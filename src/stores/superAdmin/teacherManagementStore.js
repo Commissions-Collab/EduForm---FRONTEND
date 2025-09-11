@@ -22,21 +22,61 @@ const useTeacherManagementStore = create((set, get) => ({
   loading: false,
   error: null,
 
+  // Filters (from API)
+  academicYear: null,
+  quarters: [],
+  subjects: [],
+
+  fetchDropdownData: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get("/admin/teacher/filter-options");
+
+      set({
+        academicYear: data.academic_year || null,
+        quarters: data.quarters || [],
+        subjects: data.subjects || [],
+        sections: data.sections || [],
+        loading: false,
+      });
+    } catch (err) {
+      const message = handleError(err, "Failed to load filter data.");
+      set({ error: message, loading: false });
+      toast.error(message);
+    }
+  },
+
+  // Accessor for filters
+  getFilterData: () => {
+    const state = get();
+    return {
+      academicYear: state.academicYear,
+      quarters: state.quarters,
+      subjects: state.subjects,
+      sections: state.sections,
+    };
+  },
+
   fetchTeachers: async (page = 1, perPage = 25) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
         `/admin/teacher?page=${page}&per_page=${perPage}`
       );
+
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch teachers");
       }
+
       set({
         teachers: extractData(data, "data"),
         pagination: {
           current_page: data.data?.current_page || 1,
           per_page: data.data?.per_page || perPage,
           total: data.data?.total || 0,
+          last_page: data.data?.last_page || 1,
+          from: data.data?.from || 0,
+          to: data.data?.to || 0,
         },
         loading: false,
       });
@@ -52,15 +92,19 @@ const useTeacherManagementStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.post("/admin/teacher", teacherData);
+
       if (data.success === false) {
         throw new Error(data.message || "Failed to create teacher");
       }
+
       set({ loading: false });
-      toast.success("Teacher created successfully");
+      toast.success(data.message || "Teacher created successfully");
+
       await get().fetchTeachers(
         get().pagination.current_page,
         get().pagination.per_page
       );
+
       return data;
     } catch (err) {
       const message = handleError(err, "Failed to create teacher");
@@ -74,24 +118,30 @@ const useTeacherManagementStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
+
       const dataToSubmit = { ...teacherData };
-      if (!dataToSubmit.password) {
+      if (!dataToSubmit.password || dataToSubmit.password.trim() === "") {
         delete dataToSubmit.password;
         delete dataToSubmit.password_confirmation;
       }
-      const { data } = await axiosInstance.patch(
+
+      const { data } = await axiosInstance.put(
         `/admin/teacher/${id}`,
         dataToSubmit
       );
+
       if (data.success === false) {
         throw new Error(data.message || "Failed to update teacher");
       }
+
       set({ loading: false });
-      toast.success("Teacher updated successfully");
+      toast.success(data.message || "Teacher updated successfully");
+
       await get().fetchTeachers(
         get().pagination.current_page,
         get().pagination.per_page
       );
+
       return data;
     } catch (err) {
       const message = handleError(err, "Failed to update teacher");
@@ -106,15 +156,19 @@ const useTeacherManagementStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.delete(`/admin/teacher/${id}`);
+
       if (data.success === false) {
         throw new Error(data.message || "Failed to delete teacher");
       }
+
       set({ loading: false });
-      toast.success("Teacher deleted successfully");
+      toast.success(data.message || "Teacher deleted successfully");
+
       await get().fetchTeachers(
         get().pagination.current_page,
         get().pagination.per_page
       );
+
       return data;
     } catch (err) {
       const message = handleError(err, "Failed to delete teacher");
@@ -132,11 +186,19 @@ const useTeacherManagementStore = create((set, get) => ({
         "/admin/teacher/schedule",
         scheduleData
       );
+
       if (data.success === false) {
         throw new Error(data.message || "Failed to create teacher schedule");
       }
+
       set({ loading: false });
-      toast.success("Teacher schedule created successfully");
+      toast.success(data.message || "Teacher schedule created successfully");
+
+      await get().fetchTeachers(
+        get().pagination.current_page,
+        get().pagination.per_page
+      );
+
       return data;
     } catch (err) {
       const message = handleError(err, "Failed to create teacher schedule");
@@ -154,11 +216,19 @@ const useTeacherManagementStore = create((set, get) => ({
         "/admin/teacher/assign-adviser",
         adviserData
       );
+
       if (data.success === false) {
         throw new Error(data.message || "Failed to assign adviser");
       }
+
       set({ loading: false });
-      toast.success("Teacher assigned as adviser successfully");
+      toast.success(data.message || "Teacher assigned as adviser successfully");
+
+      await get().fetchTeachers(
+        get().pagination.current_page,
+        get().pagination.per_page
+      );
+
       return data;
     } catch (err) {
       const message = handleError(err, "Failed to assign adviser");
@@ -168,25 +238,31 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
+  clearError: () => set({ error: null }),
+
   reset: () =>
     set({
       teachers: [],
       pagination: { current_page: 1, per_page: 25, total: 0 },
       loading: false,
       error: null,
+      academicYear: null,
+      quarters: [],
+      subjects: [],
     }),
 }));
 
-// Centralized event listener management
+// Centralized unauthorized handler
 const handleUnauthorized = () => {
   useTeacherManagementStore.getState().reset();
 };
 
-window.addEventListener("unauthorized", handleUnauthorized);
+if (typeof window !== "undefined") {
+  window.addEventListener("unauthorized", handleUnauthorized);
 
-// Cleanup on module unload
-window.addEventListener("unload", () => {
-  window.removeEventListener("unauthorized", handleUnauthorized);
-});
+  window.addEventListener("unload", () => {
+    window.removeEventListener("unauthorized", handleUnauthorized);
+  });
+}
 
 export default useTeacherManagementStore;
