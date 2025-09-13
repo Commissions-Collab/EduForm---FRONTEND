@@ -18,6 +18,7 @@ const extractData = (data, key) => {
 
 const useEnrollmentStore = create((set, get) => ({
   enrollments: [],
+  students: [],
   pagination: { current_page: 1, per_page: 25, total: 0 },
   academicYears: [],
   yearLevels: [],
@@ -44,9 +45,6 @@ const useEnrollmentStore = create((set, get) => ({
         },
         loading: false,
       });
-      if (enrollments.length === 0) {
-        toast.error("No enrollments found. Please check the data source.");
-      }
     } catch (err) {
       const message = handleError(err, "Failed to load enrollments");
       set({ error: message, enrollments: [], loading: false });
@@ -54,10 +52,31 @@ const useEnrollmentStore = create((set, get) => ({
     }
   },
 
+  // Add dedicated method to fetch all students
+  fetchStudents: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get("/admin/students?page=1&per_page=1000");
+
+      if (data.success === false) {
+        throw new Error(data.message || "Failed to fetch students");
+      }
+      const students = extractData(data, "data") || extractData(data, "students");
+      set({ students, loading: false });
+      if (students.length === 0) {
+        toast.error("No students available. Please add students in the admin panel.");
+      }
+    } catch (err) {
+      const message = handleError(err, "Failed to load students");
+      set({ error: message, students: [], loading: false });
+      toast.error(message);
+    }
+  },
+
   fetchAcademicYears: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/academic-years?page=1");
+      const { data } = await axiosInstance.get("/admin/academic-years?page=1&per_page=100");
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch academic years");
       }
@@ -79,11 +98,11 @@ const useEnrollmentStore = create((set, get) => ({
   fetchYearLevels: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/year-level?page=1");
+      const { data } = await axiosInstance.get("/admin/year-level?page=1&per_page=100");
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch year levels");
       }
-      const yearLevels = extractData(data, "yearLevel");
+      const yearLevels = extractData(data, "yearLevel") || extractData(data, "data");
       set({ yearLevels, loading: false });
       if (yearLevels.length === 0) {
         toast.error(
@@ -100,11 +119,11 @@ const useEnrollmentStore = create((set, get) => ({
   fetchSections: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/section?page=1");
+      const { data } = await axiosInstance.get("/admin/section?page=1&per_page=100");
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch sections");
       }
-      const sections = extractData(data, "sections");
+      const sections = extractData(data, "sections") || extractData(data, "data");
       set({ sections, loading: false });
       if (sections.length === 0) {
         toast.error(
@@ -148,15 +167,16 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
+      // Fix: Use correct endpoint
       const { data } = await axiosInstance.post(
-        "/admin/enrollments/bulk-update",
+        "/admin/enrollments/bulk-store",
         bulkData
       );
       if (data.success === false) {
         throw new Error(data.message || "Failed to create bulk enrollments");
       }
       set({ loading: false });
-      toast.success("Bulk enrollments created successfully");
+      toast.success(`${data.count || 0} students enrolled successfully`);
       await get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
@@ -248,7 +268,7 @@ const useEnrollmentStore = create((set, get) => ({
         throw new Error(data.message || "Failed to promote students");
       }
       set({ loading: false });
-      toast.success("Students promoted successfully");
+      toast.success(`${data.count || 0} students promoted successfully`);
       await get().fetchEnrollments(
         get().pagination.current_page,
         get().pagination.per_page
@@ -267,6 +287,7 @@ const useEnrollmentStore = create((set, get) => ({
   reset: () =>
     set({
       enrollments: [],
+      students: [],
       pagination: { current_page: 1, per_page: 25, total: 0 },
       academicYears: [],
       yearLevels: [],
@@ -281,11 +302,13 @@ const handleUnauthorized = () => {
   useEnrollmentStore.getState().reset();
 };
 
-window.addEventListener("unauthorized", handleUnauthorized);
+if (typeof window !== 'undefined') {
+  window.addEventListener("unauthorized", handleUnauthorized);
 
-// Cleanup on module unload
-window.addEventListener("unload", () => {
-  window.removeEventListener("unauthorized", handleUnauthorized);
-});
+  // Cleanup on module unload
+  window.addEventListener("unload", () => {
+    window.removeEventListener("unauthorized", handleUnauthorized);
+  });
+}
 
 export default useEnrollmentStore;

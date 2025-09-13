@@ -14,6 +14,7 @@ const Enrollment = () => {
     loading,
     error,
     fetchEnrollments,
+    fetchStudents, // Add this
     fetchAcademicYears,
     fetchYearLevels,
     fetchSections,
@@ -29,11 +30,29 @@ const Enrollment = () => {
   const [selectedEnrollments, setSelectedEnrollments] = useState([]);
 
   useEffect(() => {
-    fetchEnrollments(1, 25);
-    fetchAcademicYears();
-    fetchYearLevels();
-    fetchSections();
-  }, [fetchEnrollments, fetchAcademicYears, fetchYearLevels, fetchSections]);
+    const loadInitialData = async () => {
+      try {
+        await Promise.all([
+          fetchEnrollments(1, 25),
+          fetchStudents(), // Add this
+          fetchAcademicYears(),
+          fetchYearLevels(),
+          fetchSections(),
+        ]);
+      } catch (error) {
+        // Errors are handled by individual functions
+        console.error("Error loading initial data:", error);
+      }
+    };
+
+    loadInitialData();
+  }, [
+    fetchEnrollments,
+    fetchStudents,
+    fetchAcademicYears,
+    fetchYearLevels,
+    fetchSections,
+  ]);
 
   useEffect(() => {
     if (error) {
@@ -53,7 +72,7 @@ const Enrollment = () => {
   };
 
   const summary = {
-    totalEnrollments: pagination.total,
+    totalEnrollments: pagination.total || 0,
     enrolledStudents: enrollments.filter(
       (e) => e.enrollment_status === "enrolled"
     ).length,
@@ -107,7 +126,7 @@ const Enrollment = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-600 mb-1">
-                  Enrolled Students
+                  Enrolled Students in Current Page
                 </p>
                 <p className="text-2xl font-bold text-green-900">
                   {loading ? "..." : summary.enrolledStudents}

@@ -184,6 +184,9 @@ const EnrollmentTable = ({
                 LRN
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Academic Year
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Grade Level
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -268,7 +271,10 @@ const EnrollmentTable = ({
                     {enrollment.student?.lrn || "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {enrollment.yearLevel?.name || "-"}
+                    {enrollment.academic_year?.name || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {enrollment.year_level?.name || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {enrollment.section?.name || "-"}
