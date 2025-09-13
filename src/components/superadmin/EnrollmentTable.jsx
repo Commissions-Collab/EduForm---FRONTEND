@@ -268,7 +268,7 @@ const EnrollmentTable = ({
                     {enrollment.student?.lrn || "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {enrollment.yearLevel?.name || "-"}
+                    {enrollment.year_level?.name || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {enrollment.section?.name || "-"}

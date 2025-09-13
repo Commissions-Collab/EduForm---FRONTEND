@@ -4,7 +4,7 @@ import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
 
 const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
   const {
-    enrollments,
+    students,
     academicYears,
     yearLevels,
     sections,
@@ -13,6 +13,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
     loading,
     error,
   } = useEnrollmentStore();
+
   const [formData, setFormData] = useState({
     student_id: "",
     academic_year_id: "",
@@ -20,6 +21,8 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
     section_id: "",
     enrollment_status: "enrolled",
   });
+
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     if (selectedEnrollment) {
@@ -39,15 +42,48 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
         enrollment_status: "enrolled",
       });
     }
+    setFormErrors({});
   }, [selectedEnrollment]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    // Clear error for this field when user starts typing
+    if (formErrors[name]) {
+      setFormErrors((prev) => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.student_id) {
+      errors.student_id = "Student is required";
+    }
+    if (!formData.academic_year_id) {
+      errors.academic_year_id = "Academic year is required";
+    }
+    if (!formData.grade_level) {
+      errors.grade_level = "Grade level is required";
+    }
+    if (!formData.section_id) {
+      errors.section_id = "Section is required";
+    }
+    if (!formData.enrollment_status) {
+      errors.enrollment_status = "Enrollment status is required";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       if (selectedEnrollment) {
         await updateEnrollment(selectedEnrollment.id, formData);
@@ -59,22 +95,6 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
       // Error handled by store
     }
   };
-
-  // Extract unique students from enrollments
-  const students = Array.from(
-    new Map(
-      enrollments.map((e) => [
-        e.student_id,
-        {
-          id: e.student_id,
-          first_name: e.student?.first_name,
-          middle_name: e.student?.middle_name,
-          last_name: e.student?.last_name,
-          lrn: e.student?.lrn,
-        },
-      ])
-    ).values()
-  );
 
   if (!isOpen) return null;
 
@@ -129,22 +149,38 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       name="student_id"
                       value={formData.student_id}
                       onChange={handleChange}
-                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        formErrors.student_id
+                          ? "border-red-300"
+                          : "border-gray-300"
+                      }`}
                       required
                     >
                       <option value="">Select Student</option>
                       {students.length > 0 ? (
                         students.map((student) => (
-                          <option key={student.id} value={student.id}>
-                            {`${student.first_name} ${
-                              student.middle_name || ""
-                            } ${student.last_name} (${student.lrn || "N/A"})`}
+                          <option
+                            key={`student-${student.id}`}
+                            value={student.student.id}
+                          >
+                            {`${student.student.first_name || ""} ${
+                              student.student.middle_name
+                                ? student.student.middle_name + " "
+                                : ""
+                            }${student.student.last_name || ""} (${
+                              student.student.lrn || student.student.id
+                            })`}
                           </option>
                         ))
                       ) : (
                         <option disabled>No students available</option>
                       )}
                     </select>
+                    {formErrors.student_id && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {formErrors.student_id}
+                      </p>
+                    )}
                     {students.length === 0 && (
                       <p className="text-xs text-red-500 mt-1">
                         No students found. Please add students in the admin
@@ -164,20 +200,29 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       name="academic_year_id"
                       value={formData.academic_year_id}
                       onChange={handleChange}
-                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        formErrors.academic_year_id
+                          ? "border-red-300"
+                          : "border-gray-300"
+                      }`}
                       required
                     >
                       <option value="">Select Academic Year</option>
                       {academicYears.length > 0 ? (
                         academicYears.map((ay) => (
                           <option key={ay.id} value={ay.id}>
-                            {ay.name || ay.id}
+                            {ay.name || ay.year || ay.id}
                           </option>
                         ))
                       ) : (
                         <option disabled>No academic years available</option>
                       )}
                     </select>
+                    {formErrors.academic_year_id && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {formErrors.academic_year_id}
+                      </p>
+                    )}
                     {academicYears.length === 0 && (
                       <p className="text-xs text-red-500 mt-1">
                         No academic years found. Please add academic years in
@@ -197,20 +242,29 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       name="grade_level"
                       value={formData.grade_level}
                       onChange={handleChange}
-                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        formErrors.grade_level
+                          ? "border-red-300"
+                          : "border-gray-300"
+                      }`}
                       required
                     >
                       <option value="">Select Grade Level</option>
                       {yearLevels.length > 0 ? (
                         yearLevels.map((yl) => (
                           <option key={yl.id} value={yl.id}>
-                            {yl.name}
+                            {yl.name || `Grade ${yl.level}`}
                           </option>
                         ))
                       ) : (
                         <option disabled>No grade levels available</option>
                       )}
                     </select>
+                    {formErrors.grade_level && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {formErrors.grade_level}
+                      </p>
+                    )}
                     {yearLevels.length === 0 && (
                       <p className="text-xs text-red-500 mt-1">
                         No grade levels found. Please add grade levels in the
@@ -230,7 +284,11 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       name="section_id"
                       value={formData.section_id}
                       onChange={handleChange}
-                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        formErrors.section_id
+                          ? "border-red-300"
+                          : "border-gray-300"
+                      }`}
                       required
                     >
                       <option value="">Select Section</option>
@@ -244,6 +302,12 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                         <option disabled>No sections available</option>
                       )}
                     </select>
+
+                    {formErrors.section_id && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {formErrors.section_id}
+                      </p>
+                    )}
                     {sections.length === 0 && (
                       <p className="text-xs text-red-500 mt-1">
                         No sections found. Please add sections in the admin
@@ -251,27 +315,38 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       </p>
                     )}
                   </div>
-                  <div>
-                    <label
-                      htmlFor="enrollment_status"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Enrollment Status <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="enrollment_status"
-                      name="enrollment_status"
-                      value={formData.enrollment_status}
-                      onChange={handleChange}
-                      className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                      required
-                    >
-                      <option value="enrolled">Enrolled</option>
-                      <option value="pending">Pending</option>
-                      <option value="withdrawn">Withdrawn</option>
-                      <option value="transferred">Transferred</option>
-                    </select>
-                  </div>
+                  {selectedEnrollment && (
+                    <div>
+                      <label
+                        htmlFor="enrollment_status"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Enrollment Status{" "}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="enrollment_status"
+                        name="enrollment_status"
+                        value={formData.enrollment_status}
+                        onChange={handleChange}
+                        className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                          formErrors.enrollment_status
+                            ? "border-red-300"
+                            : "border-gray-300"
+                        }`}
+                        required
+                      >
+                        <option value="enrolled">Enrolled</option>
+                        <option value="withdrawn">Withdrawn</option>
+                        <option value="transferred">Transferred</option>
+                      </select>
+                      {formErrors.enrollment_status && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {formErrors.enrollment_status}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -289,12 +364,14 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
               type="submit"
               disabled={
                 loading ||
+                students.length === 0 ||
                 academicYears.length === 0 ||
                 yearLevels.length === 0 ||
                 sections.length === 0
               }
               className={`px-4 py-2 text-sm rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow ${
                 loading ||
+                students.length === 0 ||
                 academicYears.length === 0 ||
                 yearLevels.length === 0 ||
                 sections.length === 0
