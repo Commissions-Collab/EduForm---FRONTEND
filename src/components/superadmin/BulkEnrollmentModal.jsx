@@ -13,8 +13,21 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
     error,
   } = useEnrollmentStore();
   
+  // Extract unique student IDs from selectedEnrollments
+  const getUniqueStudentIds = () => {
+    if (!selectedEnrollments || selectedEnrollments.length === 0) {
+      return selectedStudentIds || [];
+    }
+    
+    const uniqueStudentIds = [...new Set(selectedEnrollments.map(enrollment => 
+      enrollment.student_id || enrollment.student?.id
+    ).filter(id => id !== undefined))];
+    
+    return uniqueStudentIds;
+  };
+
   const [formData, setFormData] = useState({
-    student_ids: selectedStudentIds || [],
+    student_ids: getUniqueStudentIds(),
     academic_year_id: "",
     grade_level: "",
     section_id: "",
@@ -24,44 +37,44 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
+    const uniqueIds = getUniqueStudentIds();
     setFormData((prev) => ({
       ...prev,
-      student_ids: selectedStudentIds || [],
+      student_ids: uniqueIds,
     }));
-  }, [selectedStudentIds]);
+  }, [selectedStudentIds, selectedEnrollments]);
 
-  // Get selected students data - try multiple approaches to find the students
+  // Get selected students data
   const getSelectedStudents = () => {
     const studentIds = formData.student_ids;
     let selectedStudents = [];
 
-    // First, try to get students from the students array using the IDs
-    selectedStudents = students.filter(student => 
-      studentIds.includes(student.id.toString()) || studentIds.includes(student.id)
-    );
-
-    // If we don't find students in the students array, try to extract from selectedEnrollments
-    if (selectedStudents.length === 0 && selectedEnrollments && selectedEnrollments.length > 0) {
+    // If we have selectedEnrollments, use them directly
+    if (selectedEnrollments && selectedEnrollments.length > 0) {
+      // Create a map to avoid duplicates
+      const uniqueStudentsMap = new Map();
       
-      selectedStudents = selectedEnrollments.map(enrollment => {
-        
-        // If enrollment has a nested student object
-        if (enrollment.student) {
-          return enrollment.student;
+      selectedEnrollments.forEach(enrollment => {
+        const studentId = enrollment.student_id || enrollment.student?.id;
+        if (studentId && !uniqueStudentsMap.has(studentId)) {
+          uniqueStudentsMap.set(studentId, {
+            id: studentId,
+            first_name: enrollment.student?.first_name,
+            middle_name: enrollment.student?.middle_name,
+            last_name: enrollment.student?.last_name,
+            lrn: enrollment.student?.lrn,
+            enrollment_id: enrollment.id
+          });
         }
-        // If enrollment has student data directly
-        if (enrollment.first_name || enrollment.last_name) {
-          const studentData = {
-            id: enrollment.student_id || enrollment.id,
-            first_name: enrollment.first_name,
-            middle_name: enrollment.middle_name,
-            last_name: enrollment.last_name,
-            lrn: enrollment.lrn,
-          };
-          return studentData;
-        }
-        return null;
-      }).filter(student => student !== null);
+      });
+      
+      selectedStudents = Array.from(uniqueStudentsMap.values());
+    } 
+    // Fallback: try to find students from the students array using the IDs
+    else if (students && students.length > 0) {
+      selectedStudents = students.filter(student => 
+        studentIds.includes(student.id.toString()) || studentIds.includes(student.id)
+      );
     }
 
     return selectedStudents;
@@ -80,7 +93,9 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
   };
 
   const removeStudent = (studentId) => {
-    const updatedIds = formData.student_ids.filter(id => id !== studentId.toString());
+    const updatedIds = formData.student_ids.filter(id => 
+      id !== studentId.toString() && id !== studentId
+    );
     setFormData({ ...formData, student_ids: updatedIds });
     
     // Clear error if students are selected
@@ -104,9 +119,6 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
     if (!formData.section_id) {
       errors.section_id = "Section is required";
     }
-    if (!formData.enrollment_status) {
-      errors.enrollment_status = "Enrollment status is required";
-    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -120,20 +132,36 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
     }
 
     try {
-      // Convert student_ids to integers to match backend validation
+      // Prepare data for backend
       const submitData = {
         student_ids: formData.student_ids.map(id => parseInt(id, 10)),
         academic_year_id: parseInt(formData.academic_year_id, 10),
-        grade_level: parseInt(formData.grade_level, 10),
+        grade_level: parseInt(formData.grade_level, 10), // Match backend validation
         section_id: parseInt(formData.section_id, 10),
-        status: formData.enrollment_status
       };
       
       await bulkCreateEnrollments(submitData);
+      
+      // Reset form and close modal
+      setFormData({
+        student_ids: [],
+        academic_year_id: "",
+        grade_level: "",
+        section_id: "",
+        enrollment_status: "enrolled",
+      });
+      setFormErrors({});
       onClose();
     } catch (err) {
       // Error handled by store
+      console.error("Bulk enrollment error:", err);
     }
+  };
+
+  const handleClose = () => {
+    // Reset form errors when closing
+    setFormErrors({});
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -141,7 +169,7 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-50 bg-black/30"
-      onClick={onClose}
+      onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="bulk-enrollment-modal-title"
@@ -158,7 +186,7 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
             Bulk Enrollment
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-colors"
             aria-label="Close modal"
           >
@@ -208,44 +236,38 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
                       <div className="border border-gray-300 rounded-lg max-h-60 overflow-y-auto bg-gray-50">
                         <div className="p-4">
                           <div className="grid gap-3">
-                            {selectedStudents.length > 0 ? (
-                              selectedStudents.map((student, index) => (
-                                <div
-                                  key={`student-${student.id}-${index}`}
-                                  className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm hover:shadow-md transition-shadow"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                      <span className="text-xs font-semibold text-white">
-                                        {index + 1}
-                                      </span>
+                            {selectedStudents.map((student, index) => (
+                              <div
+                                key={`student-${student.id}-${index}`}
+                                className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span className="text-xs font-semibold text-white">
+                                      {index + 1}
+                                    </span>
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {`${student.first_name || ''} ${
+                                        student.middle_name ? student.middle_name + ' ' : ''
+                                      }${student.last_name || ''}`.trim() || 'Unknown Student'}
                                     </div>
-                                    <div className="min-w-0 flex-1">
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {`${student.student.first_name || ''} ${
-                                          student.student.middle_name ? student.student.middle_name + ' ' : ''
-                                        }${student.student.last_name || ''}`.trim() || 'Unknown Student'}
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        LRN: {student.student.lrn || 'N/A'} • ID: {student.student.id}
-                                      </div>
+                                    <div className="text-xs text-gray-500">
+                                      LRN: {student.lrn || 'N/A'} • ID: {student.id}
                                     </div>
                                   </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => removeStudent(student.id)}
-                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 rounded-full p-1 transition-colors"
-                                    aria-label={`Remove ${student.first_name} ${student.last_name}`}
-                                  >
-                                    <LuTrash2 className="w-4 h-4" />
-                                  </button>
                                 </div>
-                              ))
-                            ) : (
-                              <div className="text-center py-4 text-sm text-gray-500">
-                                No student data available to display
+                                <button
+                                  type="button"
+                                  onClick={() => removeStudent(student.id)}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 rounded-full p-1 transition-colors"
+                                  aria-label={`Remove ${student.first_name} ${student.last_name}`}
+                                >
+                                  <LuTrash2 className="w-4 h-4" />
+                                </button>
                               </div>
-                            )}
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -277,7 +299,7 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
                       {academicYears.length > 0 ? (
                         academicYears.map((ay) => (
                           <option key={ay.id} value={ay.id}>
-                            {ay.name || ay.year || ay.id}
+                            {ay.name || ay.year || `Year ${ay.id}`}
                           </option>
                         ))
                       ) : (
@@ -286,12 +308,6 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
                     </select>
                     {formErrors.academic_year_id && (
                       <p className="text-xs text-red-500 mt-1">{formErrors.academic_year_id}</p>
-                    )}
-                    {academicYears.length === 0 && (
-                      <p className="text-xs text-red-500 mt-1">
-                        No academic years found. Please add academic years in
-                        the admin panel.
-                      </p>
                     )}
                   </div>
                   
@@ -316,7 +332,7 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
                       {yearLevels.length > 0 ? (
                         yearLevels.map((yl) => (
                           <option key={yl.id} value={yl.id}>
-                            {yl.name || `Grade ${yl.level}`}
+                            {yl.name || `Grade ${yl.level || yl.id}`}
                           </option>
                         ))
                       ) : (
@@ -326,15 +342,9 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
                     {formErrors.grade_level && (
                       <p className="text-xs text-red-500 mt-1">{formErrors.grade_level}</p>
                     )}
-                    {yearLevels.length === 0 && (
-                      <p className="text-xs text-red-500 mt-1">
-                        No grade levels found. Please add grade levels in the
-                        admin panel.
-                      </p>
-                    )}
                   </div>
                   
-                  <div>
+                  <div className="col-span-2">
                     <label
                       htmlFor="section_id"
                       className="block text-sm font-medium text-gray-700"
@@ -365,12 +375,6 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
                     {formErrors.section_id && (
                       <p className="text-xs text-red-500 mt-1">{formErrors.section_id}</p>
                     )}
-                    {sections.length === 0 && (
-                      <p className="text-xs text-red-500 mt-1">
-                        No sections found. Please add sections in the admin
-                        panel.
-                      </p>
-                    )}
                   </div>
                 </div>
               )}
@@ -380,7 +384,7 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
           <div className="mt-8 flex justify-end space-x-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
               Cancel
@@ -389,23 +393,25 @@ const BulkEnrollmentModal = ({ isOpen, onClose, selectedStudentIds, selectedEnro
               type="submit"
               disabled={
                 loading ||
-                academicYears.length === 0 ||
-                yearLevels.length === 0 ||
-                sections.length === 0 ||
-                formData.student_ids.length === 0
+                formData.student_ids.length === 0 ||
+                !formData.academic_year_id ||
+                !formData.grade_level ||
+                !formData.section_id
               }
               className={`px-4 py-2 text-sm rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow ${
                 loading ||
-                academicYears.length === 0 ||
-                yearLevels.length === 0 ||
-                sections.length === 0 ||
-                formData.student_ids.length === 0
+                formData.student_ids.length === 0 ||
+                !formData.academic_year_id ||
+                !formData.grade_level ||
+                !formData.section_id
                   ? "bg-gray-400 text-gray-200 cursor-not-allowed"
                   : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
             >
               <LuSave className="w-4 h-4" />
-              <span>Enroll {formData.student_ids.length} Students</span>
+              <span>
+                {loading ? 'Enrolling...' : `Enroll ${formData.student_ids.length} Student${formData.student_ids.length !== 1 ? 's' : ''}`}
+              </span>
             </button>
           </div>
         </form>
