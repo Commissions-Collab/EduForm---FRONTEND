@@ -14,7 +14,7 @@ const Enrollment = () => {
     loading,
     error,
     fetchEnrollments,
-    fetchStudents, // Add this
+    fetchStudents,
     fetchAcademicYears,
     fetchYearLevels,
     fetchSections,
@@ -34,13 +34,12 @@ const Enrollment = () => {
       try {
         await Promise.all([
           fetchEnrollments(1, 25),
-          fetchStudents(), // Add this
+          fetchStudents(),
           fetchAcademicYears(),
           fetchYearLevels(),
           fetchSections(),
         ]);
       } catch (error) {
-        // Errors are handled by individual functions
         console.error("Error loading initial data:", error);
       }
     };
@@ -65,10 +64,24 @@ const Enrollment = () => {
     if (window.confirm("Are you sure you want to delete this enrollment?")) {
       try {
         await deleteEnrollment(id);
+        // Clear selection if deleted enrollment was selected
+        setSelectedEnrollments(prev => prev.filter(enrollment => enrollment.id !== id));
       } catch (err) {
         // Error handled by store
       }
     }
+  };
+
+  // Get unique students for summary calculations
+  const getUniqueStudentIds = (enrollments) => {
+    const uniqueStudentIds = new Set();
+    enrollments.forEach(enrollment => {
+      const studentId = enrollment.student_id || enrollment.student?.id;
+      if (studentId) {
+        uniqueStudentIds.add(studentId);
+      }
+    });
+    return uniqueStudentIds;
   };
 
   const summary = {
@@ -76,6 +89,38 @@ const Enrollment = () => {
     enrolledStudents: enrollments.filter(
       (e) => e.enrollment_status === "enrolled"
     ).length,
+    uniqueEnrolledStudents: getUniqueStudentIds(
+      enrollments.filter(e => e.enrollment_status === "enrolled")
+    ).size,
+  };
+
+  // Extract unique student IDs from selected enrollments
+  const getSelectedStudentIds = () => {
+    return [...new Set(selectedEnrollments.map(enrollment => 
+      enrollment.student_id || enrollment.student?.id
+    ).filter(id => id !== undefined))];
+  };
+
+  const handleBulkModal = () => {
+    if (selectedEnrollments.length === 0) {
+      toast.error("Please select students to enroll");
+      return;
+    }
+    setIsBulkModalOpen(true);
+  };
+
+  const handlePromoteModal = () => {
+    if (selectedEnrollments.length === 0) {
+      toast.error("Please select students to promote");
+      return;
+    }
+    setIsPromoteModalOpen(true);
+  };
+
+  const handleModalClose = (modalSetter) => {
+    modalSetter(false);
+    // Optionally refresh data after modal operations
+    // fetchEnrollments(pagination.current_page, pagination.per_page);
   };
 
   return (
@@ -106,7 +151,7 @@ const Enrollment = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
@@ -126,7 +171,7 @@ const Enrollment = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-600 mb-1">
-                  Enrolled Students in Current Page
+                  Enrolled (Current Page)
                 </p>
                 <p className="text-2xl font-bold text-green-900">
                   {loading ? "..." : summary.enrolledStudents}
@@ -134,6 +179,21 @@ const Enrollment = () => {
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
                 <LuUsers className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200 hover:shadow-md transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-purple-600 mb-1">
+                  Selected Students
+                </p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {getSelectedStudentIds().length}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <LuUsers className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>
@@ -153,8 +213,8 @@ const Enrollment = () => {
             setSelectedEnrollment(null);
             setIsEnrollmentModalOpen(true);
           }}
-          onBulk={() => setIsBulkModalOpen(true)}
-          onPromote={() => setIsPromoteModalOpen(true)}
+          onBulk={handleBulkModal}
+          onPromote={handlePromoteModal}
           onEdit={(enrollment) => {
             setSelectedEnrollment(enrollment);
             setIsEnrollmentModalOpen(true);
@@ -163,22 +223,27 @@ const Enrollment = () => {
         />
       </section>
 
+      {/* Single Enrollment Modal */}
       <EnrollmentModal
         isOpen={isEnrollmentModalOpen}
-        onClose={() => setIsEnrollmentModalOpen(false)}
+        onClose={() => handleModalClose(setIsEnrollmentModalOpen)}
         selectedEnrollment={selectedEnrollment}
       />
 
+      {/* Bulk Enrollment Modal */}
       <BulkEnrollmentModal
         isOpen={isBulkModalOpen}
-        onClose={() => setIsBulkModalOpen(false)}
-        selectedStudentIds={selectedEnrollments.map((e) => e.student_id)}
+        onClose={() => handleModalClose(setIsBulkModalOpen)}
+        selectedStudentIds={getSelectedStudentIds()}
+        selectedEnrollments={selectedEnrollments}
       />
 
+      {/* Promotion Modal */}
       <PromoteModal
         isOpen={isPromoteModalOpen}
-        onClose={() => setIsPromoteModalOpen(false)}
-        selectedStudentIds={selectedEnrollments.map((e) => e.student_id)}
+        onClose={() => handleModalClose(setIsPromoteModalOpen)}
+        selectedStudentIds={getSelectedStudentIds()}
+        selectedEnrollments={selectedEnrollments}
       />
     </main>
   );
