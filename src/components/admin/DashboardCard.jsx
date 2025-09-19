@@ -1,15 +1,14 @@
-// components/admin/DashboardCard.jsx
 import {
-  LuUserCheck,
-  LuUserRoundX,
-  LuClock,
-  LuFileText,
-  LuAward,
-  LuBookOpen,
-  LuBookText,
-  LuCalendar,
-  LuLoader,
-} from "react-icons/lu";
+  UserCheck,
+  UserRoundX,
+  Clock,
+  FileText,
+  Award,
+  BookOpen,
+  BookText,
+  Calendar,
+  Loader,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 const DashboardCard = ({ title, type, data, loading = false }) => {
@@ -95,9 +94,7 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
     <div className="card relative">
       <div className="flex items-center justify-between mb-4">
         <h2 className="card-title">{title}</h2>
-        {loading && (
-          <LuLoader className="w-4 h-4 animate-spin text-indigo-600" />
-        )}
+        {loading && <Loader className="w-4 h-4 animate-spin text-indigo-600" />}
       </div>
 
       {loading ? (
@@ -111,7 +108,7 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
                 {/* Present */}
                 <div className="card-layout">
                   <div className="card-status bg-green-100 text-green-600">
-                    <LuUserCheck className="w-6 h-6" />
+                    <UserCheck className="w-6 h-6" />
                   </div>
                   <span className="card-text">Present</span>
                   <span className="count">{data.present.count}</span>
@@ -121,7 +118,7 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
                 {/* Absent */}
                 <div className="card-layout">
                   <div className="card-status bg-red-100 text-red-500">
-                    <LuUserRoundX className="w-6 h-6" />
+                    <UserRoundX className="w-6 h-6" />
                   </div>
                   <span className="card-text">Absent</span>
                   <span className="count">{data.absent.count}</span>
@@ -131,7 +128,7 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
                 {/* Late */}
                 <div className="card-layout">
                   <div className="card-status bg-yellow-100 text-yellow-500">
-                    <LuClock className="w-6 h-6" />
+                    <Clock className="w-6 h-6" />
                   </div>
                   <span className="card-text">Late</span>
                   <span className="count">{data.late.count}</span>
@@ -160,14 +157,14 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="card-layout">
                   <div className="card-status text-purple-600 bg-purple-100 font-medium">
-                    <LuFileText className="w-6 h-6" />
+                    <FileText className="w-6 h-6" />
                   </div>
                   <span className="card-text">Report cards</span>
                   <span className="count">{data.reportsIssued}</span>
                 </div>
                 <div className="card-layout">
                   <div className="card-status text-blue-500 bg-blue-100 font-medium">
-                    <LuAward className="w-6 h-6" />
+                    <Award className="w-6 h-6" />
                   </div>
                   <span className="card-text">Honors eligible</span>
                   <span className="count">{data.honorEligible}</span>
@@ -211,14 +208,14 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
             <div className="space-y-3">
               <div className="resources-layout">
                 <span className="book text-red-500 font-medium">
-                  <LuBookOpen />
+                  <BookOpen />
                   <span>Textbook Overdues</span>
                 </span>
                 <span className="count">{data.textbookOverdues}</span>
               </div>
               <div className="resources-layout">
                 <span className="book text-yellow-500 font-medium">
-                  <LuBookText />
+                  <BookText />
                   <span>Pending Returns</span>
                 </span>
                 <span className="count">{data.pendingReturns}</span>
@@ -230,7 +227,7 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
                   <ul className="list-inside text-sm space-y-3">
                     {data.upcomingEvents.slice(0, 5).map((event, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <LuCalendar className="w-5 h-5 text-[#3730A3] mt-1 flex-shrink-0" />
+                        <Calendar className="w-5 h-5 text-[#3730A3] mt-1 flex-shrink-0" />
                         <div className="flex flex-col min-w-0">
                           <span className="text-[14px] text-gray-700 font-medium truncate">
                             {event.name}
@@ -249,7 +246,7 @@ const DashboardCard = ({ title, type, data, loading = false }) => {
                   </ul>
                 ) : (
                   <div className="text-center py-6 text-gray-500">
-                    <LuCalendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
                     <p className="text-sm">No upcoming events</p>
                   </div>
                 )}

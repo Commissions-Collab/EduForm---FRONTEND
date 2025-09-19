@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { LuPlus, LuTrash2 } from "react-icons/lu";
+
+import { Plus, Trash2 } from "lucide-react";
 import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 
 const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
@@ -176,7 +177,7 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
                 className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
                 disabled={isSubmitting || loading}
               >
-                <LuPlus className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 Add Schedule
               </button>
             </div>
@@ -197,7 +198,7 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
                       className="flex items-center gap-1 px-2 py-1 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
                       disabled={isSubmitting}
                     >
-                      <LuTrash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                       Remove
                     </button>
                   )}

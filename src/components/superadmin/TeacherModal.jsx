@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { LuX, LuSave, LuEye, LuEyeOff, LuLoader } from "react-icons/lu";
+import { X, Save, Eye, EyeOff, Loader } from "lucide-react";
 import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 
 const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
   const { createTeacher, updateTeacher, loading } = useTeacherManagementStore();
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -77,7 +77,10 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
     }
 
     // Password confirmation
-    if (formData.password && formData.password !== formData.password_confirmation) {
+    if (
+      formData.password &&
+      formData.password !== formData.password_confirmation
+    ) {
       newErrors.password_confirmation = "Passwords do not match";
     }
 
@@ -106,7 +109,7 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
@@ -115,16 +118,19 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
       const dataToSubmit = { ...formData };
-      
+
       // Remove empty password fields for updates
-      if (selectedTeacher && (!dataToSubmit.password || dataToSubmit.password.trim() === '')) {
+      if (
+        selectedTeacher &&
+        (!dataToSubmit.password || dataToSubmit.password.trim() === "")
+      ) {
         delete dataToSubmit.password;
         delete dataToSubmit.password_confirmation;
       }
@@ -190,7 +196,7 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
             aria-label="Close modal"
             disabled={loading}
           >
-            <LuX className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -216,7 +222,9 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.email}
                     onChange={handleChange}
                     className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.email
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                     required
                     placeholder="teacher@example.com"
@@ -247,7 +255,9 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                       value={formData.password}
                       onChange={handleChange}
                       className={`mt-1 px-3 py-2 pr-10 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.password
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder={
                         selectedTeacher
@@ -264,14 +274,16 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                       disabled={loading}
                     >
                       {showPassword ? (
-                        <LuEyeOff className="h-4 w-4 text-gray-400" />
+                        <EyeOff className="h-4 w-4 text-gray-400" />
                       ) : (
-                        <LuEye className="h-4 w-4 text-gray-400" />
+                        <Eye className="h-4 w-4 text-gray-400" />
                       )}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
 
@@ -295,7 +307,9 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                       value={formData.password_confirmation}
                       onChange={handleChange}
                       className={`mt-1 px-3 py-2 pr-10 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.password_confirmation ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.password_confirmation
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder={
                         selectedTeacher
@@ -308,18 +322,22 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     <button
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       disabled={loading}
                     >
                       {showConfirmPassword ? (
-                        <LuEyeOff className="h-4 w-4 text-gray-400" />
+                        <EyeOff className="h-4 w-4 text-gray-400" />
                       ) : (
-                        <LuEye className="h-4 w-4 text-gray-400" />
+                        <Eye className="h-4 w-4 text-gray-400" />
                       )}
                     </button>
                   </div>
                   {errors.password_confirmation && (
-                    <p className="text-red-500 text-xs mt-1">{errors.password_confirmation}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.password_confirmation}
+                    </p>
                   )}
                 </div>
               </div>
@@ -345,14 +363,18 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.first_name}
                     onChange={handleChange}
                     className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      errors.first_name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.first_name
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                     required
                     placeholder="John"
                     disabled={loading}
                   />
                   {errors.first_name && (
-                    <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.first_name}
+                    </p>
                   )}
                 </div>
 
@@ -389,14 +411,18 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.last_name}
                     onChange={handleChange}
                     className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      errors.last_name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.last_name
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                     required
                     placeholder="Doe"
                     disabled={loading}
                   />
                   {errors.last_name && (
-                    <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.last_name}
+                    </p>
                   )}
                 </div>
 
@@ -413,7 +439,9 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.gender}
                     onChange={handleChange}
                     className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      errors.gender ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.gender
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                     required
                     disabled={loading}
@@ -469,7 +497,9 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                     value={formData.phone}
                     onChange={handleChange}
                     className={`mt-1 px-3 py-2 text-sm border rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.phone
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                     placeholder="09123456789"
                     maxLength="11"
@@ -478,7 +508,9 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
                   {errors.phone && (
                     <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
                   )}
-                  <p className="text-gray-500 text-xs mt-1">Format: 09XXXXXXXXX</p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Format: 09XXXXXXXXX
+                  </p>
                 </div>
 
                 <div>
@@ -559,13 +591,15 @@ const TeacherModal = ({ isOpen, onClose, selectedTeacher }) => {
             >
               {loading ? (
                 <>
-                  <LuLoader className="w-4 h-4 animate-spin" />
+                  <Loader className="w-4 h-4 animate-spin" />
                   <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <LuSave className="w-4 h-4" />
-                  <span>{selectedTeacher ? "Update Teacher" : "Create Teacher"}</span>
+                  <Save className="w-4 h-4" />
+                  <span>
+                    {selectedTeacher ? "Update Teacher" : "Create Teacher"}
+                  </span>
                 </>
               )}
             </button>

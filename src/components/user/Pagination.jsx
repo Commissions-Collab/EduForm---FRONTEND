@@ -1,5 +1,6 @@
 import React from "react";
-import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   // Handle previous page
@@ -58,7 +59,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         onClick={handlePrevious}
         disabled={currentPage === 1}
       >
-        <LuChevronLeft className="w-5 h-5" />
+        <ChevronLeft className="w-5 h-5" />
       </button>
 
       {/* Page Numbers */}
@@ -87,7 +88,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         onClick={handleNext}
         disabled={currentPage === totalPages}
       >
-        <LuChevronRight className="w-5 h-5" />
+        <ChevronRight className="w-5 h-5" />
       </button>
     </div>
   );

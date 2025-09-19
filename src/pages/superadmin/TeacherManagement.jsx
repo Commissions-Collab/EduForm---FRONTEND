@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuSearch, LuUsers, LuUserCheck } from "react-icons/lu";
+import { Search, Users, UserCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 import TeacherModal from "../../components/superadmin/TeacherModal";
@@ -86,7 +86,7 @@ const TeacherManagement = () => {
           </div>
           <div className="relative w-full lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LuSearch className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -110,7 +110,7 @@ const TeacherManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
-                <LuUsers className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
@@ -125,7 +125,7 @@ const TeacherManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <LuUsers className="w-6 h-6 text-green-600" />
+                <Users className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@ const TeacherManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
-                <LuUserCheck className="w-6 h-6 text-purple-600" />
+                <UserCheck className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>

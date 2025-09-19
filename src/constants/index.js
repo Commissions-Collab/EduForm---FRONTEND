@@ -1,123 +1,115 @@
-// constants/index.js (Add these new constants)
-
-import { MdOutlineSpaceDashboard, MdOutlineWorkOutline } from "react-icons/md";
 import {
-  LuUsers,
-  LuFileText,
-  LuClipboardList,
-  LuGraduationCap,
-  LuCalendarDays,
-  LuHeart,
-  LuBookOpen,
-  LuAward,
-  LuCalendarCheck,
-  LuBookText,
-  LuSignalHigh,
-  LuActivity,
-  LuClock,
-  LuTriangleAlert,
-  LuCircleCheck,
-  LuHourglass,
-  LuUser,
-  LuStar,
-  LuFileChartLine,
-  LuHeartPulse,
-} from "react-icons/lu";
+  LayoutDashboard,
+  Briefcase,
+  Users,
+  FileText,
+  ClipboardList,
+  GraduationCap,
+  CalendarDays,
+  Heart,
+  BookOpen,
+  Award,
+  CalendarCheck,
+  BookText,
+  SignalHigh,
+  Activity,
+  Clock,
+  TriangleAlert,
+  CircleCheck,
+  Hourglass,
+  User,
+  Star,
+  FileChartLine,
+  HeartPulse,
+} from "lucide-react";
 
 export const superAdminNav = [
   {
     name: "Dashboard",
-    icon: MdOutlineSpaceDashboard,
+    icon: LayoutDashboard,
     url: "/super_admin/dashboard",
   },
   {
     name: "Enrollment",
-    icon: LuFileText,
+    icon: FileText,
     url: "/super_admin/enrollment",
   },
   {
     name: "Academic Calendar",
-    icon: LuCalendarDays,
+    icon: CalendarDays,
     url: "/super_admin/calendar",
   },
   {
     name: "Class Management",
-    icon: LuUsers,
+    icon: Users,
     url: "/super_admin/class",
   },
   {
     name: "Teacher Management",
-    icon: LuClipboardList,
+    icon: ClipboardList,
     url: "/super_admin/teacher",
   },
 ];
 
 export const adminNav = [
-  // Dashboard
   {
     name: "Dashboard",
-    icon: MdOutlineSpaceDashboard,
+    icon: LayoutDashboard,
     url: "/teacher/dashboard",
   },
 
-  // Student Management
-
   {
     name: "Student Approval",
-    icon: LuCircleCheck,
+    icon: CircleCheck,
     url: "/teacher/studentApproval",
   },
   {
     name: "Health Profile (SF 8)",
-    icon: LuHeartPulse,
+    icon: HeartPulse,
     url: "/teacher/healthProfile",
   },
 
-  // Attendance & Records
   {
     name: "Daily Attendance (SF 2)",
-    icon: LuCalendarCheck,
+    icon: CalendarCheck,
     url: "/teacher/attendance",
   },
   {
     name: "Monthly Summary (SF 4)",
-    icon: LuCalendarDays,
+    icon: CalendarDays,
     url: "/teacher/attendanceMonthlySummary",
   },
   {
     name: "Academic Records (SF 9)",
-    icon: LuClipboardList,
+    icon: ClipboardList,
     url: "/teacher/grades",
   },
 
-  // Academic Resources
   {
     name: "Textbooks (SF 3)",
-    icon: LuBookText,
+    icon: BookText,
     url: "/teacher/textbook",
   },
   {
     name: "Workload (SF 7)",
-    icon: MdOutlineWorkOutline,
+    icon: Briefcase,
     url: "/teacher/workload",
   },
 
-  // Reports & Certificates
   {
     name: "Promotion (SF 5 & SF 6)",
-    icon: LuSignalHigh,
+    icon: SignalHigh,
     url: "/teacher/promotionReports",
   },
   {
     name: "Certificates",
-    icon: LuAward,
+    icon: Award,
     url: "/teacher/certificates",
   },
 
-  // Communication
   {
     name: "Parent Conference",
-    icon: LuUsers,
+    icon: Users,
     url: "/teacher/parentConference",
   },
 ];
@@ -125,32 +117,32 @@ export const adminNav = [
 export const studentNav = [
   {
     name: "Dashboard",
-    icon: MdOutlineSpaceDashboard,
+    icon: LayoutDashboard,
     url: "/student/dashboard",
   },
   {
     name: "Grades",
-    icon: LuGraduationCap,
+    icon: GraduationCap,
     url: "/student/grade",
   },
   {
     name: "Attendance",
-    icon: LuCalendarDays,
+    icon: CalendarDays,
     url: "/student/userAttendance",
   },
   {
     name: "Textbooks",
-    icon: LuBookOpen,
+    icon: BookOpen,
     url: "/student/text-books",
   },
   {
     name: "Health Profile",
-    icon: LuHeart,
+    icon: Heart,
     url: "/student/health-profile",
   },
   {
     name: "Achievements",
-    icon: LuAward,
+    icon: Award,
     url: "/student/achievements",
   },
 ];
@@ -162,7 +154,7 @@ export const dashboardStats = [
     value: "247",
     change: "+12%",
     changeColor: "text-green-500",
-    icon: LuUsers,
+    icon: Users,
     iconColor: "text-blue-500",
   },
   {
@@ -170,7 +162,7 @@ export const dashboardStats = [
     value: "1,234",
     change: "+5%",
     changeColor: "text-green-500",
-    icon: LuFileText,
+    icon: FileText,
     iconColor: "text-green-500",
   },
   {
@@ -178,14 +170,14 @@ export const dashboardStats = [
     value: "98%",
     change: "Optimal",
     changeColor: "text-gray-500",
-    icon: LuActivity,
+    icon: Activity,
     iconColor: "text-purple-500",
   },
   {
     label: "Pending Actions",
     value: "23",
     link: { text: "View All", href: "#" },
-    icon: LuClock,
+    icon: Clock,
     iconColor: "text-orange-500",
   },
 ];
@@ -194,19 +186,19 @@ export const systemAlerts = [
   {
     message: "SF5 discrepancies detected in Grade 10-A",
     time: "10 minutes ago",
-    icon: LuTriangleAlert,
+    icon: TriangleAlert,
     iconColor: "text-red-500",
   },
   {
     message: "Daily backup completed successfully",
     time: "1 hour ago",
-    icon: LuCircleCheck,
+    icon: CircleCheck,
     iconColor: "text-green-500",
   },
   {
     message: "Pending grade submissions for Grade 8",
     time: "2 hours ago",
-    icon: LuHourglass,
+    icon: Hourglass,
     iconColor: "text-orange-500",
   },
 ];
@@ -216,19 +208,19 @@ export const recentActivity = [
     user: "Maria Santos",
     action: "uploaded SF2 attendance records",
     time: "Just now",
-    icon: LuUser, // Generic user icon, replace if specific user icons are available
+    icon: User, // Generic user icon, replace if specific user icons are available
   },
   {
     user: "John Cruz",
     action: "modified Grade 9 class list",
     time: "30 minutes ago",
-    icon: LuUser,
+    icon: User,
   },
   {
     user: "Sarah Garcia",
     action: "generated quarterly report",
     time: "1 hour ago",
-    icon: LuUser,
+    icon: User,
   },
 ];
 
@@ -437,28 +429,28 @@ export const promotionCards = [
   {
     label: "Total Students",
     value: "8",
-    icon: LuUser,
+    icon: User,
     iconColor: "text-gray-700",
     change: "",
   },
   {
     label: "Passing",
     value: "7",
-    icon: LuCircleCheck,
+    icon: CircleCheck,
     iconColor: "text-green-600",
     change: "88% of class",
   },
   {
     label: "With Honors",
     value: "3",
-    icon: LuStar,
+    icon: Star,
     iconColor: "text-blue-600",
     change: "38% of class",
   },
   {
     label: "Discrepancies",
     value: "1",
-    icon: LuTriangleAlert,
+    icon: TriangleAlert,
     iconColor: "text-yellow-600",
     change: "Require review",
   },
@@ -582,14 +574,14 @@ export const workloadCards = [
   {
     label: "Total Students",
     value: "97",
-    icon: LuUsers,
+    icon: Users,
     iconColor: "text-blue-600",
     iconBg: "bg-blue-100",
   },
   {
     label: "Subject Areas",
     value: "3",
-    icon: LuBookOpen,
+    icon: BookOpen,
     iconColor: "text-green-600",
     iconBg: "bg-green-100",
   },
@@ -597,7 +589,7 @@ export const workloadCards = [
   {
     label: "Class Sections",
     value: "3",
-    icon: LuUser,
+    icon: User,
     iconColor: "text-red-600",
     iconBg: "bg-red-100",
   },
@@ -605,14 +597,14 @@ export const workloadCards = [
   {
     label: "Advisory Duties",
     value: "1",
-    icon: LuClipboardList,
+    icon: ClipboardList,
     iconColor: "text-purple-600",
     iconBg: "bg-purple-100",
   },
   {
     label: "Hours per Week",
     value: "26",
-    icon: LuFileChartLine,
+    icon: FileChartLine,
     iconColor: "text-yellow-600",
     iconBg: "bg-yellow-100",
   },

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
-import { LuBadgeAlert, LuFilter } from "react-icons/lu";
+import { BadgeAlert, Filter } from "lucide-react";
 import usePromotionStore from "../../../stores/admin/promotionStore";
 import useFilterStore from "../../../stores/admin/filterStore";
 
@@ -55,7 +55,7 @@ const PromotionReport = () => {
         {!hasAllFilters && (
           <div className="mt-6 bg-white rounded-xl p-8 border border-gray-200 shadow-sm text-center">
             <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <LuFilter className="w-6 h-6 text-gray-400" />
+              <Filter className="w-6 h-6 text-gray-400" />
             </div>
             <h3 className="text-gray-700 font-medium">
               Please select Academic Year and Section to view Promotion Reports
@@ -69,7 +69,7 @@ const PromotionReport = () => {
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                  <LuBadgeAlert className="w-6 h-6 text-amber-600" />
+                  <BadgeAlert className="w-6 h-6 text-amber-600" />
                 </div>
               </div>
               <div className="flex-1">

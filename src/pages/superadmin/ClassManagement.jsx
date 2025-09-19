@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuSearch, LuCalendar, LuGraduationCap } from "react-icons/lu";
+import { Search, Calendar, GraduationCap } from "lucide-react";
 import useClassManagementStore from "../../stores/superAdmin/classManagementStore";
 import AcademicYearModal from "../../components/superadmin/AcademicYearModal";
 import YearLevelModal from "../../components/superadmin/YearLevelModal";
@@ -89,7 +89,7 @@ const ClassManagement = () => {
           </div>
           <div className="relative w-full lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LuSearch className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -114,7 +114,7 @@ const ClassManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
-                <LuCalendar className="w-6 h-6 text-blue-600" />
+                <Calendar className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
@@ -129,7 +129,7 @@ const ClassManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <LuGraduationCap className="w-6 h-6 text-green-600" />
+                <GraduationCap className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -144,7 +144,7 @@ const ClassManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
-                <LuGraduationCap className="w-6 h-6 text-purple-600" />
+                <GraduationCap className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>

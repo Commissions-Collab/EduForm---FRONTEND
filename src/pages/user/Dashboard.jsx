@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { LuUser } from "react-icons/lu";
 import toast from "react-hot-toast";
 import useStudentDashboardStore from "../../stores/users/studentDashboardStore";
 import DashboardSummary from "../../components/user/DashboardSummary";

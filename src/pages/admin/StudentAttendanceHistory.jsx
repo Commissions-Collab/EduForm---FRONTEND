@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
-import { LuArrowLeft } from "react-icons/lu";
+
+import { ArrowLeft } from "lucide-react";
 import useAttendanceStore from "../../stores/admin/attendanceStore";
 import useFilterStore from "../../stores/admin/filterStore";
 
@@ -92,7 +93,7 @@ const StudentAttendanceHistory = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
         >
-          <LuArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4" />
           Back
         </button>
       </div>

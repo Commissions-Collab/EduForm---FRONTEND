@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import {
-  LuScale,
-  LuCircleAlert,
-  LuChevronDown,
-  LuChevronUp,
-} from "react-icons/lu";
+import { Scale, CircleAlert, ChevronDown, ChevronUp } from "lucide-react";
 
 const BmiRecords = ({ data, loading, error }) => {
   const [sortOrder, setSortOrder] = useState("desc"); // Newest first
@@ -62,13 +57,13 @@ const BmiRecords = ({ data, loading, error }) => {
           >
             Sort: {sortOrder === "desc" ? "Newest" : "Oldest"}
             {sortOrder === "desc" ? (
-              <LuChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-4 h-4" />
             ) : (
-              <LuChevronUp className="w-4 h-4" />
+              <ChevronUp className="w-4 h-4" />
             )}
           </button>
           <div className="p-2 bg-blue-100 rounded-lg">
-            <LuScale className="w-5 h-5 text-blue-600 animate-pulse" />
+            <Scale className="w-5 h-5 text-blue-600 animate-pulse" />
           </div>
         </div>
       </div>
@@ -88,7 +83,7 @@ const BmiRecords = ({ data, loading, error }) => {
       ) : error ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-            <LuCircleAlert className="w-6 h-6 text-red-600" />
+            <CircleAlert className="w-6 h-6 text-red-600" />
           </div>
           <div>
             <p className="font-semibold text-red-900">
@@ -100,7 +95,7 @@ const BmiRecords = ({ data, loading, error }) => {
       ) : data.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-            <LuScale className="w-6 h-6 text-gray-400" />
+            <Scale className="w-6 h-6 text-gray-400" />
           </div>
           <p className="text-sm text-gray-500">No BMI records available</p>
         </div>
@@ -131,7 +126,7 @@ const BmiRecords = ({ data, loading, error }) => {
                       : "N/A"}
                   </p>
                   <div className="p-2 bg-white bg-opacity-50 rounded-lg">
-                    <LuScale className="w-5 h-5 animate-pulse" />
+                    <Scale className="w-5 h-5 animate-pulse" />
                   </div>
                 </div>
                 <p className="text-xl font-bold">
@@ -167,9 +162,9 @@ const BmiRecords = ({ data, loading, error }) => {
                     >
                       Remarks
                       {expandedRemarks[record.id] ? (
-                        <LuChevronUp className="w-4 h-4" />
+                        <ChevronUp className="w-4 h-4" />
                       ) : (
-                        <LuChevronDown className="w-4 h-4" />
+                        <ChevronDown className="w-4 h-4" />
                       )}
                     </button>
                     {expandedRemarks[record.id] && (

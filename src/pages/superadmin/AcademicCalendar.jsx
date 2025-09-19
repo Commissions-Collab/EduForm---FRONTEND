@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { LuCalendar, LuPlus, LuRefreshCw, LuBadgeAlert } from "react-icons/lu";
+
+import { CalendarDays, Plus, RefreshCcw, BadgeAlert } from "lucide-react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import toast from "react-hot-toast";
@@ -115,7 +116,7 @@ const AcademicCalendar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <header className="mb-8">
           <div className="flex items-center space-x-4 mb-6">
-            <LuCalendar className="w-8 h-8 text-indigo-600" />
+            <CalendarDays className="w-8 h-8 text-indigo-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 Academic Calendar
@@ -171,7 +172,7 @@ const AcademicCalendar = () => {
                   disabled={calendarLoading}
                   className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
                 >
-                  <LuRefreshCw
+                  <RefreshCcw
                     className={`w-4 h-4 ${
                       calendarLoading ? "animate-spin" : ""
                     }`}
@@ -182,7 +183,7 @@ const AcademicCalendar = () => {
                   onClick={handleOpenModal}
                   className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
                 >
-                  <LuPlus className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
                   <span>Add Event</span>
                 </button>
               </div>
@@ -191,7 +192,7 @@ const AcademicCalendar = () => {
 
           {(calendarError || classError) && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-              <LuBadgeAlert className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <BadgeAlert className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-red-800 mb-1">Error</p>
                 <p className="text-sm text-red-700">
@@ -215,7 +216,7 @@ const AcademicCalendar = () => {
         <main className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-4">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-              <LuCalendar className="w-5 h-5 text-indigo-600" />
+              <CalendarDays className="w-5 h-5 text-indigo-600" />
               <span>Calendar View</span>
             </h2>
             <Calendar
@@ -235,7 +236,7 @@ const AcademicCalendar = () => {
 
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-              <LuCalendar className="w-5 h-5 text-indigo-600" />
+              <CalendarDays className="w-5 h-5 text-indigo-600" />
               <span>Event List</span>
             </h2>
             <CalendarEventList

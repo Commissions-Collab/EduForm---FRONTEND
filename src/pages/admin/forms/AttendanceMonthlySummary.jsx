@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
+
 import {
-  LuPrinter,
-  LuDownload,
-  LuCalendar,
-  LuUsers,
-  LuLoader,
-  LuTriangleAlert,
-} from "react-icons/lu";
+  Printer,
+  Download,
+  Calendar,
+  Users,
+  Loader,
+  TriangleAlert,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { getItem } from "../../../lib/utils";
 import useAttendanceStore from "../../../stores/admin/attendanceStore";
@@ -255,7 +256,7 @@ const AttendanceMonthlySummary = () => {
           aria-labelledby="advisory-error-title"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
-            <LuTriangleAlert
+            <TriangleAlert
               className="h-8 w-8 text-yellow-600"
               aria-hidden="true"
             />
@@ -313,7 +314,7 @@ const AttendanceMonthlySummary = () => {
             disabled={loading}
             aria-label="Print attendance summary"
           >
-            <LuPrinter size={15} aria-hidden="true" />
+            <Printer size={15} aria-hidden="true" />
             <span className="ml-2">Print</span>
           </button>
           <button
@@ -323,12 +324,12 @@ const AttendanceMonthlySummary = () => {
             aria-label={downloadLoading ? "Downloading PDF" : "Download PDF"}
           >
             {downloadLoading ? (
-              <LuLoader
+              <Loader
                 className="w-6 h-6 text-blue-700 animate-spin"
                 aria-hidden="true"
               />
             ) : (
-              <LuDownload size={15} aria-hidden="true" />
+              <Download size={15} aria-hidden="true" />
             )}
             <span className="ml-2">
               {downloadLoading ? "Downloading..." : "Export PDF"}
@@ -356,10 +357,7 @@ const AttendanceMonthlySummary = () => {
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-blue-100">
-                  <LuUsers
-                    className="h-6 w-6 text-blue-600"
-                    aria-hidden="true"
-                  />
+                  <Users className="h-6 w-6 text-blue-600" aria-hidden="true" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">
@@ -374,7 +372,7 @@ const AttendanceMonthlySummary = () => {
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-green-100">
-                  <LuCalendar
+                  <Calendar
                     className="h-6 w-6 text-green-600"
                     aria-hidden="true"
                   />
@@ -540,7 +538,7 @@ const AttendanceMonthlySummary = () => {
           {loading ? (
             <div className="bg-white rounded-lg shadow-md p-8">
               <div className="flex flex-col justify-center items-center">
-                <LuLoader
+                <Loader
                   className="w-9 h-9 text-blue-700 animate-spin"
                   aria-hidden="true"
                 />

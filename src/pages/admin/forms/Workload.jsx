@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  LuSearch,
-  LuUsers,
-  LuBookOpen,
-  LuClock,
-  LuUserCheck,
-} from "react-icons/lu";
+import { Search, Users, Clock, UserCheck } from "lucide-react";
 import WorkloadTable from "../../../components/admin/WorkloadTable";
 import useWorkloadsStore from "../../../stores/admin/workloadStore";
 
@@ -36,7 +30,7 @@ const Workload = () => {
           {/* Search Bar */}
           <div className="relative w-full lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LuSearch className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -62,7 +56,7 @@ const Workload = () => {
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
-                <LuUsers className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
@@ -79,7 +73,7 @@ const Workload = () => {
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <LuUsers className="w-6 h-6 text-green-600" />
+                <Users className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -96,7 +90,7 @@ const Workload = () => {
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
-                <LuClock className="w-6 h-6 text-purple-600" />
+                <Clock className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>
@@ -113,7 +107,7 @@ const Workload = () => {
                 </p>
               </div>
               <div className="p-3 bg-amber-100 rounded-lg">
-                <LuUserCheck className="w-6 h-6 text-amber-600" />
+                <UserCheck className="w-6 h-6 text-amber-600" />
               </div>
             </div>
           </div>

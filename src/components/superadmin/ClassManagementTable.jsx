@@ -1,11 +1,6 @@
 import React, { useMemo, useEffect } from "react";
-import {
-  LuCalendar,
-  LuGraduationCap,
-  LuEye,
-  LuMenu,
-  LuPlus,
-} from "react-icons/lu";
+
+import { Calendar, GraduationCap, Eye, Menu, Plus } from "lucide-react";
 import Pagination from "./Pagination";
 
 const ClassManagementTable = ({
@@ -138,7 +133,7 @@ const ClassManagementTable = ({
                 onClick={onAdd}
                 className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
               >
-                <LuPlus className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
                 <span>Add {type.charAt(0).toUpperCase() + type.slice(1)}</span>
               </button>
             </div>
@@ -154,9 +149,9 @@ const ClassManagementTable = ({
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
                   {type === "academic year" ? (
-                    <LuCalendar className="w-4 h-4" />
+                    <Calendar className="w-4 h-4" />
                   ) : (
-                    <LuGraduationCap className="w-4 h-4" />
+                    <GraduationCap className="w-4 h-4" />
                   )}
                   Name
                 </div>
@@ -209,9 +204,9 @@ const ClassManagementTable = ({
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                       {type === "academic year" ? (
-                        <LuCalendar className="w-6 h-6 text-red-600" />
+                        <Calendar className="w-6 h-6 text-red-600" />
                       ) : (
-                        <LuGraduationCap className="w-6 h-6 text-red-600" />
+                        <GraduationCap className="w-6 h-6 text-red-600" />
                       )}
                     </div>
                     <div>
@@ -234,9 +229,9 @@ const ClassManagementTable = ({
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                       {type === "academic year" ? (
-                        <LuCalendar className="w-6 h-6 text-gray-400" />
+                        <Calendar className="w-6 h-6 text-gray-400" />
                       ) : (
-                        <LuGraduationCap className="w-6 h-6 text-gray-400" />
+                        <GraduationCap className="w-6 h-6 text-gray-400" />
                       )}
                     </div>
                     <div>
@@ -262,9 +257,9 @@ const ClassManagementTable = ({
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                         {type === "academic year" ? (
-                          <LuCalendar className="w-5 h-5 text-white" />
+                          <Calendar className="w-5 h-5 text-white" />
                         ) : (
-                          <LuGraduationCap className="w-5 h-5 text-white" />
+                          <GraduationCap className="w-5 h-5 text-white" />
                         )}
                       </div>
                       <div>
@@ -313,14 +308,14 @@ const ClassManagementTable = ({
                         onClick={() => onEdit(item)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                       >
-                        <LuEye className="w-3.5 h-3.5" />
+                        <Eye className="w-3.5 h-3.5" />
                         Edit
                       </button>
                       <button
                         onClick={() => onDelete(type, item.id)}
                         className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
                       >
-                        <LuMenu className="w-4 h-4" />
+                        <Menu className="w-4 h-4" />
                         Delete
                       </button>
                     </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { LuSearch, LuUser } from "react-icons/lu";
+import { Search, User } from "lucide-react";
 
 const ConferenceSidebar = ({
   loading,
@@ -78,7 +78,7 @@ const ConferenceSidebar = ({
       {/* Search bar */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <LuSearch className="text-gray-400 w-4 h-4" />
+          <Search className="text-gray-400 w-4 h-4" />
         </div>
         <input
           type="text"
@@ -106,7 +106,7 @@ const ConferenceSidebar = ({
           ))
         ) : (
           <div className="text-center py-8 text-gray-500">
-            <LuUser className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+            <User className="w-12 h-12 mx-auto mb-2 text-gray-300" />
             <p className="text-sm">
               {searchTerm
                 ? "No students match your search"

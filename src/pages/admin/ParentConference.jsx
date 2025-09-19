@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { LuCalendar, LuPrinter } from "react-icons/lu";
+
+import { Calendar, Printer } from "lucide-react";
 import ConferenceMain from "../../components/admin/ConferenceMain";
 import ConferenceSidebar from "../../components/admin/ConferenceSidebar";
 import useParentConferenceStore from "../../stores/admin/parentConference";
@@ -86,7 +87,7 @@ const ParentConference = () => {
             className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             onClick={() => alert("Schedule feature coming soon!")}
           >
-            <LuCalendar size={15} />
+            <Calendar size={15} />
             <span>Schedule Conferences</span>
           </button>
           <button
@@ -94,7 +95,7 @@ const ParentConference = () => {
             onClick={handlePrintAllReportCards}
             disabled={loading || conferenceStudents.length === 0}
           >
-            <LuPrinter size={15} />
+            <Printer size={15} />
             <span>Print All Report Cards</span>
           </button>
         </div>

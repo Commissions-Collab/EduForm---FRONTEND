@@ -1,5 +1,5 @@
 import React from "react";
-import { LuDownload } from "react-icons/lu";
+import { Download } from "lucide-react";
 import { useAdminStore } from "../../stores/useAdminStore";
 
 const AttendanceDownloadBtn = () => {
@@ -9,7 +9,7 @@ const AttendanceDownloadBtn = () => {
 
   return (
     <button className="gray-button" onClick={downloadAttendancePDF}>
-      <LuDownload size={15} />
+      <Download size={15} />
       <span className="ml-2">Export PDF by Quarter</span>
     </button>
   );

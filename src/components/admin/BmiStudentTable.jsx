@@ -1,14 +1,15 @@
 import React from "react";
+
 import {
-  LuUser,
-  LuRuler,
-  LuWeight,
-  LuActivity,
-  LuHeart,
-  LuTrendingUp,
-  LuTrendingDown,
-  LuTriangleAlert,
-} from "react-icons/lu";
+  User,
+  Ruler,
+  Weight,
+  Activity,
+  Heart,
+  TrendingUp,
+  TrendingDown,
+  TriangleAlert,
+} from "lucide-react";
 
 const BmiStudentTable = ({ students, loading, error }) => {
   const getBmiStatusConfig = (status) => {
@@ -17,28 +18,28 @@ const BmiStudentTable = ({ students, loading, error }) => {
         bg: "bg-yellow-50",
         text: "text-yellow-800",
         border: "border-yellow-200",
-        icon: LuTrendingDown,
+        icon: TrendingDown,
         color: "text-yellow-600",
       },
       "Normal weight": {
         bg: "bg-green-50",
         text: "text-green-800",
         border: "border-green-200",
-        icon: LuHeart,
+        icon: Heart,
         color: "text-green-600",
       },
       Overweight: {
         bg: "bg-orange-50",
         text: "text-orange-800",
         border: "border-orange-200",
-        icon: LuTrendingUp,
+        icon: TrendingUp,
         color: "text-orange-600",
       },
       Obese: {
         bg: "bg-red-50",
         text: "text-red-800",
         border: "border-red-200",
-        icon: LuTriangleAlert,
+        icon: TriangleAlert,
         color: "text-red-600",
       },
     };
@@ -127,31 +128,31 @@ const BmiStudentTable = ({ students, loading, error }) => {
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center gap-2">
-                      <LuUser className="w-4 h-4" />
+                      <User className="w-4 h-4" />
                       Student
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuRuler className="w-4 h-4" />
+                      <Ruler className="w-4 h-4" />
                       Height (cm)
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuWeight className="w-4 h-4" />
+                      <Weight className="w-4 h-4" />
                       Weight (kg)
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuActivity className="w-4 h-4" />
+                      <Activity className="w-4 h-4" />
                       BMI
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuHeart className="w-4 h-4" />
+                      <Heart className="w-4 h-4" />
                       Health Status
                     </div>
                   </th>
@@ -168,7 +169,7 @@ const BmiStudentTable = ({ students, loading, error }) => {
           <div className="px-6 py-16 text-center">
             <div className="flex flex-col items-center gap-3">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <LuTriangleAlert className="w-6 h-6 text-red-600" />
+                <TriangleAlert className="w-6 h-6 text-red-600" />
               </div>
               <div>
                 <p className="font-medium text-red-900">
@@ -182,7 +183,7 @@ const BmiStudentTable = ({ students, loading, error }) => {
           <div className="px-6 py-16 text-center">
             <div className="flex flex-col items-center gap-3">
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                <LuActivity className="w-6 h-6 text-gray-400" />
+                <Activity className="w-6 h-6 text-gray-400" />
               </div>
               <div>
                 <p className="font-medium text-gray-900">
@@ -201,31 +202,31 @@ const BmiStudentTable = ({ students, loading, error }) => {
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center gap-2">
-                      <LuUser className="w-4 h-4" />
+                      <User className="w-4 h-4" />
                       Student
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuRuler className="w-4 h-4" />
+                      <Ruler className="w-4 h-4" />
                       Height (cm)
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuWeight className="w-4 h-4" />
+                      <Weight className="w-4 h-4" />
                       Weight (kg)
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuActivity className="w-4 h-4" />
+                      <Activity className="w-4 h-4" />
                       BMI
                     </div>
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center justify-center gap-2">
-                      <LuHeart className="w-4 h-4" />
+                      <Heart className="w-4 h-4" />
                       Health Status
                     </div>
                   </th>

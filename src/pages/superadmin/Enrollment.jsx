@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { LuSearch, LuUsers } from "react-icons/lu";
+
+import { Search, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
 import EnrollmentTable from "../../components/superadmin/EnrollmentTable";
@@ -65,7 +66,9 @@ const Enrollment = () => {
       try {
         await deleteEnrollment(id);
         // Clear selection if deleted enrollment was selected
-        setSelectedEnrollments(prev => prev.filter(enrollment => enrollment.id !== id));
+        setSelectedEnrollments((prev) =>
+          prev.filter((enrollment) => enrollment.id !== id)
+        );
       } catch (err) {
         // Error handled by store
       }
@@ -75,7 +78,7 @@ const Enrollment = () => {
   // Get unique students for summary calculations
   const getUniqueStudentIds = (enrollments) => {
     const uniqueStudentIds = new Set();
-    enrollments.forEach(enrollment => {
+    enrollments.forEach((enrollment) => {
       const studentId = enrollment.student_id || enrollment.student?.id;
       if (studentId) {
         uniqueStudentIds.add(studentId);
@@ -90,15 +93,19 @@ const Enrollment = () => {
       (e) => e.enrollment_status === "enrolled"
     ).length,
     uniqueEnrolledStudents: getUniqueStudentIds(
-      enrollments.filter(e => e.enrollment_status === "enrolled")
+      enrollments.filter((e) => e.enrollment_status === "enrolled")
     ).size,
   };
 
   // Extract unique student IDs from selected enrollments
   const getSelectedStudentIds = () => {
-    return [...new Set(selectedEnrollments.map(enrollment => 
-      enrollment.student_id || enrollment.student?.id
-    ).filter(id => id !== undefined))];
+    return [
+      ...new Set(
+        selectedEnrollments
+          .map((enrollment) => enrollment.student_id || enrollment.student?.id)
+          .filter((id) => id !== undefined)
+      ),
+    ];
   };
 
   const handleBulkModal = () => {
@@ -139,7 +146,7 @@ const Enrollment = () => {
           </div>
           <div className="relative w-full lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LuSearch className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -163,7 +170,7 @@ const Enrollment = () => {
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
-                <LuUsers className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
@@ -178,7 +185,7 @@ const Enrollment = () => {
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <LuUsers className="w-6 h-6 text-green-600" />
+                <Users className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -193,7 +200,7 @@ const Enrollment = () => {
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
-                <LuUsers className="w-6 h-6 text-purple-600" />
+                <Users className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>

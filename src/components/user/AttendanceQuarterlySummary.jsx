@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuCalendarCheck, LuCircleAlert } from "react-icons/lu";
+import { CalendarCheck, CircleAlert } from "lucide-react";
 
 const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
   const [animatedRates, setAnimatedRates] = useState({});
@@ -34,7 +34,7 @@ const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Quarterly Summary</h2>
         <div className="p-2 bg-gray-100 rounded-lg">
-          <LuCalendarCheck className="w-5 h-5 text-gray-600 animate-pulse" />
+          <CalendarCheck className="w-5 h-5 text-gray-600 animate-pulse" />
         </div>
       </div>
       {loading ? (
@@ -46,7 +46,7 @@ const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
       ) : error ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-            <LuCircleAlert className="w-6 h-6 text-red-600" />
+            <CircleAlert className="w-6 h-6 text-red-600" />
           </div>
           <div>
             <p className="font-medium text-red-900">
@@ -58,7 +58,7 @@ const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
       ) : quarterlySummary.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-            <LuCalendarCheck className="w-6 h-6 text-gray-400" />
+            <CalendarCheck className="w-6 h-6 text-gray-400" />
           </div>
           <p className="text-sm text-gray-500">
             No quarterly summary available
@@ -84,7 +84,7 @@ const AttendanceQuarterlySummary = ({ quarterlySummary, loading, error }) => {
                   </p>
                 </div>
                 <div className="p-2 bg-indigo-100 rounded-lg">
-                  <LuCalendarCheck className="w-5 h-5 text-indigo-600 animate-pulse" />
+                  <CalendarCheck className="w-5 h-5 text-indigo-600 animate-pulse" />
                 </div>
               </div>
             </div>

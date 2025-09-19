@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { LuCircleAlert } from "react-icons/lu";
+import { CircleAlert } from "lucide-react";
 import toast from "react-hot-toast";
 import AttendanceMonthFilter from "../../components/user/AttendanceMonthFilter";
 import AttendanceSummary from "../../components/user/AttendanceSummary";
@@ -43,7 +43,7 @@ const UserAttendance = () => {
     return (
       <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen flex items-center justify-center animate-fade-in">
         <div className="flex flex-col items-center gap-3">
-          <LuCircleAlert className="w-12 h-12 text-red-600 animate-pulse" />
+          <CircleAlert className="w-12 h-12 text-red-600 animate-pulse" />
           <p className="text-red-600 font-medium">Error loading attendance</p>
         </div>
       </main>

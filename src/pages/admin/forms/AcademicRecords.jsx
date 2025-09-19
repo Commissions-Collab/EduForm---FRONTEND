@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { LuDownload } from "react-icons/lu";
 import GradesTable from "../../../components/admin/GradesTable";
 import useFilterStore from "../../../stores/admin/filterStore";
 import useGradesStore from "../../../stores/admin/gradeStore";
+import { Download } from "lucide-react";
 
 const Grades = () => {
   const {
@@ -102,7 +102,7 @@ const Grades = () => {
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50"
                 disabled={!hasAllFilters || !hasData || isLoading}
               >
-                <LuDownload size={16} className="mr-2" />
+                <Download size={16} className="mr-2" />
                 Export Grades
               </button>
             </div>

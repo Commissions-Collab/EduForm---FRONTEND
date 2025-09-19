@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { LuX, LuSave } from "react-icons/lu";
+import { X, Save } from "lucide-react";
+
 import useClassManagementStore from "../../stores/superAdmin/classManagementStore";
 
 const YearLevelModal = ({ isOpen, onClose, selectedYearLevel }) => {
@@ -64,7 +65,7 @@ const YearLevelModal = ({ isOpen, onClose, selectedYearLevel }) => {
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 transition-colors"
           >
-            <LuX className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -124,7 +125,7 @@ const YearLevelModal = ({ isOpen, onClose, selectedYearLevel }) => {
               type="submit"
               className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
             >
-              <LuSave className="w-4 h-4" />
+              <Save className="w-4 h-4" />
               <span>{selectedYearLevel ? "Update" : "Save"}</span>
             </button>
           </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuBookOpen, LuCalendar, LuTrendingUp, LuBook } from "react-icons/lu";
+import { BookOpen, Calendar, Book, TrendingUp } from "lucide-react";
 
 const DashboardSummary = ({
   totalAverage,
@@ -80,7 +80,7 @@ const DashboardSummary = ({
             </p>
           </div>
           <div className="p-3 bg-blue-100 rounded-lg">
-            <LuBookOpen className="w-6 h-6 text-blue-600 animate-pulse" />
+            <BookOpen className="w-6 h-6 text-blue-600 animate-pulse" />
           </div>
         </div>
       </div>
@@ -102,7 +102,7 @@ const DashboardSummary = ({
             </p>
           </div>
           <div className="p-3 bg-green-100 rounded-lg">
-            <LuTrendingUp className="w-6 h-6 text-green-600 animate-pulse" />
+            <TrendingUp className="w-6 h-6 text-green-600 animate-pulse" />
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ const DashboardSummary = ({
             </p>
           </div>
           <div className="p-3 bg-purple-100 rounded-lg">
-            <LuCalendar className="w-6 h-6 text-purple-600 animate-pulse" />
+            <Calendar className="w-6 h-6 text-purple-600 animate-pulse" />
           </div>
         </div>
       </div>
@@ -142,7 +142,7 @@ const DashboardSummary = ({
             </p>
           </div>
           <div className="p-3 bg-yellow-100 rounded-lg">
-            <LuBook className="w-6 h-6 text-yellow-600 animate-pulse" />
+            <Book className="w-6 h-6 text-yellow-600 animate-pulse" />
           </div>
         </div>
       </div>
@@ -162,7 +162,7 @@ const DashboardSummary = ({
             </p>
           </div>
           <div className="p-3 bg-red-100 rounded-lg">
-            <LuBook className="w-6 h-6 text-red-600 animate-pulse" />
+            <Book className="w-6 h-6 text-red-600 animate-pulse" />
           </div>
         </div>
       </div>

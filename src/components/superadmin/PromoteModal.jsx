@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { LuX, LuSave } from "react-icons/lu";
+import { X, Save } from "lucide-react";
 import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
 
 const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
@@ -12,7 +12,7 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
     loading,
     error,
   } = useEnrollmentStore();
-  
+
   const [formData, setFormData] = useState({
     student_ids: selectedStudentIds || [],
     next_academic_year_id: "",
@@ -34,8 +34,10 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
     }
 
     return enrollments
-      .filter(enrollment => selectedStudentIds.includes(enrollment.student_id))
-      .map(enrollment => ({
+      .filter((enrollment) =>
+        selectedStudentIds.includes(enrollment.student_id)
+      )
+      .map((enrollment) => ({
         id: enrollment.student_id,
         enrollment_id: enrollment.id,
         first_name: enrollment.student?.first_name,
@@ -51,15 +53,17 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
   // Get the highest grade level among selected students
   const currentHighestGradeLevel = useMemo(() => {
     if (selectedStudents.length === 0) return null;
-    
+
     return selectedStudents.reduce((highest, student) => {
       const currentLevel = student.current_grade_level;
       if (!currentLevel || !currentLevel.name) return highest;
-      
+
       // Extract number from grade level name (e.g., "Grade 7" -> 7)
       const currentNum = parseInt(currentLevel.name.match(/\d+/)?.[0] || "0");
-      const highestNum = highest ? parseInt(highest.name.match(/\d+/)?.[0] || "0") : 0;
-      
+      const highestNum = highest
+        ? parseInt(highest.name.match(/\d+/)?.[0] || "0")
+        : 0;
+
       return currentNum > highestNum ? currentLevel : highest;
     }, null);
   }, [selectedStudents]);
@@ -67,10 +71,12 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
   // Filter grade levels to show only higher levels
   const availableGradeLevels = useMemo(() => {
     if (!currentHighestGradeLevel) return yearLevels;
-    
-    const currentGradeNum = parseInt(currentHighestGradeLevel.name.match(/\d+/)?.[0] || "0");
-    
-    return yearLevels.filter(level => {
+
+    const currentGradeNum = parseInt(
+      currentHighestGradeLevel.name.match(/\d+/)?.[0] || "0"
+    );
+
+    return yearLevels.filter((level) => {
       const levelNum = parseInt(level.name.match(/\d+/)?.[0] || "0");
       return levelNum > currentGradeNum;
     });
@@ -79,31 +85,33 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
   // Filter sections based on selected grade level
   const availableSections = useMemo(() => {
     if (!formData.next_grade_level_id) return [];
-    
+
     // Assuming sections are linked to grade levels
     // You might need to adjust this based on your actual data structure
-    return sections.filter(section => {
+    return sections.filter((section) => {
       // If sections have a grade_level_id or year_level_id field
-      return section.year_level_id == formData.next_grade_level_id ||
-             section.grade_level_id == formData.next_grade_level_id ||
-             // If no direct relationship, show all sections
-             (!section.year_level_id && !section.grade_level_id);
+      return (
+        section.year_level_id == formData.next_grade_level_id ||
+        section.grade_level_id == formData.next_grade_level_id ||
+        // If no direct relationship, show all sections
+        (!section.year_level_id && !section.grade_level_id)
+      );
     });
   }, [sections, formData.next_grade_level_id]);
 
   // Filter academic years to show future years
   const availableAcademicYears = useMemo(() => {
     if (selectedStudents.length === 0) return academicYears;
-    
+
     // Get current academic year from selected students
     const currentAcademicYear = selectedStudents[0]?.current_academic_year;
     if (!currentAcademicYear) return academicYears;
-    
+
     // Extract year from academic year name (e.g., "2023-2024" -> 2024)
     const currentYearMatch = currentAcademicYear.name.match(/(\d{4})-(\d{4})/);
     const currentEndYear = currentYearMatch ? parseInt(currentYearMatch[2]) : 0;
-    
-    return academicYears.filter(ay => {
+
+    return academicYears.filter((ay) => {
       const yearMatch = ay.name.match(/(\d{4})-(\d{4})/);
       const endYear = yearMatch ? parseInt(yearMatch[2]) : 0;
       return endYear > currentEndYear;
@@ -112,11 +120,11 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
       // Reset section when grade level changes
-      ...(name === 'next_grade_level_id' && { section_id: '' })
+      ...(name === "next_grade_level_id" && { section_id: "" }),
     }));
   };
 
@@ -156,7 +164,7 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-colors"
           >
-            <LuX className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -176,13 +184,16 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
                         className="bg-white p-3 rounded-lg border border-gray-200"
                       >
                         <div className="font-medium text-gray-900">
-                          {`${student.first_name} ${student.middle_name || ""} ${student.last_name}`.trim()}
+                          {`${student.first_name} ${
+                            student.middle_name || ""
+                          } ${student.last_name}`.trim()}
                         </div>
                         <div className="text-sm text-gray-500">
                           LRN: {student.lrn || "N/A"}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
-                          Current: {student.current_grade_level?.name || "N/A"} - {student.current_section?.name || "N/A"}
+                          Current: {student.current_grade_level?.name || "N/A"}{" "}
+                          - {student.current_section?.name || "N/A"}
                         </div>
                       </div>
                     ))}
@@ -230,7 +241,9 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
                           </option>
                         ))
                       ) : (
-                        <option disabled>No future academic years available</option>
+                        <option disabled>
+                          No future academic years available
+                        </option>
                       )}
                     </select>
                     {availableAcademicYears.length === 0 && (
@@ -267,24 +280,28 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
                         <option disabled>
                           {!formData.next_academic_year_id
                             ? "Select academic year first"
-                            : currentGradeLevel 
-                              ? `No next grade level available for ${currentGradeLevel.name}`
-                              : "No grade levels available"
-                          }
+                            : currentGradeLevel
+                            ? `No next grade level available for ${currentGradeLevel.name}`
+                            : "No grade levels available"}
                         </option>
                       )}
                     </select>
                     {!formData.next_academic_year_id && (
                       <p className="text-xs text-amber-600 mt-1">
-                        Please select an academic year first to see available grade levels.
+                        Please select an academic year first to see available
+                        grade levels.
                       </p>
                     )}
-                    {formData.next_academic_year_id && availableGradeLevels.length === 0 && currentGradeLevel && (
-                      <p className="text-xs text-red-500 mt-1">
-                        No next grade level available for {currentGradeLevel.name}. 
-                        {currentGradeLevel.number >= 12 && " Students may have reached the highest grade level."}
-                      </p>
-                    )}
+                    {formData.next_academic_year_id &&
+                      availableGradeLevels.length === 0 &&
+                      currentGradeLevel && (
+                        <p className="text-xs text-red-500 mt-1">
+                          No next grade level available for{" "}
+                          {currentGradeLevel.name}.
+                          {currentGradeLevel.number >= 12 &&
+                            " Students may have reached the highest grade level."}
+                        </p>
+                      )}
                   </div>
 
                   <div>
@@ -301,7 +318,11 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
                       onChange={handleChange}
                       className="mt-1 px-3 py-2 text-sm border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                       required
-                      disabled={!formData.next_grade_level_id || !formData.next_academic_year_id || selectedStudents.length === 0}
+                      disabled={
+                        !formData.next_grade_level_id ||
+                        !formData.next_academic_year_id ||
+                        selectedStudents.length === 0
+                      }
                     >
                       <option value="">Select Section</option>
                       {availableSections.length > 0 ? (
@@ -312,23 +333,28 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
                         ))
                       ) : (
                         <option disabled>
-                          {!formData.next_academic_year_id || !formData.next_grade_level_id
+                          {!formData.next_academic_year_id ||
+                          !formData.next_grade_level_id
                             ? "Select academic year and grade level first"
-                            : "No sections available for selected grade level and academic year"
-                          }
+                            : "No sections available for selected grade level and academic year"}
                         </option>
                       )}
                     </select>
-                    {(!formData.next_academic_year_id || !formData.next_grade_level_id) && (
+                    {(!formData.next_academic_year_id ||
+                      !formData.next_grade_level_id) && (
                       <p className="text-xs text-amber-600 mt-1">
-                        Please select academic year and grade level first to see available sections.
+                        Please select academic year and grade level first to see
+                        available sections.
                       </p>
                     )}
-                    {formData.next_academic_year_id && formData.next_grade_level_id && availableSections.length === 0 && (
-                      <p className="text-xs text-red-500 mt-1">
-                        No sections available for the selected grade level and academic year combination.
-                      </p>
-                    )}
+                    {formData.next_academic_year_id &&
+                      formData.next_grade_level_id &&
+                      availableSections.length === 0 && (
+                        <p className="text-xs text-red-500 mt-1">
+                          No sections available for the selected grade level and
+                          academic year combination.
+                        </p>
+                      )}
                   </div>
                 </div>
               )}
@@ -368,8 +394,11 @@ const PromoteModal = ({ isOpen, onClose, selectedStudentIds }) => {
                   : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
             >
-              <LuSave className="w-4 h-4" />
-              <span>Promote {selectedStudents.length} Student{selectedStudents.length !== 1 ? 's' : ''}</span>
+              <Save className="w-4 h-4" />
+              <span>
+                Promote {selectedStudents.length} Student
+                {selectedStudents.length !== 1 ? "s" : ""}
+              </span>
             </button>
           </div>
         </form>

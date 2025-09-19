@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { LuUsers, LuTrash2, LuBadgeAlert, LuPencil } from "react-icons/lu";
+import { User, Pen, Trash2 } from "lucide-react";
 import Pagination from "./Pagination";
 import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 
@@ -108,7 +108,7 @@ const TeacherManagementTable = ({
                 disabled={loading}
                 className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <LuUsers className="w-4 h-4" />
+                <User className="w-4 h-4" />
                 <span>Add Teacher</span>
               </button>
             </div>
@@ -122,7 +122,7 @@ const TeacherManagementTable = ({
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  <LuUsers className="w-4 h-4" />
+                  <User className="w-4 h-4" />
                   Teacher
                 </div>
               </th>
@@ -221,14 +221,14 @@ const TeacherManagementTable = ({
                         onClick={() => onEdit(teacher)}
                         className="px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg flex items-center gap-1"
                       >
-                        <LuPencil className="w-3.5 h-3.5" />
+                        <Pen className="w-3.5 h-3.5" />
                         Edit
                       </button>
                       <button
                         onClick={() => onDelete(teacher.id)}
                         className="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg flex items-center gap-1"
                       >
-                        <LuTrash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5" />
                         Delete
                       </button>
                       <button

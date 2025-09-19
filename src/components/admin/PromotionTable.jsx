@@ -1,7 +1,7 @@
 import React from "react";
 import StatusBadge from "./StatusBadge";
 import PaginationControls from "./Pagination";
-import { LuBadgeAlert, LuUser } from "react-icons/lu";
+import { BadgeAlert, User } from "lucide-react";
 import usePromotionStore from "../../stores/admin/promotionStore";
 
 const PromotionTable = () => {
@@ -89,7 +89,7 @@ const PromotionTable = () => {
       <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border-2 border-amber-200 p-6 shadow-lg mt-6">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-            <LuBadgeAlert className="w-6 h-6 text-amber-600" />
+            <BadgeAlert className="w-6 h-6 text-amber-600" />
           </div>
           <div className="flex-1">
             <h3 className="text-xl font-bold text-amber-800 mb-2">
@@ -153,7 +153,7 @@ const PromotionTable = () => {
                 >
                   <td className="px-6 py-5 flex items-center">
                     <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
-                      <LuUser className="w-5 h-5 text-indigo-600" />
+                      <User className="w-5 h-5 text-indigo-600" />
                     </div>
                     <span className="text-sm font-semibold text-gray-900">
                       {student.student_name}

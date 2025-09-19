@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
-import { LuBadgeAlert, LuCalendarX } from "react-icons/lu";
+import { BadgeAlert, CalendarX } from "lucide-react";
+
 import useCertificatesStore from "../../stores/admin/certificateStore";
 import useFilterStore from "../../stores/admin/filterStore";
 
 const Certificates = () => {
-  const { fetchCertificateData, loading, error, quarterComplete } = useCertificatesStore();
+  const { fetchCertificateData, loading, error, quarterComplete } =
+    useCertificatesStore();
   const { globalFilters, initializeGlobalFilters, fetchGlobalFilterOptions } =
     useFilterStore();
   const [searchName, setSearchName] = useState("");
@@ -52,7 +54,7 @@ const Certificates = () => {
       {!hasAllFilters && (
         <div className="mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-sm">
           <div className="flex items-start gap-4">
-            <LuBadgeAlert className="w-6 h-6 text-blue-600" />
+            <BadgeAlert className="w-6 h-6 text-blue-600" />
             <div>
               <h3 className="text-lg font-semibold text-blue-800 mb-2">
                 Select Filters to Continue
@@ -70,13 +72,15 @@ const Certificates = () => {
       {hasAllFilters && !loading && !quarterComplete && (
         <div className="mb-6 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-6 shadow-sm">
           <div className="flex items-start gap-4">
-            <LuCalendarX className="w-6 h-6 text-amber-600" />
+            <CalendarX className="w-6 h-6 text-amber-600" />
             <div>
               <h3 className="text-lg font-semibold text-amber-800 mb-2">
                 Quarter In Progress
               </h3>
               <p className="text-sm text-amber-700 leading-relaxed">
-                The selected quarter has not ended yet. Certificate generation will be enabled once the quarter end date has passed and all required data is complete.
+                The selected quarter has not ended yet. Certificate generation
+                will be enabled once the quarter end date has passed and all
+                required data is complete.
               </p>
             </div>
           </div>

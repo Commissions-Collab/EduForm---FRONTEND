@@ -1,18 +1,20 @@
 import React, { useMemo } from "react";
+
 import {
-  LuPrinter,
-  LuEye,
-  LuDownload,
-  LuSearch,
-  LuCalendarCheck,
-  LuPrinterCheck,
-  LuCalendarDays,
-  LuUser,
-  LuAward,
-  LuCalendar,
-  LuLock,
-  LuBadgeAlert,
-} from "react-icons/lu";
+  Printer,
+  Eye,
+  Download,
+  Search,
+  CalendarCheck,
+  PrinterCheck,
+  CalendarDays,
+  User,
+  Award,
+  Calendar,
+  Lock,
+  BadgeAlert,
+} from "lucide-react";
+
 import PaginationControls from "./Pagination";
 import useCertificatesStore from "../../stores/admin/certificateStore";
 import useFilterStore from "../../stores/admin/filterStore";
@@ -47,19 +49,29 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
   const total = totalPages("attendance");
 
   const handlePreview = (studentId) => {
-    previewCertificate('perfect_attendance', studentId, globalFilters.quarterId);
+    previewCertificate(
+      "perfect_attendance",
+      studentId,
+      globalFilters.quarterId
+    );
   };
 
   const handleDownload = (studentId) => {
-    downloadCertificate('perfect_attendance', studentId, globalFilters.quarterId);
+    downloadCertificate(
+      "perfect_attendance",
+      studentId,
+      globalFilters.quarterId
+    );
   };
 
   const handlePrintAll = () => {
-    printAllCertificates('perfect_attendance');
+    printAllCertificates("perfect_attendance");
   };
 
   // Check if any certificates can be generated
-  const hasGeneratableCertificates = attendanceCertificates.some(record => record.can_generate);
+  const hasGeneratableCertificates = attendanceCertificates.some(
+    (record) => record.can_generate
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -70,14 +82,15 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
           {!quarterComplete && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <div className="flex items-start gap-3">
-                <LuBadgeAlert className="w-5 h-5 text-amber-600 mt-0.5" />
+                <BadgeAlert className="w-5 h-5 text-amber-600 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-semibold text-amber-800">
                     Quarter In Progress
                   </h4>
                   <p className="text-sm text-amber-700 mt-1">
-                    Certificates cannot be generated until the selected quarter ends. 
-                    Preview and download options will be available once the quarter is complete.
+                    Certificates cannot be generated until the selected quarter
+                    ends. Preview and download options will be available once
+                    the quarter is complete.
                   </p>
                 </div>
               </div>
@@ -98,7 +111,7 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Search */}
               <div className="relative">
-                <LuSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   placeholder="Search student name..."
                   className="pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors w-full sm:w-64"
@@ -108,19 +121,19 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
               </div>
 
               {/* Print All Button */}
-              <button 
+              <button
                 className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors shadow-sm ${
                   quarterComplete && hasGeneratableCertificates
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
                 onClick={handlePrintAll}
                 disabled={!quarterComplete || !hasGeneratableCertificates}
               >
                 {quarterComplete ? (
-                  <LuPrinter className="w-4 h-4" />
+                  <Printer className="w-4 h-4" />
                 ) : (
-                  <LuLock className="w-4 h-4" />
+                  <Lock className="w-4 h-4" />
                 )}
                 <span>Print All</span>
               </button>
@@ -136,19 +149,19 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex gap-2">
-                  <LuUser className="w-4 h-4" />
+                  <User className="w-4 h-4" />
                   Student Name
                 </div>
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex gap-2">
-                  <LuAward className="w-4 h-4" />
+                  <Award className="w-4 h-4" />
                   Certificate Type
                 </div>
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex gap-2">
-                  <LuCalendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4" />
                   Details
                 </div>
               </th>
@@ -197,7 +210,7 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
                 <td colSpan={4} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                      <LuCalendarDays className="w-6 h-6 text-gray-400" />
+                      <CalendarDays className="w-6 h-6 text-gray-400" />
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
@@ -226,7 +239,7 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
                         </p>
                         {!record.can_generate && (
                           <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                            <LuLock className="w-3 h-3" />
+                            <Lock className="w-3 h-3" />
                             Cannot generate yet
                           </p>
                         )}
@@ -235,7 +248,7 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
                   </td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                      <LuCalendarCheck className="w-3 h-3" />
+                      <CalendarCheck className="w-3 h-3" />
                       Perfect Attendance
                     </span>
                   </td>
@@ -247,51 +260,57 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button 
+                      <button
                         className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          record.can_generate 
-                            ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' 
-                            : 'text-gray-400 cursor-not-allowed'
+                          record.can_generate
+                            ? "text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            : "text-gray-400 cursor-not-allowed"
                         }`}
-                        onClick={() => record.can_generate && handlePreview(record.id)}
+                        onClick={() =>
+                          record.can_generate && handlePreview(record.id)
+                        }
                         disabled={!record.can_generate}
                       >
                         {record.can_generate ? (
-                          <LuEye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" />
                         ) : (
-                          <LuLock className="w-3.5 h-3.5" />
+                          <Lock className="w-3.5 h-3.5" />
                         )}
                         Preview
                       </button>
-                      <button 
+                      <button
                         className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          record.can_generate 
-                            ? 'text-green-600 hover:text-green-800 hover:bg-green-50' 
-                            : 'text-gray-400 cursor-not-allowed'
+                          record.can_generate
+                            ? "text-green-600 hover:text-green-800 hover:bg-green-50"
+                            : "text-gray-400 cursor-not-allowed"
                         }`}
-                        onClick={() => record.can_generate && handlePreview(record.id)}
+                        onClick={() =>
+                          record.can_generate && handlePreview(record.id)
+                        }
                         disabled={!record.can_generate}
                       >
                         {record.can_generate ? (
-                          <LuPrinterCheck className="w-3.5 h-3.5" />
+                          <PrinterCheck className="w-3.5 h-3.5" />
                         ) : (
-                          <LuLock className="w-3.5 h-3.5" />
+                          <Lock className="w-3.5 h-3.5" />
                         )}
                         Print
                       </button>
-                      <button 
+                      <button
                         className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          record.can_generate 
-                            ? 'text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50' 
-                            : 'text-gray-400 cursor-not-allowed'
+                          record.can_generate
+                            ? "text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                            : "text-gray-400 cursor-not-allowed"
                         }`}
-                        onClick={() => record.can_generate && handleDownload(record.id)}
+                        onClick={() =>
+                          record.can_generate && handleDownload(record.id)
+                        }
                         disabled={!record.can_generate}
                       >
                         {record.can_generate ? (
-                          <LuDownload className="w-3.5 h-3.5" />
+                          <Download className="w-3.5 h-3.5" />
                         ) : (
-                          <LuLock className="w-3.5 h-3.5" />
+                          <Lock className="w-3.5 h-3.5" />
                         )}
                         Download
                       </button>

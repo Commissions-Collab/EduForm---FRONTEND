@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
-import { LuLoader, LuUser, LuSave, LuFilter } from "react-icons/lu";
-import { VscLayoutStatusbar } from "react-icons/vsc";
+import { Loader, User, Save, Filter, PanelsLeftBottom } from "lucide-react";
 import toast from "react-hot-toast";
 import useGradesStore from "../../stores/admin/gradeStore";
 import useFilterStore from "../../stores/admin/filterStore";
@@ -181,7 +180,7 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
         <div className="py-20">
           <div className="flex flex-col items-center space-y-3">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <LuFilter className="w-8 h-8 text-blue-600" />
+              <Filter className="w-8 h-8 text-blue-600" />
             </div>
             <div className="text-center">
               <h3 className="text-gray-900 font-medium">Select Filters</h3>
@@ -223,9 +222,9 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isBulkSaving ? (
-                    <LuLoader size={16} className="mr-2 animate-spin" />
+                    <Loader size={16} className="mr-2 animate-spin" />
                   ) : (
-                    <LuSave size={16} className="mr-2" />
+                    <Save size={16} className="mr-2" />
                   )}
                   {isBulkSaving
                     ? `Saving ${Object.keys(unsavedChanges).length}...`
@@ -270,7 +269,7 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 min-w-[200px]">
                       <div className="flex gap-2">
-                        <LuUser className="w-4 h-4" />
+                        <User className="w-4 h-4" />
                         Student Name
                       </div>
                     </th>
@@ -284,7 +283,7 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
                     ))}
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider min-w-[120px]">
                       <div className="flex justify-center gap-2">
-                        <VscLayoutStatusbar className="w-4 h-4" />
+                        <PanelsLeftBottom className="w-4 h-4" />
                         Status
                       </div>
                     </th>
@@ -368,9 +367,9 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
                                       className="p-1 text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
                                     >
                                       {isSaving ? (
-                                        <LuLoader className="w-4 h-4 animate-spin" />
+                                        <Loader className="w-4 h-4 animate-spin" />
                                       ) : (
-                                        <LuSave className="w-4 h-4" />
+                                        <Save className="w-4 h-4" />
                                       )}
                                     </button>
                                   )}
@@ -470,9 +469,9 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
                                     className="p-2 text-indigo-600 hover:text-indigo-800 disabled:opacity-50 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
                                   >
                                     {isSaving ? (
-                                      <LuLoader className="w-5 h-5 animate-spin" />
+                                      <Loader className="w-5 h-5 animate-spin" />
                                     ) : (
-                                      <LuSave className="w-5 h-5" />
+                                      <Save className="w-5 h-5" />
                                     )}
                                   </button>
                                 )}

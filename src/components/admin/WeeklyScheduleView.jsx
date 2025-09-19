@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
+
 import {
-  LuCalendar,
-  LuClock,
-  LuMapPin,
-  LuBook,
-  LuUsers,
-  LuChevronLeft,
-  LuChevronRight,
-} from "react-icons/lu";
+  Calendar,
+  Clock,
+  MapPin,
+  Book,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { getItem, setItem } from "../../lib/utils";
 import useAttendanceStore from "../../stores/admin/attendanceStore";
@@ -158,7 +159,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="text-center py-8">
-          <LuCalendar size={48} className="mx-auto mb-4 text-gray-400" />
+          <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-medium text-gray-600 mb-2">
             Please select filters
           </h3>
@@ -191,11 +192,11 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
             className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
             title="Previous Week"
           >
-            <LuChevronLeft size={16} />
+            <ChevronLeft size={16} />
           </button>
 
           <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-lg">
-            <LuCalendar size={16} className="text-blue-600" />
+            <Calendar size={16} className="text-blue-600" />
             <span className="font-medium text-blue-800">
               {formatWeekRange()}
             </span>
@@ -206,7 +207,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
             className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
             title="Next Week"
           >
-            <LuChevronRight size={16} />
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>
@@ -312,24 +313,21 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
 
                         <div className="space-y-2">
                           <div className="flex items-start space-x-2">
-                            <LuBook
-                              size={14}
-                              className="mt-0.5 flex-shrink-0"
-                            />
+                            <Book size={14} className="mt-0.5 flex-shrink-0" />
                             <div className="text-sm font-semibold leading-tight">
                               {schedule.subject?.name || "Unknown Subject"}
                             </div>
                           </div>
 
                           <div className="flex items-center space-x-2">
-                            <LuUsers size={12} />
+                            <Users size={12} />
                             <div className="text-xs">
                               {schedule.section?.name || "Unknown Section"}
                             </div>
                           </div>
 
                           <div className="flex items-center space-x-2">
-                            <LuClock size={12} />
+                            <Clock size={12} />
                             <div className="text-xs">
                               {formatTime(schedule.time_start)} -{" "}
                               {formatTime(schedule.time_end)}
@@ -338,7 +336,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
 
                           {schedule.room && (
                             <div className="flex items-center space-x-2">
-                              <LuMapPin size={12} />
+                              <MapPin size={12} />
                               <div className="text-xs">{schedule.room}</div>
                             </div>
                           )}
@@ -358,10 +356,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
                     ))
                   ) : (
                     <div className="text-center text-gray-400 p-4">
-                      <LuCalendar
-                        size={24}
-                        className="mx-auto mb-2 opacity-50"
-                      />
+                      <Calendar size={24} className="mx-auto mb-2 opacity-50" />
                       <div className="text-sm">No classes scheduled</div>
                     </div>
                   )}
