@@ -2,23 +2,13 @@ import axios from "axios";
 import { getItem, removeItem } from "./utils";
 import toast from "react-hot-toast";
 
-// Configuration constants
+// Configuration constants aligned with backend
 const BASE_URL = "http://127.0.0.1:8000/api";
 const SANCTUM_CSRF_URL = BASE_URL.replace("/api", "") + "/sanctum/csrf-cookie";
+const SESSION_LIFETIME_MINUTES = 120; // Match backend SESSION_LIFETIME
 
-// Type definitions for better type safety
-/** @typedef {import('axios').AxiosInstance} AxiosInstance */
-/** @typedef {import('axios').AxiosRequestConfig} AxiosRequestConfig */
-/** @typedef {import('axios').AxiosResponse} AxiosResponse */
-/** @typedef {import('axios').AxiosError} AxiosError */
-
-/** @type {boolean} */
 let csrfTokenFetched = false;
 
-/**
- * Creates and configures the Axios instance
- * @type {AxiosInstance}
- */
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -26,23 +16,17 @@ export const axiosInstance = axios.create({
     Accept: "application/json",
   },
   withCredentials: true,
-  timeout: 10000, // Added timeout for reliability
+  timeout: 10000,
 });
 
-/**
- * Fetches CSRF token from Sanctum
- * @returns {Promise<void>}
- */
 export const fetchCsrfToken = async () => {
   if (csrfTokenFetched) return;
-
   try {
     const response = await axios.get(SANCTUM_CSRF_URL, {
       baseURL: BASE_URL.replace("/api", ""),
       withCredentials: true,
       timeout: 5000,
     });
-
     if (response.status === 204 || response.status === 200) {
       csrfTokenFetched = true;
     } else {
@@ -51,85 +35,75 @@ export const fetchCsrfToken = async () => {
   } catch (error) {
     const message =
       error?.response?.data?.message || "Failed to initialize session";
-    console.error("Failed to fetch CSRF token:", {
-      message,
-      status: error?.response?.status,
-      error,
-    });
     toast.error(`${message}. Please try again.`);
-    throw error; // Re-throw to allow calling code to handle
+    throw error;
   }
 };
 
-/**
- * Request interceptor to add CSRF token and Authorization header
- */
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const status = error?.response?.status;
-    if (process.env.NODE_ENV !== "production") {
-      console.log("Response error:", {
-        status,
-        data: error?.response?.data,
-        url: error?.config?.url,
-      });
-    }
-    if (status === 401 || status === 419) {
-      console.warn("Unauthorized access detected:", {
-        status,
-        data: error?.response?.data,
-      });
-      removeItem("token");
-      removeItem("user");
-      csrfTokenFetched = false;
-      window.dispatchEvent(new Event("unauthorized"));
-      toast.error("Session expired. Please log in again.");
-    }
-    return Promise.reject(error);
+// Request interceptor with proper session expiry checking
+axiosInstance.interceptors.request.use((config) => {
+  const sessionExpiry = getItem("session_expiry", false, localStorage);
+
+  if (sessionExpiry && Date.now() > parseInt(sessionExpiry)) {
+    // Session expired - clear storage and dispatch unauthorized event
+    removeItem("token");
+    removeItem("user");
+    removeItem("session_expiry");
+    csrfTokenFetched = false;
+    window.dispatchEvent(new Event("unauthorized"));
+    toast.error("Session expired. Please log in again.");
+    return Promise.reject(new Error("Session expired"));
   }
-);
-/**
- * Response interceptor to handle unauthorized responses
- */
+
+  return config;
+});
+
+// Response interceptor handling Laravel session responses
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
 
-    if (status === 401 || status === 419) {
-      console.warn("Unauthorized access detected:", {
-        status,
-        data: error?.response?.data,
-      });
-
-      // Clear auth-related storage
+    // Handle unauthorized and session expired responses
+    if (status === 401) {
+      // Unauthorized - invalid or missing token
       removeItem("token");
       removeItem("user");
+      removeItem("session_expiry");
       csrfTokenFetched = false;
-
-      // Dispatch unauthorized event
+      window.dispatchEvent(new Event("unauthorized"));
+      toast.error("Authentication failed. Please log in again.");
+    } else if (status === 419) {
+      // CSRF token mismatch or session expired
+      removeItem("token");
+      removeItem("user");
+      removeItem("session_expiry");
+      csrfTokenFetched = false;
       window.dispatchEvent(new Event("unauthorized"));
       toast.error("Session expired. Please log in again.");
+    } else if (status === 429) {
+      // Too many requests
+      toast.error(
+        "Too many requests. Please wait a moment before trying again."
+      );
     }
 
     return Promise.reject(error);
   }
 );
 
-/**
- * Centralized unauthorized event handler
- */
+// Clean up CSRF token state on unauthorized
 const handleUnauthorized = () => {
   csrfTokenFetched = false;
 };
 
-// Register event listener with proper cleanup
 window.addEventListener("unauthorized", handleUnauthorized);
 
-// Cleanup on module unload (for hot-reloading scenarios)
+// Cleanup on module unload
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     window.removeEventListener("unauthorized", handleUnauthorized);
   });
 }
+
+export { SESSION_LIFETIME_MINUTES };

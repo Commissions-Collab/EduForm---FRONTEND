@@ -41,11 +41,12 @@ const usePromotionStore = create((set, get) => ({
   overallPromotionStats: null,
   isPromotionAccessible: false,
   promotionMessage: null,
+  promotionWarning: null, // New state for warnings
   loading: false,
   error: null,
 
   fetchPromotionData: async () => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, promotionWarning: null });
 
     try {
       const filters = useFilterStore.getState().globalFilters;
@@ -73,6 +74,78 @@ const usePromotionStore = create((set, get) => ({
 
       if (status !== 200) {
         throw new Error(data?.message || "Invalid response from server");
+      }
+
+      // Debug: Log the API response to see what we're getting
+      if (process.env.NODE_ENV !== "production") {
+        console.log("API Response:", data);
+      }
+
+      // Check for warnings or readiness status
+      const isAccessible = data?.accessible !== false;
+      const hasStudents =
+        Array.isArray(data?.students) && data.students.length > 0;
+      const hasStats = data?.overall_statistics;
+
+      // Debug logging
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Promotion Data Check:", {
+          isAccessible,
+          hasStudents,
+          hasStats,
+          studentsLength: data?.students?.length,
+          dataKeys: Object.keys(data),
+        });
+      }
+
+      // If accessible is false OR no students/stats, show warning
+      if (!isAccessible || (!hasStudents && !hasStats)) {
+        const warningMessage = {
+          type: "incomplete",
+          title: "Section Not Ready for Promotion",
+          content:
+            data?.message ||
+            "This section has incomplete grades or failing grades present. Please ensure all grades are finalized before generating promotion reports.",
+          details:
+            "Promotion data may not be accessible due to incomplete grades, attendance records, or unfinalized results.",
+          issueCount: null,
+          affectedStudents: null,
+        };
+
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Setting promotion warning:", warningMessage);
+        }
+
+        set({
+          promotionWarning: warningMessage,
+          isPromotionAccessible: false,
+          promotionMessage: null,
+          loading: false,
+        });
+        return;
+      }
+
+      // For testing: Force a warning if students array is empty
+      // Remove this after testing
+      if (!hasStudents) {
+        const warningMessage = {
+          type: "incomplete",
+          title: "No Student Data Available",
+          content:
+            "No promotion data found for this section. This may be due to incomplete grades or missing student records.",
+          details:
+            "Please verify that all students have completed grades and attendance records.",
+          issueCount: null,
+          affectedStudents: null,
+        };
+
+        set({
+          promotionWarning: warningMessage,
+          isPromotionAccessible: false,
+          promotionMessage: null,
+          loading: false,
+        });
+        return;
       }
 
       const transformedStudents = (
@@ -137,11 +210,84 @@ const usePromotionStore = create((set, get) => ({
       set({
         promotionStudents: transformedStudents,
         overallPromotionStats: transformedStats,
-        isPromotionAccessible: Boolean(data.accessible ?? false),
+        isPromotionAccessible: Boolean(data.accessible ?? true),
         promotionMessage: null,
+        promotionWarning: null,
         loading: false,
       });
     } catch (err) {
+      // Handle specific HTTP status codes as warnings instead of errors
+      if (err.response?.status === 403) {
+        const warningMessage = {
+          type: "incomplete",
+          title: "Section Not Ready for Promotion",
+          content:
+            err.response?.data?.message ||
+            "This section is not ready for promotion reports. This may be due to incomplete grades, missing attendance records, or unfinalized results.",
+          details:
+            "Please ensure all student grades are complete and finalized before generating promotion reports.",
+          issueCount: null,
+          affectedStudents: null,
+        };
+
+        set({
+          promotionWarning: warningMessage,
+          isPromotionAccessible: false,
+          promotionMessage: null,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
+      // Handle 422 (Unprocessable Entity) as warning too
+      if (err.response?.status === 422) {
+        const warningMessage = {
+          type: "failing",
+          title: "Data Validation Issues",
+          content:
+            err.response?.data?.message ||
+            "There are data validation issues preventing promotion report generation.",
+          details:
+            "Please check that all required student data is properly entered and validated.",
+          issueCount: null,
+          affectedStudents: null,
+        };
+
+        set({
+          promotionWarning: warningMessage,
+          isPromotionAccessible: false,
+          promotionMessage: null,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
+      // Handle 404 as warning (section/data not found)
+      if (err.response?.status === 404) {
+        const warningMessage = {
+          type: "mixed",
+          title: "No Data Found",
+          content:
+            "No promotion data found for the selected section and academic year.",
+          details:
+            "Please verify that the section has enrolled students and that grades have been entered.",
+          issueCount: null,
+          affectedStudents: null,
+        };
+
+        set({
+          promotionWarning: warningMessage,
+          isPromotionAccessible: false,
+          promotionMessage: null,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
+      // Handle other errors normally
       handleError(err, "Failed to fetch promotion data", set);
     }
   },
@@ -201,6 +347,7 @@ const usePromotionStore = create((set, get) => ({
         overallPromotionStats: null,
         isPromotionAccessible: false,
         promotionMessage: null,
+        promotionWarning: null,
         loading: false,
         error: null,
       });

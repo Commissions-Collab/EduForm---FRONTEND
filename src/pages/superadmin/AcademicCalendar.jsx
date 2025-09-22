@@ -168,18 +168,6 @@ const AcademicCalendar = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={handleRefresh}
-                  disabled={calendarLoading}
-                  className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
-                >
-                  <RefreshCcw
-                    className={`w-4 h-4 ${
-                      calendarLoading ? "animate-spin" : ""
-                    }`}
-                  />
-                  <span>Refresh</span>
-                </button>
-                <button
                   onClick={handleOpenModal}
                   className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
                 >

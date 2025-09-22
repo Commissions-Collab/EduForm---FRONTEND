@@ -39,7 +39,6 @@ const SignIn = () => {
     async (/** @type {SignInFormData} */ formData) => {
       try {
         clearErrors("api");
-        clearStorage();
         const result = await login(formData);
         if (result.success && result.user) {
           navigate(`/${result.user.role}/dashboard`, { replace: true });

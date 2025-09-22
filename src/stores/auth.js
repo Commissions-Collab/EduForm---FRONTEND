@@ -1,4 +1,3 @@
-// In auth.js
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance, fetchCsrfToken } from "../lib/axios";
@@ -24,60 +23,52 @@ import useStudentGradeStore from "./users/studentGradeStore";
 import useHealthProfileStore from "./users/healthProfileStore";
 import useStudentAttendanceStore from "./users/studentAttendanceStore";
 
-// Type definitions for better type safety
-/** @typedef {{ email: string; password: string }} LoginCredentials */
-/** @typedef {{ success: boolean; user?: object; role?: string; message?: string }} LoginResponse */
-/** @typedef {{ success: boolean; message?: string; request?: object }} RegisterResponse */
+// Session configuration matching backend
+const SESSION_LIFETIME_MINUTES = 120; // Match backend SESSION_LIFETIME
+const SESSION_HEARTBEAT_INTERVAL = 4 * 60 * 1000; // 4 minutes (shorter than session lifetime)
+const SESSION_WARNING_THRESHOLD = 10 * 60 * 1000; // Warn 10 minutes before expiry
 
-/**
- * @typedef {Object} AuthState
- * @property {Object|null} user
- * @property {string|null} token
- * @property {boolean} isLoggingIn
- * @property {boolean} isRegistering
- * @property {boolean} isCheckingAuth
- * @property {boolean} isLoggingOut
- * @property {boolean} isPostLoginLoading
- * @property {string|null} authError
- */
-
-/**
- * @typedef {Object} AuthActions
- * @property {() => void} initializeAuth
- * @property {(credentials: LoginCredentials) => Promise<LoginResponse>} login
- * @property {(formData: FormData) => Promise<RegisterResponse>} register
- * @property {() => void} resetAuth
- * @property {() => Promise<void>} logout
- * @property {() => Promise<boolean>} checkAuth
- * @property {() => string|null} getUserRole
- */
-
-/** @type {import('zustand').StoreApi<AuthState & AuthActions>} */
 export const useAuthStore = create((set, get) => ({
   user: null,
   token: null,
+  sessionExpiry: null,
   isLoggingIn: false,
   isRegistering: false,
   isCheckingAuth: true,
   isLoggingOut: false,
   isPostLoginLoading: false,
   authError: null,
+  sessionWarningShown: false,
 
   initializeAuth: () => {
     try {
       const token = getItem("token", false, localStorage);
       const user = getItem("user", true, localStorage);
+      const sessionExpiry = getItem("session_expiry", false, localStorage);
 
-      if (token && user) {
+      if (
+        token &&
+        user &&
+        sessionExpiry &&
+        Date.now() < parseInt(sessionExpiry)
+      ) {
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${token}`;
-        set({ token, user, isCheckingAuth: false });
+        set({
+          token,
+          user,
+          sessionExpiry: parseInt(sessionExpiry),
+          isCheckingAuth: false,
+        });
       } else {
+        // Clear expired session data
+        if (sessionExpiry && Date.now() >= parseInt(sessionExpiry)) {
+          clearStorage();
+        }
         set({ isCheckingAuth: false });
       }
     } catch (error) {
-      console.error("Auth initialization failed:", error);
       set({
         isCheckingAuth: false,
         authError: "Failed to initialize authentication",
@@ -86,7 +77,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   login: async ({ email, password }) => {
-    set({ isLoggingIn: true, authError: null });
+    set({ isLoggingIn: true, authError: null, sessionWarningShown: false });
 
     try {
       clearStorage();
@@ -102,15 +93,27 @@ export const useAuthStore = create((set, get) => ({
       }
 
       const { user, token } = data;
+
+      // Calculate session expiry based on backend SESSION_LIFETIME
+      const sessionExpiry = Date.now() + SESSION_LIFETIME_MINUTES * 60 * 1000;
+
       setItem("user", user, localStorage);
       setItem("token", token, localStorage);
+      setItem("session_expiry", sessionExpiry.toString(), localStorage);
+
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${token}`;
 
-      set({ user, token, isLoggingIn: false, isCheckingAuth: false });
+      set({
+        user,
+        token,
+        sessionExpiry,
+        isLoggingIn: false,
+        isCheckingAuth: false,
+        sessionWarningShown: false,
+      });
 
-      // Simulate post-login processing with minimal delay
       set({ isPostLoginLoading: true });
       await new Promise((resolve) => setTimeout(resolve, 300));
       set({ isPostLoginLoading: false });
@@ -119,14 +122,124 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const message =
         error?.response?.data?.message || error.message || "Login failed";
-      console.error("Login error:", {
-        message,
-        status: error.response?.status,
-      });
-
       set({ authError: message, isLoggingIn: false, isCheckingAuth: false });
       toast.error(message);
       return { success: false, message };
+    }
+  },
+
+  refreshSession: async () => {
+    const { token } = get();
+    if (!token) return false;
+
+    try {
+      await fetchCsrfToken();
+      const { data, status } = await axiosInstance.get("/user");
+
+      if (status !== 200 || !data) {
+        throw new Error("Invalid user data");
+      }
+
+      // Update session expiry on successful refresh
+      const newSessionExpiry =
+        Date.now() + SESSION_LIFETIME_MINUTES * 60 * 1000;
+      setItem("session_expiry", newSessionExpiry.toString(), localStorage);
+      setItem("user", data, localStorage);
+
+      set({
+        user: data,
+        sessionExpiry: newSessionExpiry,
+        sessionWarningShown: false,
+      });
+
+      return true;
+    } catch (error) {
+      // Session refresh failed - likely expired
+      get().resetAuth();
+      return false;
+    }
+  },
+
+  checkSessionExpiry: () => {
+    const { sessionExpiry, sessionWarningShown, token } = get();
+    if (!token || !sessionExpiry) return;
+
+    const timeUntilExpiry = sessionExpiry - Date.now();
+
+    // If session has expired
+    if (timeUntilExpiry <= 0) {
+      get().resetAuth();
+      toast.error("Session expired. Please log in again.");
+      return;
+    }
+
+    // Show warning if session is about to expire and warning hasn't been shown
+    if (timeUntilExpiry <= SESSION_WARNING_THRESHOLD && !sessionWarningShown) {
+      const minutesLeft = Math.ceil(timeUntilExpiry / (60 * 1000));
+      toast.error(
+        `Session will expire in ${minutesLeft} minutes. Please save your work.`,
+        {
+          duration: 6000,
+        }
+      );
+      set({ sessionWarningShown: true });
+    }
+  },
+
+  resetAuth: () => {
+    try {
+      clearStorage();
+      delete axiosInstance.defaults.headers.common["Authorization"];
+
+      // Reset all related stores
+      const stores = [
+        useFilterStore,
+        usePromotionStore,
+        useAttendanceStore,
+        useBmiStore,
+        useCertificatesStore,
+        useDashboardStore,
+        useStudentRequestsStore,
+        useTextbooksStore,
+        useWorkloadsStore,
+        useGradesStore,
+        useParentConferenceStore,
+        useAcademicCalendarStore,
+        useEnrollmentStore,
+        useTeacherManagementStore,
+        useClassManagementStore,
+        useAchievementsStore,
+        useStudentDashboardStore,
+        useStudentGradeStore,
+        useHealthProfileStore,
+        useStudentAttendanceStore,
+      ];
+
+      stores.forEach((store) => {
+        try {
+          const state = store.getState();
+          const resetFn = Object.values(state).find(
+            (fn) => typeof fn === "function" && fn.name.includes("reset")
+          );
+          if (resetFn) resetFn();
+        } catch (error) {
+          console.warn("Failed to reset store:", error);
+        }
+      });
+
+      set({
+        user: null,
+        token: null,
+        sessionExpiry: null,
+        isLoggingOut: false,
+        authError: null,
+        isCheckingAuth: false,
+        isPostLoginLoading: false,
+        sessionWarningShown: false,
+      });
+    } catch (error) {
+      console.error("Reset auth failed:", error);
+      toast.error("Failed to reset authentication state");
     }
   },
 
@@ -139,14 +252,12 @@ export const useAuthStore = create((set, get) => ({
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // Allow status codes for successful registration (including 202 for pending approval)
       if (![200, 201, 202, 204].includes(status)) {
         throw new Error(
           data?.message || `Invalid response from server (status: ${status})`
         );
       }
 
-      // Success is true if status is 202 or data indicates success/pending
       const success =
         [200, 201, 202].includes(status) ||
         data?.status === "success" ||
@@ -181,69 +292,13 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  resetAuth: () => {
-    try {
-      clearStorage();
-      delete axiosInstance.defaults.headers.common["Authorization"];
-
-      // Reset all related stores in a single try-catch to prevent partial resets
-      const stores = [
-        useFilterStore,
-        usePromotionStore,
-        useAttendanceStore,
-        useBmiStore,
-        useCertificatesStore,
-        useDashboardStore,
-        useStudentRequestsStore,
-        useTextbooksStore,
-        useWorkloadsStore,
-        useGradesStore,
-        useParentConferenceStore,
-        useAcademicCalendarStore,
-        useEnrollmentStore,
-        useTeacherManagementStore,
-        useClassManagementStore,
-        useAchievementsStore,
-        useStudentDashboardStore,
-        useStudentGradeStore,
-        useHealthProfileStore,
-        useStudentAttendanceStore,
-      ];
-
-      stores.forEach((store) => {
-        const resetFn = Object.values(store.getState()).find(
-          (fn) => typeof fn === "function" && fn.name.includes("reset")
-        );
-        if (resetFn) resetFn();
-      });
-
-      set({
-        user: null,
-        token: null,
-        isLoggingOut: false,
-        authError: null,
-        isCheckingAuth: false,
-        isPostLoginLoading: false,
-      });
-    } catch (error) {
-      console.error("Reset auth failed:", error);
-      toast.error("Failed to reset authentication state");
-    }
-  },
-
   logout: async () => {
     set({ isLoggingOut: true, authError: null });
-
     try {
       await fetchCsrfToken();
       await axiosInstance.post("/logout");
-    } catch (error) {
-      const status = error?.response?.status;
-      if (status !== 401 && status !== 419) {
-        const message = error?.response?.data?.message || "Logout failed";
-        console.error("Logout error:", { message, status });
-        toast.error(message);
-      }
+    } catch (_) {
+      // Ignore 401/419 on logout
     } finally {
       get().resetAuth();
     }
@@ -252,9 +307,15 @@ export const useAuthStore = create((set, get) => ({
   checkAuth: async () => {
     set({ isCheckingAuth: true, authError: null });
     const token = getItem("token", false, localStorage);
+    const sessionExpiry = getItem("session_expiry", false, localStorage);
 
-    if (!token) {
-      set({ user: null, token: null, isCheckingAuth: false });
+    if (!token || !sessionExpiry || Date.now() > parseInt(sessionExpiry)) {
+      set({
+        user: null,
+        token: null,
+        sessionExpiry: null,
+        isCheckingAuth: false,
+      });
       return false;
     }
 
@@ -262,23 +323,28 @@ export const useAuthStore = create((set, get) => ({
       await fetchCsrfToken();
       const { data, status } = await axiosInstance.get("/user");
 
-      if (status !== 200 || !data) {
-        throw new Error("Invalid user data");
-      }
+      if (status !== 200 || !data) throw new Error("Invalid user data");
 
+      // Update session expiry on successful auth check
+      const newSessionExpiry =
+        Date.now() + SESSION_LIFETIME_MINUTES * 60 * 1000;
       setItem("user", data, localStorage);
+      setItem("session_expiry", newSessionExpiry.toString(), localStorage);
+
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${token}`;
-      set({ user: data, token, isCheckingAuth: false });
+
+      set({
+        user: data,
+        token,
+        sessionExpiry: newSessionExpiry,
+        isCheckingAuth: false,
+      });
+
       return true;
     } catch (error) {
       const message = error?.response?.data?.message || "Authentication failed";
-      console.error("Check auth error:", {
-        message,
-        status: error.response?.status,
-      });
-
       set({ authError: message, isCheckingAuth: false });
       toast.error(message);
       return false;
@@ -291,18 +357,37 @@ export const useAuthStore = create((set, get) => ({
   },
 }));
 
-// Centralized unauthorized event handler
+// Listen for unauthorized events
 const handleUnauthorized = () => {
   useAuthStore.getState().resetAuth();
 };
-
-// Register event listener with proper cleanup
 window.addEventListener("unauthorized", handleUnauthorized);
 
-// Cleanup on module unload (optional, for hot-reloading scenarios)
+// Session heartbeat with proper expiry checking
+const sessionHeartbeat = setInterval(async () => {
+  const { token, checkSessionExpiry, refreshSession } = useAuthStore.getState();
+
+  if (!token) return;
+
+  // Check if session is about to expire or has expired
+  checkSessionExpiry();
+
+  // Try to refresh session periodically
+  try {
+    const refreshed = await refreshSession();
+    if (!refreshed) {
+      clearInterval(sessionHeartbeat);
+    }
+  } catch (error) {
+    console.warn("Session heartbeat failed:", error);
+  }
+}, SESSION_HEARTBEAT_INTERVAL);
+
+// Cleanup on module unload
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     window.removeEventListener("unauthorized", handleUnauthorized);
+    clearInterval(sessionHeartbeat);
   });
 }
 

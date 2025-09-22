@@ -1,7 +1,13 @@
 import { useEffect } from "react";
 import PromotionCards from "../../../components/admin/PromotionCards";
 import PromotionTable from "../../../components/admin/PromotionTable";
-import { BadgeAlert, Filter } from "lucide-react";
+import {
+  BadgeAlert,
+  Filter,
+  AlertTriangle,
+  Clock,
+  XCircle,
+} from "lucide-react";
 import usePromotionStore from "../../../stores/admin/promotionStore";
 import useFilterStore from "../../../stores/admin/filterStore";
 
@@ -10,6 +16,7 @@ const PromotionReport = () => {
     fetchPromotionData,
     isPromotionAccessible,
     promotionMessage,
+    promotionWarning,
     overallPromotionStats,
     loading,
   } = usePromotionStore();
@@ -26,6 +33,60 @@ const PromotionReport = () => {
     globalFilters.academicYearId,
     globalFilters.sectionId,
   ]);
+
+  const getWarningIcon = (type) => {
+    switch (type) {
+      case "incomplete":
+        return Clock;
+      case "failing":
+        return XCircle;
+      case "mixed":
+        return AlertTriangle;
+      default:
+        return BadgeAlert;
+    }
+  };
+
+  const getWarningColors = (type) => {
+    switch (type) {
+      case "incomplete":
+        return {
+          bg: "from-blue-50 to-indigo-50",
+          border: "border-blue-200",
+          iconBg: "bg-blue-100",
+          iconColor: "text-blue-600",
+          titleColor: "text-blue-800",
+          textColor: "text-blue-700",
+        };
+      case "failing":
+        return {
+          bg: "from-red-50 to-rose-50",
+          border: "border-red-200",
+          iconBg: "bg-red-100",
+          iconColor: "text-red-600",
+          titleColor: "text-red-800",
+          textColor: "text-red-700",
+        };
+      case "mixed":
+        return {
+          bg: "from-orange-50 to-amber-50",
+          border: "border-orange-200",
+          iconBg: "bg-orange-100",
+          iconColor: "text-orange-600",
+          titleColor: "text-orange-800",
+          textColor: "text-orange-700",
+        };
+      default:
+        return {
+          bg: "from-amber-50 to-yellow-50",
+          border: "border-amber-200",
+          iconBg: "bg-amber-100",
+          iconColor: "text-amber-600",
+          titleColor: "text-amber-800",
+          textColor: "text-amber-700",
+        };
+    }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -82,8 +143,119 @@ const PromotionReport = () => {
           </div>
         )}
 
+        {/* Warning for Section Not Ready */}
+        {promotionWarning && hasAllFilters && !loading && (
+          <div
+            className={`bg-gradient-to-br ${
+              getWarningColors(promotionWarning.type).bg
+            } rounded-xl border-2 ${
+              getWarningColors(promotionWarning.type).border
+            } p-6 shadow-lg mb-8`}
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div
+                  className={`w-14 h-14 ${
+                    getWarningColors(promotionWarning.type).iconBg
+                  } rounded-full flex items-center justify-center`}
+                >
+                  {(() => {
+                    const IconComponent = getWarningIcon(promotionWarning.type);
+                    return (
+                      <IconComponent
+                        className={`w-7 h-7 ${
+                          getWarningColors(promotionWarning.type).iconColor
+                        }`}
+                      />
+                    );
+                  })()}
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3
+                  className={`text-xl font-bold ${
+                    getWarningColors(promotionWarning.type).titleColor
+                  } mb-3`}
+                >
+                  {promotionWarning.title}
+                </h3>
+                <p
+                  className={`${
+                    getWarningColors(promotionWarning.type).textColor
+                  } text-base leading-relaxed mb-4`}
+                >
+                  {promotionWarning.content}
+                </p>
+
+                {/* Additional warning details */}
+                {(promotionWarning.issueCount ||
+                  promotionWarning.affectedStudents ||
+                  promotionWarning.details) && (
+                  <div
+                    className={`${
+                      getWarningColors(promotionWarning.type).iconBg
+                    } rounded-lg p-4 mt-4`}
+                  >
+                    <h4
+                      className={`font-semibold ${
+                        getWarningColors(promotionWarning.type).titleColor
+                      } mb-2`}
+                    >
+                      Details:
+                    </h4>
+                    {promotionWarning.issueCount && (
+                      <p
+                        className={`${
+                          getWarningColors(promotionWarning.type).textColor
+                        } text-sm mb-1`}
+                      >
+                        • Issues found: {promotionWarning.issueCount}
+                      </p>
+                    )}
+                    {promotionWarning.affectedStudents && (
+                      <p
+                        className={`${
+                          getWarningColors(promotionWarning.type).textColor
+                        } text-sm mb-1`}
+                      >
+                        • Students affected: {promotionWarning.affectedStudents}
+                      </p>
+                    )}
+                    {promotionWarning.details && (
+                      <p
+                        className={`${
+                          getWarningColors(promotionWarning.type).textColor
+                        } text-sm`}
+                      >
+                        • {promotionWarning.details}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div
+                  className={`mt-4 p-3 ${
+                    getWarningColors(promotionWarning.type).iconBg
+                  } rounded-lg border-l-4 ${
+                    getWarningColors(promotionWarning.type).border
+                  }`}
+                >
+                  <p
+                    className={`text-sm font-medium ${
+                      getWarningColors(promotionWarning.type).titleColor
+                    }`}
+                  >
+                    📋 Action Required: Please ensure all student grades are
+                    complete and finalized before generating promotion reports.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Success State */}
-        {hasAllFilters && isPromotionAccessible && (
+        {hasAllFilters && isPromotionAccessible && !promotionWarning && (
           <div className="space-y-8">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
