@@ -7,19 +7,19 @@ const handleError = (err, defaultMessage) => {
 };
 
 const useClassManagementStore = create((set, get) => ({
-  academicYears: [],
-  yearLevels: [],
-  sections: [],
+  academicYears: {},
+  yearLevels: {},
+  sections: {},
   loading: false,
   error: null,
 
-  fetchAcademicYears: async () => {
+  fetchAcademicYears: async (page = 1) => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/academic-years");
-      const years =
-        data.data?.data || data.years || data.result || data.data || [];
-      set({ academicYears: Array.isArray(years) ? years : [], loading: false });
+      const { data } = await axiosInstance.get(
+        `/admin/academic-years?page=${page}`
+      );
+      set({ academicYears: data.data || {}, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load academic years");
       set({ error: message, loading: false });
@@ -38,7 +38,7 @@ const useClassManagementStore = create((set, get) => ({
         yearData
       );
       toast.success("Academic year created successfully");
-      get().fetchAcademicYears();
+      get().fetchAcademicYears(get().academicYears.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -58,7 +58,7 @@ const useClassManagementStore = create((set, get) => ({
         yearData
       );
       toast.success("Academic year updated successfully");
-      get().fetchAcademicYears();
+      get().fetchAcademicYears(get().academicYears.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -77,7 +77,7 @@ const useClassManagementStore = create((set, get) => ({
         `/admin/academic-years/${id}`
       );
       toast.success("Academic year deleted successfully");
-      get().fetchAcademicYears();
+      get().fetchAcademicYears(get().academicYears.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -88,11 +88,13 @@ const useClassManagementStore = create((set, get) => ({
     }
   },
 
-  fetchYearLevels: async () => {
+  fetchYearLevels: async (page = 1) => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/year-level");
-      set({ yearLevels: data.yearLevel?.data || [], loading: false });
+      const { data } = await axiosInstance.get(
+        `/admin/year-level?page=${page}`
+      );
+      set({ yearLevels: data.yearLevel || {}, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load year levels");
       set({ error: message, loading: false });
@@ -106,7 +108,7 @@ const useClassManagementStore = create((set, get) => ({
       await fetchCsrfToken();
       const { data } = await axiosInstance.post("/admin/year-level", levelData);
       toast.success("Year level created successfully");
-      get().fetchYearLevels();
+      get().fetchYearLevels(get().yearLevels.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -126,7 +128,7 @@ const useClassManagementStore = create((set, get) => ({
         levelData
       );
       toast.success("Year level updated successfully");
-      get().fetchYearLevels();
+      get().fetchYearLevels(get().yearLevels.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -143,7 +145,7 @@ const useClassManagementStore = create((set, get) => ({
       await fetchCsrfToken();
       const { data } = await axiosInstance.delete(`/admin/year-level/${id}`);
       toast.success("Year level deleted successfully");
-      get().fetchYearLevels();
+      get().fetchYearLevels(get().yearLevels.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -154,11 +156,11 @@ const useClassManagementStore = create((set, get) => ({
     }
   },
 
-  fetchSections: async () => {
+  fetchSections: async (page = 1) => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/section");
-      set({ sections: data.sections?.data || [], loading: false });
+      const { data } = await axiosInstance.get(`/admin/section?page=${page}`);
+      set({ sections: data.sections || {}, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load sections");
       set({ error: message, loading: false });
@@ -172,7 +174,7 @@ const useClassManagementStore = create((set, get) => ({
       await fetchCsrfToken();
       const { data } = await axiosInstance.post("/admin/section", sectionData);
       toast.success("Section created successfully");
-      get().fetchSections();
+      get().fetchSections(get().sections.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -192,7 +194,7 @@ const useClassManagementStore = create((set, get) => ({
         sectionData
       );
       toast.success("Section updated successfully");
-      get().fetchSections();
+      get().fetchSections(get().sections.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -209,7 +211,7 @@ const useClassManagementStore = create((set, get) => ({
       await fetchCsrfToken();
       const { data } = await axiosInstance.delete(`/admin/section/${id}`);
       toast.success("Section deleted successfully");
-      get().fetchSections();
+      get().fetchSections(get().sections.current_page || 1);
       set({ loading: false });
       return data;
     } catch (err) {
@@ -222,9 +224,9 @@ const useClassManagementStore = create((set, get) => ({
 
   reset: () =>
     set({
-      academicYears: [],
-      yearLevels: [],
-      sections: [],
+      academicYears: {},
+      yearLevels: {},
+      sections: {},
       loading: false,
       error: null,
     }),
