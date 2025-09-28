@@ -2,34 +2,16 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../../lib/axios";
 
-const handleError = (err, defaultMessage, set) => {
-  let errorMessage = defaultMessage;
-
-  if (err.response) {
-    errorMessage =
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      `Server Error: ${err.response.status}`;
-  } else if (err.request) {
-    errorMessage = "Network error - please check your connection";
-  } else {
-    errorMessage = err.message || defaultMessage;
+const handleError = (err, defaultMessage) => {
+  const message = err?.response?.data?.message || defaultMessage;
+  if (err.response?.status === 401 || err.response?.status === 403) {
+    window.dispatchEvent(new Event("unauthorized"));
   }
-
-  if (process.env.NODE_ENV !== "production") {
-    console.error(defaultMessage, {
-      status: err.response?.status,
-      data: err.response?.data,
-      message: err.message,
-    });
-  }
-
-  set({ error: errorMessage, loading: false });
-  return errorMessage;
+  return message;
 };
 
 const useSuperAdminDashboardStore = create((set, get) => ({
-  // Data from existing stores
+  // Raw data from APIs
   academicYears: [],
   yearLevels: [],
   sections: [],
@@ -38,20 +20,26 @@ const useSuperAdminDashboardStore = create((set, get) => ({
   calendars: [],
   students: [],
 
-  // Computed stats
-  dashboardStats: null,
-
-  // Meta
+  // Loading states
   loading: false,
   error: null,
   lastUpdated: null,
 
-  // Fetch all dashboard data using existing endpoints
+  // Fetch all dashboard data using existing API endpoints
   fetchDashboardData: async () => {
     set({ loading: true, error: null });
 
     try {
-      // Use existing endpoints from the stores
+      const requests = [
+        axiosInstance.get("/admin/academic-years"),
+        axiosInstance.get("/admin/year-level"),
+        axiosInstance.get("/admin/section"),
+        axiosInstance.get("/admin/enrollments?per_page=100"),
+        axiosInstance.get("/admin/teacher?per_page=100"),
+        axiosInstance.get("/admin/academic-calendar"),
+        axiosInstance.get("/admin/students?per_page=100"),
+      ];
+
       const [
         academicYearsRes,
         yearLevelsRes,
@@ -60,22 +48,12 @@ const useSuperAdminDashboardStore = create((set, get) => ({
         teachersRes,
         calendarsRes,
         studentsRes,
-      ] = await Promise.allSettled([
-        axiosInstance.get("/admin/academic-years"),
-        axiosInstance.get("/admin/year-level"),
-        axiosInstance.get("/admin/section"),
-        axiosInstance.get("/admin/enrollments?page=1&per_page=100"),
-        axiosInstance.get("/admin/teacher?page=1&per_page=100"),
-        axiosInstance.get("/admin/academic-calendar"),
-        axiosInstance.get("/admin/students?page=1&per_page=100"),
-      ]);
+      ] = await Promise.allSettled(requests);
 
-      // Extract data with fallbacks
+      // Extract data using the actual response structures from your stores
       const academicYears =
         academicYearsRes.status === "fulfilled"
           ? academicYearsRes.value.data.data?.data ||
-            academicYearsRes.value.data.years ||
-            academicYearsRes.value.data.result ||
             academicYearsRes.value.data.data ||
             []
           : [];
@@ -92,20 +70,16 @@ const useSuperAdminDashboardStore = create((set, get) => ({
 
       const enrollments =
         enrollmentsRes.status === "fulfilled"
-          ? Array.isArray(enrollmentsRes.value.data.data?.data)
-            ? enrollmentsRes.value.data.data.data
-            : Array.isArray(enrollmentsRes.value.data.data)
-            ? enrollmentsRes.value.data.data
-            : []
+          ? enrollmentsRes.value.data.data?.data ||
+            enrollmentsRes.value.data.data ||
+            []
           : [];
 
       const teachers =
         teachersRes.status === "fulfilled"
-          ? Array.isArray(teachersRes.value.data.data?.data)
-            ? teachersRes.value.data.data.data
-            : Array.isArray(teachersRes.value.data.data)
-            ? teachersRes.value.data.data
-            : []
+          ? teachersRes.value.data.data?.data ||
+            teachersRes.value.data.data ||
+            []
           : [];
 
       const calendars =
@@ -115,100 +89,10 @@ const useSuperAdminDashboardStore = create((set, get) => ({
 
       const students =
         studentsRes.status === "fulfilled"
-          ? Array.isArray(studentsRes.value.data.data?.data)
-            ? studentsRes.value.data.data.data
-            : Array.isArray(studentsRes.value.data.data)
-            ? studentsRes.value.data.data
-            : Array.isArray(studentsRes.value.data.students?.data)
-            ? studentsRes.value.data.students.data
-            : []
+          ? studentsRes.value.data.data?.data ||
+            studentsRes.value.data.data ||
+            []
           : [];
-
-      // Compute dashboard statistics
-      const stats = {
-        totalAcademicYears: academicYears.length,
-        totalYearLevels: yearLevels.length,
-        totalSections: sections.length,
-        totalEnrollments: enrollments.length,
-        totalTeachers: teachers.length,
-        totalStudents: students.length,
-        totalCalendarEvents: calendars.length,
-
-        // Current academic year info
-        currentAcademicYear:
-          academicYears.find((year) => year.is_current) || null,
-
-        // Section distribution by year level
-        sectionsByLevel: sections.reduce((acc, section) => {
-          const levelName =
-            section.year_level_name || section.grade_level || "Unknown";
-          acc[levelName] = (acc[levelName] || 0) + 1;
-          return acc;
-        }, {}),
-
-        // Teacher distribution by subject (if available)
-        teachersBySubject: teachers.reduce((acc, teacher) => {
-          const subject =
-            teacher.subject || teacher.specialization || "General";
-          acc[subject] = (acc[subject] || 0) + 1;
-          return acc;
-        }, {}),
-
-        // Enrollment status distribution
-        enrollmentsByStatus: enrollments.reduce((acc, enrollment) => {
-          const status = enrollment.status || "Active";
-          acc[status] = (acc[status] || 0) + 1;
-          return acc;
-        }, {}),
-
-        // Calendar events this month
-        eventsThisMonth: calendars.filter((event) => {
-          if (!event.date) return false;
-          const eventDate = new Date(event.date);
-          const now = new Date();
-          return (
-            eventDate.getMonth() === now.getMonth() &&
-            eventDate.getFullYear() === now.getFullYear()
-          );
-        }).length,
-
-        // Recently added items (this month)
-        recentlyAdded: {
-          teachers: teachers.filter((teacher) => {
-            if (!teacher.created_at) return false;
-            const createdDate = new Date(teacher.created_at);
-            const now = new Date();
-            const lastMonth = new Date(
-              now.getFullYear(),
-              now.getMonth() - 1,
-              now.getDate()
-            );
-            return createdDate >= lastMonth;
-          }).length,
-          enrollments: enrollments.filter((enrollment) => {
-            if (!enrollment.created_at) return false;
-            const createdDate = new Date(enrollment.created_at);
-            const now = new Date();
-            const lastMonth = new Date(
-              now.getFullYear(),
-              now.getMonth() - 1,
-              now.getDate()
-            );
-            return createdDate >= lastMonth;
-          }).length,
-          sections: sections.filter((section) => {
-            if (!section.created_at) return false;
-            const createdDate = new Date(section.created_at);
-            const now = new Date();
-            const lastMonth = new Date(
-              now.getFullYear(),
-              now.getMonth() - 1,
-              now.getDate()
-            );
-            return createdDate >= lastMonth;
-          }).length,
-        },
-      };
 
       set({
         academicYears: Array.isArray(academicYears) ? academicYears : [],
@@ -218,20 +102,102 @@ const useSuperAdminDashboardStore = create((set, get) => ({
         teachers: Array.isArray(teachers) ? teachers : [],
         calendars: Array.isArray(calendars) ? calendars : [],
         students: Array.isArray(students) ? students : [],
-        dashboardStats: stats,
         lastUpdated: new Date().toISOString(),
         loading: false,
       });
     } catch (err) {
-      handleError(err, "Failed to fetch dashboard data", set);
+      const message = handleError(err, "Failed to fetch dashboard data");
+      set({ error: message, loading: false });
+      toast.error(message);
     }
   },
 
-  // Get dashboard summary for cards
-  getDashboardCards: () => {
-    const { dashboardStats } = get();
+  // Get computed dashboard statistics
+  getDashboardStats: () => {
+    const state = get();
+    const {
+      academicYears,
+      yearLevels,
+      sections,
+      enrollments,
+      teachers,
+      calendars,
+      students,
+    } = state;
 
-    if (!dashboardStats) return [];
+    return {
+      totalAcademicYears: academicYears.length,
+      totalYearLevels: yearLevels.length,
+      totalSections: sections.length,
+      totalEnrollments: enrollments.length,
+      totalTeachers: teachers.length,
+      totalStudents: students.length,
+      totalCalendarEvents: calendars.length,
+
+      // Current academic year
+      currentAcademicYear:
+        academicYears.find((year) => year.is_current) || null,
+
+      // Distribution data
+      sectionsByLevel: sections.reduce((acc, section) => {
+        const levelName =
+          section.year_level?.name || section.year_level_name || "Unknown";
+        acc[levelName] = (acc[levelName] || 0) + 1;
+        return acc;
+      }, {}),
+
+      teachersByStatus: teachers.reduce((acc, teacher) => {
+        const status = teacher.status || "Active";
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {}),
+
+      enrollmentsByStatus: enrollments.reduce((acc, enrollment) => {
+        const status = enrollment.status || "Active";
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {}),
+
+      // Events this month
+      eventsThisMonth: calendars.filter((event) => {
+        if (!event.date) return false;
+        const eventDate = new Date(event.date);
+        const now = new Date();
+        return (
+          eventDate.getMonth() === now.getMonth() &&
+          eventDate.getFullYear() === now.getFullYear()
+        );
+      }).length,
+
+      // Recent activity (last 30 days)
+      recentActivity: {
+        newTeachers: teachers.filter((teacher) => {
+          if (!teacher.created_at) return false;
+          const createdDate = new Date(teacher.created_at);
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          return createdDate >= thirtyDaysAgo;
+        }).length,
+
+        newEnrollments: enrollments.filter((enrollment) => {
+          if (!enrollment.created_at) return false;
+          const createdDate = new Date(enrollment.created_at);
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          return createdDate >= thirtyDaysAgo;
+        }).length,
+
+        newSections: sections.filter((section) => {
+          if (!section.created_at) return false;
+          const createdDate = new Date(section.created_at);
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          return createdDate >= thirtyDaysAgo;
+        }).length,
+      },
+    };
+  },
+
+  // Get dashboard cards data
+  getDashboardCards: () => {
+    const stats = get().getDashboardStats();
 
     return [
       {
@@ -239,10 +205,10 @@ const useSuperAdminDashboardStore = create((set, get) => ({
         title: "Students & Enrollments",
         type: "students",
         data: {
-          totalStudents: dashboardStats.totalStudents,
-          totalEnrollments: dashboardStats.totalEnrollments,
-          recentEnrollments: dashboardStats.recentlyAdded.enrollments,
-          enrollmentsByStatus: dashboardStats.enrollmentsByStatus,
+          totalStudents: stats.totalStudents,
+          totalEnrollments: stats.totalEnrollments,
+          recentEnrollments: stats.recentActivity.newEnrollments,
+          enrollmentsByStatus: stats.enrollmentsByStatus,
         },
         icon: "Users",
         color: "blue",
@@ -252,9 +218,9 @@ const useSuperAdminDashboardStore = create((set, get) => ({
         title: "Teachers Management",
         type: "teachers",
         data: {
-          totalTeachers: dashboardStats.totalTeachers,
-          recentTeachers: dashboardStats.recentlyAdded.teachers,
-          teachersBySubject: dashboardStats.teachersBySubject,
+          totalTeachers: stats.totalTeachers,
+          recentTeachers: stats.recentActivity.newTeachers,
+          teachersByStatus: stats.teachersByStatus,
         },
         icon: "UserCheck",
         color: "green",
@@ -264,12 +230,12 @@ const useSuperAdminDashboardStore = create((set, get) => ({
         title: "Academic Structure",
         type: "academic",
         data: {
-          totalAcademicYears: dashboardStats.totalAcademicYears,
-          totalYearLevels: dashboardStats.totalYearLevels,
-          totalSections: dashboardStats.totalSections,
-          currentAcademicYear: dashboardStats.currentAcademicYear,
-          sectionsByLevel: dashboardStats.sectionsByLevel,
-          recentSections: dashboardStats.recentlyAdded.sections,
+          totalAcademicYears: stats.totalAcademicYears,
+          totalYearLevels: stats.totalYearLevels,
+          totalSections: stats.totalSections,
+          currentAcademicYear: stats.currentAcademicYear,
+          sectionsByLevel: stats.sectionsByLevel,
+          recentSections: stats.recentActivity.newSections,
         },
         icon: "BookOpen",
         color: "purple",
@@ -279,8 +245,8 @@ const useSuperAdminDashboardStore = create((set, get) => ({
         title: "Calendar & Events",
         type: "calendar",
         data: {
-          totalEvents: dashboardStats.totalCalendarEvents,
-          eventsThisMonth: dashboardStats.eventsThisMonth,
+          totalEvents: stats.totalCalendarEvents,
+          eventsThisMonth: stats.eventsThisMonth,
         },
         icon: "Calendar",
         color: "indigo",
@@ -290,37 +256,28 @@ const useSuperAdminDashboardStore = create((set, get) => ({
 
   // Get system overview
   getSystemOverview: () => {
-    const { dashboardStats, lastUpdated } = get();
-
-    if (!dashboardStats) return null;
+    const stats = get().getDashboardStats();
+    const { lastUpdated } = get();
 
     return {
       totalEntities:
-        dashboardStats.totalStudents +
-        dashboardStats.totalTeachers +
-        dashboardStats.totalSections +
-        dashboardStats.totalAcademicYears,
-      currentAcademicYear:
-        dashboardStats.currentAcademicYear?.name || "Not Set",
+        stats.totalStudents +
+        stats.totalTeachers +
+        stats.totalSections +
+        stats.totalAcademicYears,
+      currentAcademicYear: stats.currentAcademicYear?.name || "Not Set",
       lastUpdated,
-      recentActivity: {
-        newTeachers: dashboardStats.recentlyAdded.teachers,
-        newEnrollments: dashboardStats.recentlyAdded.enrollments,
-        newSections: dashboardStats.recentlyAdded.sections,
-      },
+      recentActivity: stats.recentActivity,
     };
   },
 
   // Get distribution data for charts
   getDistributionData: () => {
-    const { dashboardStats } = get();
-
-    if (!dashboardStats) return null;
-
+    const stats = get().getDashboardStats();
     return {
-      sectionsByLevel: dashboardStats.sectionsByLevel,
-      teachersBySubject: dashboardStats.teachersBySubject,
-      enrollmentsByStatus: dashboardStats.enrollmentsByStatus,
+      sectionsByLevel: stats.sectionsByLevel,
+      teachersByStatus: stats.teachersByStatus,
+      enrollmentsByStatus: stats.enrollmentsByStatus,
     };
   },
 
@@ -328,7 +285,7 @@ const useSuperAdminDashboardStore = create((set, get) => ({
   clearError: () => set({ error: null }),
 
   // Reset store
-  resetDashboardStore: () => {
+  resetDashboardStore: () =>
     set({
       academicYears: [],
       yearLevels: [],
@@ -337,12 +294,10 @@ const useSuperAdminDashboardStore = create((set, get) => ({
       teachers: [],
       calendars: [],
       students: [],
-      dashboardStats: null,
       loading: false,
       error: null,
       lastUpdated: null,
-    });
-  },
+    }),
 }));
 
 // Event handlers
@@ -350,12 +305,10 @@ const handleUnauthorized = () => {
   useSuperAdminDashboardStore.getState().resetDashboardStore();
 };
 
-// Event listeners
-window.addEventListener("unauthorized", handleUnauthorized);
+if (typeof window !== "undefined") {
+  window.addEventListener("unauthorized", handleUnauthorized);
 
-// Cleanup
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
+  window.addEventListener("unload", () => {
     window.removeEventListener("unauthorized", handleUnauthorized);
   });
 }

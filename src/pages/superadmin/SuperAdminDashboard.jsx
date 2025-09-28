@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   TrendingUp,
   Users,
@@ -11,13 +11,12 @@ import {
   BarChart3,
   GraduationCap,
   Building,
-  CalendarDays,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import useSuperAdminDashboardStore from "../../stores/superAdmin/superAdminDashboardStore";
 
 const SuperAdminDashboard = () => {
   const {
-    dashboardStats,
     loading,
     error,
     lastUpdated,
@@ -30,7 +29,7 @@ const SuperAdminDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   const dashboardCards = getDashboardCards();
   const systemOverview = getSystemOverview();
@@ -38,13 +37,7 @@ const SuperAdminDashboard = () => {
 
   // Icon mapping for dashboard cards
   const getIcon = (iconName) => {
-    const icons = {
-      Users,
-      UserCheck,
-      BookOpen,
-      Calendar,
-      Activity,
-    };
+    const icons = { Users, UserCheck, BookOpen, Calendar, Activity };
     return icons[iconName] || Activity;
   };
 
@@ -153,7 +146,6 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
           );
-
         case "teachers":
           return (
             <div className="space-y-4">
@@ -177,22 +169,22 @@ const SuperAdminDashboard = () => {
                     {data?.recentTeachers || 0}
                   </span>
                 </div>
-                {data?.teachersBySubject &&
-                  Object.keys(data.teachersBySubject).length > 0 && (
+                {data?.teachersByStatus &&
+                  Object.keys(data.teachersByStatus).length > 0 && (
                     <div className="pt-2">
                       <div className="text-xs text-gray-500 mb-2">
-                        By Subject/Specialization
+                        By Status
                       </div>
                       <div className="space-y-1 max-h-20 overflow-y-auto">
-                        {Object.entries(data.teachersBySubject)
+                        {Object.entries(data.teachersByStatus)
                           .slice(0, 4)
-                          .map(([subject, count]) => (
+                          .map(([status, count]) => (
                             <div
-                              key={subject}
+                              key={status}
                               className="flex justify-between text-xs"
                             >
-                              <span className="text-gray-600 truncate">
-                                {subject}
+                              <span className="text-gray-600 truncate capitalize">
+                                {status}
                               </span>
                               <span className="font-medium ml-2">{count}</span>
                             </div>
@@ -203,7 +195,6 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
           );
-
         case "academic":
           return (
             <div className="space-y-4">
@@ -252,7 +243,6 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
           );
-
         case "calendar":
           return (
             <div className="space-y-4">
@@ -277,15 +267,16 @@ const SuperAdminDashboard = () => {
                   </span>
                 </div>
                 <div className="text-center pt-2">
-                  <div className="text-xs text-gray-500">Academic Calendar</div>
-                  <div className="text-sm font-medium text-gray-700 mt-1">
-                    Events & Schedule
-                  </div>
+                  <Link
+                    to="/super_admin/calendar"
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 underline"
+                  >
+                    View Academic Calendar
+                  </Link>
                 </div>
               </div>
             </div>
           );
-
         default:
           return (
             <div className="text-center py-8">
@@ -320,7 +311,6 @@ const SuperAdminDashboard = () => {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
           {[1, 2, 3, 4].map((i) => (
             <div
@@ -340,9 +330,7 @@ const SuperAdminDashboard = () => {
     </div>
   );
 
-  if (loading && !dashboardStats) {
-    return <DashboardSkeleton />;
-  }
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -382,6 +370,15 @@ const SuperAdminDashboard = () => {
                   Error loading dashboard data
                 </p>
                 <p className="text-sm text-red-700">{error}</p>
+                <button
+                  onClick={() => {
+                    clearError();
+                    fetchDashboardData();
+                  }}
+                  className="text-sm text-red-600 hover:text-red-800 underline mt-2 transition-colors"
+                >
+                  Try again
+                </button>
               </div>
             </div>
           )}
@@ -461,7 +458,6 @@ const SuperAdminDashboard = () => {
                 <span>Distribution Analytics</span>
               </h2>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Sections by Level */}
                 {distributionData.sectionsByLevel &&
                   Object.keys(distributionData.sectionsByLevel).length > 0 && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -511,35 +507,27 @@ const SuperAdminDashboard = () => {
                       </div>
                     </div>
                   )}
-
-                {/* Teachers by Subject */}
-                {distributionData.teachersBySubject &&
-                  Object.keys(distributionData.teachersBySubject).length >
-                    0 && (
+                {distributionData.teachersByStatus &&
+                  Object.keys(distributionData.teachersByStatus).length > 0 && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                       <div className="flex items-center space-x-2 mb-4">
                         <GraduationCap className="w-5 h-5 text-green-600" />
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Teachers by Subject
+                          Teachers by Status
                         </h3>
                       </div>
                       <div className="space-y-3 max-h-48 overflow-y-auto">
-                        {Object.entries(distributionData.teachersBySubject)
+                        {Object.entries(distributionData.teachersByStatus)
                           .sort(([, a], [, b]) => b - a)
-                          .map(([subject, count]) => (
+                          .map(([status, count]) => (
                             <div
-                              key={subject}
+                              key={status}
                               className="flex items-center justify-between"
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                <span
-                                  className="text-sm font-medium text-gray-700 truncate"
-                                  title={subject}
-                                >
-                                  {subject.length > 20
-                                    ? `${subject.substring(0, 20)}...`
-                                    : subject}
+                                <span className="text-sm font-medium text-gray-700 truncate capitalize">
+                                  {status}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -551,7 +539,7 @@ const SuperAdminDashboard = () => {
                                         (count /
                                           Math.max(
                                             ...Object.values(
-                                              distributionData.teachersBySubject
+                                              distributionData.teachersByStatus
                                             )
                                           )) *
                                         100
@@ -568,8 +556,6 @@ const SuperAdminDashboard = () => {
                       </div>
                     </div>
                   )}
-
-                {/* Enrollment Status */}
                 {distributionData.enrollmentsByStatus &&
                   Object.keys(distributionData.enrollmentsByStatus).length >
                     0 && (
@@ -641,79 +627,6 @@ const SuperAdminDashboard = () => {
               </div>
             </section>
           )}
-
-          {/* Quick Actions */}
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-              <Activity className="w-5 h-5 text-indigo-600" />
-              <span>Quick Actions</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <button className="p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      Manage Students
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      View enrollments
-                    </div>
-                  </div>
-                </div>
-              </button>
-
-              <button className="p-4 bg-white border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors text-left">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <UserCheck className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      Manage Teachers
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Add or edit teachers
-                    </div>
-                  </div>
-                </div>
-              </button>
-
-              <button className="p-4 bg-white border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-left">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      Class Management
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Sections & years
-                    </div>
-                  </div>
-                </div>
-              </button>
-
-              <button className="p-4 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors text-left">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <CalendarDays className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      Academic Calendar
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Events & schedules
-                    </div>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </section>
         </main>
       </div>
     </div>
