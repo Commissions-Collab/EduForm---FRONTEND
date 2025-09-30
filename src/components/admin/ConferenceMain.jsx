@@ -1,13 +1,13 @@
 import React from "react";
 import {
-  LuActivity,
-  LuCalendarDays,
-  LuGraduationCap,
-  LuMail,
-  LuPhone,
-  LuPrinter,
-  LuUser,
-} from "react-icons/lu";
+  Activity,
+  CalendarDays,
+  GraduationCap,
+  Mail,
+  Phone,
+  Printer,
+  User,
+} from "lucide-react";
 
 const ConferenceMain = ({
   loading,
@@ -97,7 +97,7 @@ const ConferenceMain = ({
       return (
         <div className="flex items-center justify-center h-full text-gray-500">
           <div className="text-center">
-            <LuUser className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <User className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium">No Student Selected</p>
             <p className="text-sm">
               Choose a student from the list to view their profile
@@ -125,37 +125,37 @@ const ConferenceMain = ({
                 onClick={onContactParent}
                 disabled={!student.guardian_email}
               >
-                <LuMail size={15} />
+                <Mail size={15} />
                 <span>Contact Parent</span>
               </button>
               <button
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                 onClick={() => onPrintReportCard(student.id)}
               >
-                <LuPrinter size={15} />
+                <Printer size={15} />
                 <span>Print Report Card</span>
               </button>
             </div>
           </div>
         </div>
 
-        <ProfileSection title="Guardian Information" icon={LuUser}>
+        <ProfileSection title="Guardian Information" icon={User}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
-              <LuUser className="w-4 h-4 text-gray-500" />
+              <User className="w-4 h-4 text-gray-500" />
               <span className="text-sm">
                 <strong>Name:</strong> {student.guardian}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <LuMail className="w-4 h-4 text-gray-500" />
+              <Mail className="w-4 h-4 text-gray-500" />
               <span className="text-sm">
                 <strong>Email:</strong>{" "}
                 {student.guardian_email || "Not provided"}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <LuPhone className="w-4 h-4 text-gray-500" />
+              <Phone className="w-4 h-4 text-gray-500" />
               <span className="text-sm">
                 <strong>Phone:</strong>{" "}
                 {student.guardian_phone || "Not provided"}
@@ -165,7 +165,7 @@ const ConferenceMain = ({
         </ProfileSection>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ProfileSection title="Academic Performance" icon={LuGraduationCap}>
+          <ProfileSection title="Academic Performance" icon={GraduationCap}>
             {student.grades && student.grades.length > 0 ? (
               <div className="space-y-2">
                 {student.grades.map((grade, index) => (
@@ -199,7 +199,7 @@ const ConferenceMain = ({
             )}
           </ProfileSection>
 
-          <ProfileSection title="Attendance Summary" icon={LuCalendarDays}>
+          <ProfileSection title="Attendance Summary" icon={CalendarDays}>
             {student.attendance_summary ? (
               <div className="space-y-3">
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -255,10 +255,7 @@ const ConferenceMain = ({
         </div>
 
         {student.bmi_records && student.bmi_records.length > 0 && (
-          <ProfileSection
-            title="Health Profile (BMI Records)"
-            icon={LuActivity}
-          >
+          <ProfileSection title="Health Profile (BMI Records)" icon={Activity}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>

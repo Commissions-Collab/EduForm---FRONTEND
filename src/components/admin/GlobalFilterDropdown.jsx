@@ -1,15 +1,16 @@
 // components/GlobalFilterDropdown.jsx
 import React, { useEffect, useState, useRef } from "react";
+
 import {
-  LuChevronDown,
-  LuFilter,
-  LuCheck,
-  LuX,
-  LuCalendar,
-  LuBookOpen,
-  LuUsers,
-  LuLoader,
-} from "react-icons/lu";
+  ChevronDown,
+  Filter,
+  Check,
+  X,
+  Calendar,
+  BookOpen,
+  User,
+  Loader,
+} from "lucide-react";
 import useFilterStore from "../../stores/admin/filterStore";
 
 const GlobalFilterDropdown = ({ userRole }) => {
@@ -180,9 +181,9 @@ const GlobalFilterDropdown = ({ userRole }) => {
       >
         <div className="flex items-center gap-2.5">
           {isLoading ? (
-            <LuLoader className="w-4 h-4 flex-shrink-0 animate-spin" />
+            <Loader className="w-4 h-4 flex-shrink-0 animate-spin" />
           ) : (
-            <LuFilter className="w-4 h-4 flex-shrink-0" />
+            <Filter className="w-4 h-4 flex-shrink-0" />
           )}
           <span className="text-sm font-medium truncate">
             {hasCompleteFilters
@@ -192,7 +193,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
               : "Select Filters"}
           </span>
         </div>
-        <LuChevronDown
+        <ChevronDown
           className={`w-4 h-4 transform transition-transform duration-200 ${
             isExpanded ? "rotate-180" : ""
           }`}
@@ -208,7 +209,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
               onClick={() => setIsExpanded(false)}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
-              <LuX className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -217,11 +218,11 @@ const GlobalFilterDropdown = ({ userRole }) => {
             <div>
               <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
                 <span className="flex items-center gap-2">
-                  <LuCalendar className="w-5 h-5 text-[#3730A3]" />
+                  <Calendar className="w-5 h-5 text-[#3730A3]" />
                   Academic Year
                 </span>
                 {selections.academicYear && (
-                  <LuCheck className="w-5 h-5 text-emerald-600" />
+                  <Check className="w-5 h-5 text-emerald-600" />
                 )}
               </label>
               <select
@@ -243,11 +244,11 @@ const GlobalFilterDropdown = ({ userRole }) => {
             <div>
               <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
                 <span className="flex items-center gap-2">
-                  <LuBookOpen className="w-5 h-5 text-[#3730A3]" />
+                  <BookOpen className="w-5 h-5 text-[#3730A3]" />
                   Quarter
                 </span>
                 {selections.quarter && (
-                  <LuCheck className="w-5 h-5 text-emerald-600" />
+                  <Check className="w-5 h-5 text-emerald-600" />
                 )}
               </label>
               <select
@@ -274,11 +275,11 @@ const GlobalFilterDropdown = ({ userRole }) => {
             <div>
               <label className="flex items-center justify-between text-sm font-semibold text-gray-800 mb-2">
                 <span className="flex items-center gap-2">
-                  <LuUsers className="w-5 h-5 text-[#3730A3]" />
+                  <User className="w-5 h-5 text-[#3730A3]" />
                   Section
                 </span>
                 {selections.section && (
-                  <LuCheck className="w-5 h-5 text-emerald-600" />
+                  <Check className="w-5 h-5 text-emerald-600" />
                 )}
               </label>
               <select
@@ -344,7 +345,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
             >
               {isLoading ? (
                 <>
-                  <LuLoader className="w-4 h-4 animate-spin" />
+                  <Loader className="w-4 h-4 animate-spin" />
                   Updating...
                 </>
               ) : (
@@ -357,7 +358,7 @@ const GlobalFilterDropdown = ({ userRole }) => {
           {isUpdatingFilters && (
             <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <LuLoader className="w-4 h-4 animate-spin" />
+                <Loader className="w-4 h-4 animate-spin" />
                 Updating filter options...
               </div>
             </div>

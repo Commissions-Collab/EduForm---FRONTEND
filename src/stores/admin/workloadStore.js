@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { axiosInstance } from "../../lib/axios";
-import { paginate } from "../../lib/utils";
 import toast from "react-hot-toast";
 
 // Configuration constants
@@ -33,7 +32,6 @@ const handleError = (err, defaultMessage, set) => {
   return errorMessage;
 };
 
-/** @type {import('zustand').StoreApi<WorkloadsState & WorkloadsActions>} */
 const useWorkloadsStore = create((set, get) => ({
   workloads: [],
   workloadSummary: null,
@@ -45,11 +43,16 @@ const useWorkloadsStore = create((set, get) => ({
   loading: false,
   error: null,
 
-  fetchWorkloads: async () => {
+  fetchWorkloads: async (academicYearId = null, quarterId = null) => {
     set({ loading: true, error: null });
 
     try {
+      const params = {};
+      if (academicYearId) params.academic_year_id = academicYearId;
+      if (quarterId) params.quarter_id = quarterId;
+
       const { data, status } = await axiosInstance.get("/teacher/workload", {
+        params,
         timeout: 10000,
       });
 
@@ -57,11 +60,16 @@ const useWorkloadsStore = create((set, get) => ({
         throw new Error(data?.message || "Invalid response from server");
       }
 
+      // Map backend response to match frontend expectations
+      const workloads = Array.isArray(data?.data?.teaching_load_details)
+        ? data.data.teaching_load_details
+        : [];
+
+      const summary = data?.data?.summary || null;
+
       set({
-        workloads: Array.isArray(data?.data?.teaching_load_details)
-          ? data.data.teaching_load_details
-          : [],
-        workloadSummary: data?.data?.summary ?? null,
+        workloads,
+        workloadSummary: summary,
         quarterComparison: Array.isArray(data?.data?.quarter_comparison)
           ? data.data.quarter_comparison
           : [],
@@ -71,6 +79,7 @@ const useWorkloadsStore = create((set, get) => ({
           ? data.available_quarters
           : [],
         loading: false,
+        currentPage: 1, // Reset to first page on new data
       });
     } catch (err) {
       handleError(err, "Failed to fetch workload data", set);
@@ -94,30 +103,19 @@ const useWorkloadsStore = create((set, get) => ({
     }
   },
 
-  totalPages: () => {
-    try {
-      return Math.ceil(get().workloads.length / RECORDS_PER_PAGE);
-    } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Failed to calculate total pages:", {
-          error: error.message,
-        });
-      }
-      return 0;
-    }
+  // Get total pages based on current workloads length
+  getTotalPages: (filteredCount = null) => {
+    const count = filteredCount ?? get().workloads.length;
+    return Math.ceil(count / RECORDS_PER_PAGE);
   },
 
-  paginatedRecords: () => {
-    try {
-      return paginate(get().workloads, get().currentPage, RECORDS_PER_PAGE);
-    } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Failed to get paginated records:", {
-          error: error.message,
-        });
-      }
-      return [];
-    }
+  // Get paginated records
+  getPaginatedRecords: (filteredRecords = null) => {
+    const records = filteredRecords ?? get().workloads;
+    const currentPage = get().currentPage;
+    const startIndex = (currentPage - 1) * RECORDS_PER_PAGE;
+    const endIndex = startIndex + RECORDS_PER_PAGE;
+    return records.slice(startIndex, endIndex);
   },
 
   resetWorkloadsStore: () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuCalendar, LuBook, LuArrowLeft } from "react-icons/lu";
+import { ArrowLeft } from "lucide-react";
 import { getItem, setItem } from "../../../lib/utils";
 import WeeklyScheduleView from "../../../components/admin/WeeklyScheduleView";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
@@ -231,7 +231,7 @@ const DailyAttendance = () => {
               onClick={handleBackToWeekly}
               className="text-blue-600 flex gap-2 items-center underline hover:text-blue-800 text-base font-medium"
             >
-              <LuArrowLeft /> Weekly Schedule
+              <ArrowLeft /> Weekly Schedule
             </button>
 
             {/* Date Selector */}

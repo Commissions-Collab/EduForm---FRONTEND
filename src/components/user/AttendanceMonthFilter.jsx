@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { LuCalendar, LuCircleAlert } from "react-icons/lu";
+import { Calendar } from "lucide-react";
 
 const AttendanceMonthFilter = ({
   months,
@@ -11,7 +11,7 @@ const AttendanceMonthFilter = ({
   return (
     <div className="relative animate-slide-in">
       <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-        <LuCalendar className="w-5 h-5 text-gray-400 animate-pulse" />
+        <Calendar className="w-5 h-5 text-gray-400 animate-pulse" />
       </div>
       {loading ? (
         <div className="w-48 h-10 bg-gray-200 rounded-lg animate-pulse"></div>

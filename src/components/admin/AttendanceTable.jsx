@@ -1,12 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
-import {
-  LuCircleCheck,
-  LuCircleX,
-  LuClock,
-  LuSquare,
-  LuEye,
-  LuCheck,
-} from "react-icons/lu";
+
+import { CircleCheck, CircleX, Clock, Square, Eye, Check } from "lucide-react";
 import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
 import PaginationControls from "./Pagination";
@@ -314,9 +308,9 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                 >
                   {selectedStudents.size === paginatedRecords.length &&
                   paginatedRecords.length > 0 ? (
-                    <LuCheck size={16} />
+                    <Check size={16} />
                   ) : (
-                    <LuSquare size={16} />
+                    <Square size={16} />
                   )}
                   <span>Select All</span>
                 </button>
@@ -370,9 +364,9 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                       className="text-gray-400 hover:text-blue-600"
                     >
                       {selectedStudents.has(student.student_id) ? (
-                        <LuCheck size={18} className="text-blue-600" />
+                        <Check size={18} className="text-blue-600" />
                       ) : (
-                        <LuSquare size={18} />
+                        <Square size={18} />
                       )}
                     </button>
                   </td>
@@ -394,12 +388,12 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                           }
                         >
                           {status === "present" && (
-                            <LuCircleCheck className="w-8 h-8" />
+                            <CircleCheck className="w-8 h-8" />
                           )}
                           {status === "absent" && (
-                            <LuCircleX className="w-8 h-8" />
+                            <CircleX className="w-8 h-8" />
                           )}
-                          {status === "late" && <LuClock className="w-8 h-8" />}
+                          {status === "late" && <Clock className="w-8 h-8" />}
                         </button>
                       ))}
                     </div>
@@ -430,7 +424,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                       className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
                       title="View attendance history"
                     >
-                      <LuEye size={14} />
+                      <Eye size={14} />
                       <span className="ml-1">History</span>
                     </button>
                   </td>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { LuScale, LuInfo } from "react-icons/lu";
-import { Tooltip } from "react-tooltip"; // Install react-tooltip: npm install react-tooltip
+import { Scale, Info } from "lucide-react";
+import { Tooltip } from "react-tooltip";
 
 const BmiSummary = ({ data, loading }) => {
   const latestRecord = data.length > 0 ? data[data.length - 1] : null;
@@ -91,7 +91,7 @@ const BmiSummary = ({ data, loading }) => {
                 <p className="text-sm font-semibold text-blue-600">
                   Latest BMI Record
                 </p>
-                <LuInfo
+                <Info
                   className="w-4 h-4 text-blue-600 cursor-pointer"
                   data-tooltip-id="bmi-info"
                   aria-label="BMI category information"
@@ -143,7 +143,7 @@ const BmiSummary = ({ data, loading }) => {
               )}
             </div>
             <div className="p-3 bg-blue-100 rounded-lg self-start sm:self-center">
-              <LuScale className="w-6 h-6 text-blue-600 animate-pulse" />
+              <Scale className="w-6 h-6 text-blue-600 animate-pulse" />
             </div>
           </>
         )}

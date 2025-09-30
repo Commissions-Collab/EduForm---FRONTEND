@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { LuArrowLeft, LuHouse } from "react-icons/lu";
+
+import { ArrowLeft, House } from "lucide-react";
 
 const NotFound = () => {
   return (
@@ -44,7 +45,7 @@ const NotFound = () => {
             to="/"
             className="w-full bg-[#3730A3] text-white px-6 py-3 rounded-lg hover:bg-[#2c288f] transition-all duration-200 flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-lg"
           >
-            <LuHouse size={18} />
+            <House size={18} />
             Go Back Home
           </Link>
 
@@ -52,7 +53,7 @@ const NotFound = () => {
             onClick={() => window.history.back()}
             className="w-full bg-white text-[#3730A3] px-6 py-3 rounded-lg border border-[#3730A3] hover:bg-[#3730A3] hover:text-white transition-all duration-200 flex items-center justify-center gap-2 font-medium"
           >
-            <LuArrowLeft size={18} />
+            <ArrowLeft size={18} />
             Go Back
           </button>
         </div>

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-  LuAward,
-  LuStar,
-  LuCalendarCheck,
-  LuSearch,
-  LuDownload,
-  LuCircleCheck,
-} from "react-icons/lu";
+  Award,
+  Star,
+  CalendarCheck,
+  Search,
+  Download,
+  CircleCheck,
+} from "lucide-react";
 import useAchievementsStore from "../../stores/users/achievementStore";
 
 const Achievements = () => {
@@ -54,7 +54,7 @@ const Achievements = () => {
       {/* Search Input */}
       <div className="relative z-10 mb-6 animate-slide-in">
         <div className="relative">
-          <LuSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={searchTerm}
@@ -98,7 +98,7 @@ const Achievements = () => {
           </p>
         </div>
         <div className="p-3 bg-blue-100 rounded-full">
-          <LuAward className="w-8 h-8 text-blue-600 animate-pulse" />
+          <Award className="w-8 h-8 text-blue-600 animate-pulse" />
         </div>
       </div>
 
@@ -145,7 +145,7 @@ const Achievements = () => {
             <div className="text-center py-16">
               <div className="flex flex-col items-center gap-4 animate-fade-in">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                  <LuAward className="w-8 h-8 text-red-600" />
+                  <Award className="w-8 h-8 text-red-600" />
                 </div>
                 <div>
                   <p className="font-medium text-red-900 text-lg">
@@ -161,7 +161,7 @@ const Achievements = () => {
             <div className="text-center py-16">
               <div className="flex flex-col items-center gap-4 animate-fade-in">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                  <LuAward className="w-8 h-8 text-gray-400" />
+                  <Award className="w-8 h-8 text-gray-400" />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-lg">
@@ -193,9 +193,9 @@ const Achievements = () => {
                     } text-white animate-pulse`}
                   >
                     {cert.category === "Academic" ? (
-                      <LuStar className="w-5 h-5" />
+                      <Star className="w-5 h-5" />
                     ) : (
-                      <LuCalendarCheck className="w-5 h-5" />
+                      <CalendarCheck className="w-5 h-5" />
                     )}
                   </div>
                   <div
@@ -239,17 +239,17 @@ const Achievements = () => {
                     >
                       {downloaded[key] ? (
                         <>
-                          <LuCircleCheck className="w-4 h-4 animate-pulse" />
+                          <CircleCheck className="w-4 h-4 animate-pulse" />
                           Downloaded
                         </>
                       ) : downloading[key] ? (
                         <>
-                          <LuDownload className="w-4 h-4 animate-spin" />
+                          <Download className="w-4 h-4 animate-spin" />
                           Downloading...
                         </>
                       ) : (
                         <>
-                          <LuDownload className="w-4 h-4" />
+                          <Download className="w-4 h-4" />
                           Download PDF
                         </>
                       )}

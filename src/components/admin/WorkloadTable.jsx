@@ -1,13 +1,13 @@
 import React, { useMemo, useEffect } from "react";
 import {
-  LuUsers,
-  LuBookOpen,
-  LuClock,
-  LuUserCheck,
-  LuGraduationCap,
-  LuEye,
-  LuMenu,
-} from "react-icons/lu";
+  Users,
+  BookOpen,
+  Clock,
+  UserCheck,
+  GraduationCap,
+  Eye,
+  Menu,
+} from "lucide-react";
 import Pagination from "./Pagination";
 import useWorkloadsStore from "../../stores/admin/workloadStore";
 
@@ -18,11 +18,10 @@ const WorkloadTable = ({ searchTerm }) => {
     error,
     currentPage,
     setCurrentPage,
-    paginatedRecords,
-    totalPages,
+    getPaginatedRecords,
+    getTotalPages,
   } = useWorkloadsStore();
 
-  // Memoize the filtered records
   const filteredRecords = useMemo(
     () =>
       workloads.filter((record) =>
@@ -33,12 +32,14 @@ const WorkloadTable = ({ searchTerm }) => {
 
   // Reset to page 1 when search term changes
   useEffect(() => {
-    if (currentPage !== 1) {
+    if (currentPage !== 1 && searchTerm) {
       setCurrentPage(1);
     }
-  }, [searchTerm, setCurrentPage]);
+  }, [searchTerm]);
 
   const totalRecords = filteredRecords.length;
+  const paginatedRecords = getPaginatedRecords(filteredRecords);
+  const totalPages = getTotalPages(totalRecords);
 
   const getWorkloadLevel = (hours) => {
     if (hours >= 20)
@@ -77,7 +78,6 @@ const WorkloadTable = ({ searchTerm }) => {
     return colors[hash % colors.length];
   };
 
-  // Skeleton row (repeat for loading state)
   const SkeletonRow = () => (
     <tr className="animate-pulse">
       <td className="px-6 py-4">
@@ -149,31 +149,31 @@ const WorkloadTable = ({ searchTerm }) => {
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  <LuGraduationCap className="w-4 h-4" />
+                  <GraduationCap className="w-4 h-4" />
                   Section
                 </div>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <LuUsers className="w-4 h-4" />
+                  <Users className="w-4 h-4" />
                   Students
                 </div>
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  <LuBookOpen className="w-4 h-4" />
+                  <BookOpen className="w-4 h-4" />
                   Subjects
                 </div>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <LuUserCheck className="w-4 h-4" />
+                  <UserCheck className="w-4 h-4" />
                   Advisory
                 </div>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <LuClock className="w-4 h-4" />
+                  <Clock className="w-4 h-4" />
                   Hours/Week
                 </div>
               </th>
@@ -184,14 +184,13 @@ const WorkloadTable = ({ searchTerm }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              // Show 5 skeleton rows
               Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : error ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <LuUsers className="w-6 h-6 text-red-600" />
+                      <Users className="w-6 h-6 text-red-600" />
                     </div>
                     <div>
                       <p className="font-medium text-red-900">
@@ -202,12 +201,12 @@ const WorkloadTable = ({ searchTerm }) => {
                   </div>
                 </td>
               </tr>
-            ) : paginatedRecords().length === 0 ? (
+            ) : paginatedRecords.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                      <LuGraduationCap className="w-6 h-6 text-gray-400" />
+                      <GraduationCap className="w-6 h-6 text-gray-400" />
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
@@ -223,20 +222,20 @@ const WorkloadTable = ({ searchTerm }) => {
                 </td>
               </tr>
             ) : (
-              paginatedRecords().map((record, index) => {
+              paginatedRecords.map((record, index) => {
                 const workloadLevel = getWorkloadLevel(
                   record.hours_per_week || 0
                 );
                 return (
                   <tr
-                    key={index}
+                    key={`${record.section}-${index}`}
                     className="hover:bg-gray-50/50 transition-colors"
                   >
                     {/* Section */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <LuGraduationCap className="w-5 h-5 text-white" />
+                          <GraduationCap className="w-5 h-5 text-white" />
                         </div>
                         <div>
                           <span
@@ -249,6 +248,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         </div>
                       </div>
                     </td>
+
                     {/* Students */}
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center">
@@ -258,6 +258,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         <span className="text-xs text-gray-500">students</span>
                       </div>
                     </td>
+
                     {/* Subjects */}
                     <td className="px-6 py-4">
                       <div className="max-w-xs">
@@ -270,8 +271,7 @@ const WorkloadTable = ({ searchTerm }) => {
                               {record.subjects_display}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {record.subjects_display.split(",").length}{" "}
-                              subject(s)
+                              {record.subjects?.length || 0} subject(s)
                             </p>
                           </>
                         ) : (
@@ -281,6 +281,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         )}
                       </div>
                     </td>
+
                     {/* Advisory Role */}
                     <td className="px-6 py-4 text-center">
                       <span
@@ -292,7 +293,7 @@ const WorkloadTable = ({ searchTerm }) => {
                       >
                         {record.advisory_role === "Yes" ? (
                           <>
-                            <LuUserCheck className="w-3 h-3 mr-1" />
+                            <UserCheck className="w-3 h-3 mr-1" />
                             Advisory
                           </>
                         ) : (
@@ -300,6 +301,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         )}
                       </span>
                     </td>
+
                     {/* Hours per Week */}
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center gap-2">
@@ -309,20 +311,21 @@ const WorkloadTable = ({ searchTerm }) => {
                         <span
                           className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${workloadLevel.bg} ${workloadLevel.text} ${workloadLevel.border}`}
                         >
-                          <LuClock className="w-3 h-3 mr-1" />
+                          <Clock className="w-3 h-3 mr-1" />
                           {workloadLevel.level}
                         </span>
                       </div>
                     </td>
+
                     {/* Actions */}
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors">
-                          <LuEye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" />
                           View
                         </button>
                         <button className="inline-flex items-center gap-1 px-2 py-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                          <LuMenu className="w-4 h-4" />
+                          <Menu className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -339,13 +342,13 @@ const WorkloadTable = ({ searchTerm }) => {
         <div className="border-t border-gray-200 bg-white px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
-              Showing {currentPage * 10 - 9} to{" "}
+              Showing {Math.min((currentPage - 1) * 10 + 1, totalRecords)} to{" "}
               {Math.min(currentPage * 10, totalRecords)} of {totalRecords}{" "}
               results
             </p>
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages()}
+              totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
           </div>

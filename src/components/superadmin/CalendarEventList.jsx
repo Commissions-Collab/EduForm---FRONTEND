@@ -1,5 +1,5 @@
 import React from "react";
-import { LuCalendar, LuPen, LuTrash2 } from "react-icons/lu";
+import { Calendar, Pen, Trash2 } from "lucide-react";
 import Pagination from "./Pagination";
 
 const CalendarEventList = ({
@@ -15,7 +15,7 @@ const CalendarEventList = ({
       {events.length === 0 ? (
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <LuCalendar className="w-8 h-8 text-gray-400" />
+            <Calendar className="w-8 h-8 text-gray-400" />
           </div>
           <p className="text-gray-500">No events available</p>
         </div>
@@ -60,13 +60,13 @@ const CalendarEventList = ({
                   onClick={() => onEdit(event)}
                   className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
                 >
-                  <LuPen className="w-4 h-4" />
+                  <Pen className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDelete(event.id)}
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                 >
-                  <LuTrash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>

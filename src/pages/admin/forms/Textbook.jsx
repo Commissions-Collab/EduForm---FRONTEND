@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
+
 import {
-  LuBadgeAlert,
-  LuSearch,
-  LuBookOpen,
-  LuUsers,
-  LuClock,
-  LuTriangleAlert,
-  LuCircleCheck,
-} from "react-icons/lu";
+  Search,
+  BookOpen,
+  Users,
+  Clock,
+  TriangleAlert,
+  CircleCheck,
+} from "lucide-react";
 import TextbookTable from "../../../components/admin/TextbookTable";
 import useTextbooksStore from "../../../stores/admin/textbookStore";
 
@@ -37,7 +37,7 @@ const Textbook = () => {
     {
       title: "Total Books",
       value: totalBooks,
-      icon: LuBookOpen,
+      icon: BookOpen,
       color: "blue",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
@@ -46,7 +46,7 @@ const Textbook = () => {
     {
       title: "Total Copies",
       value: totalCopies,
-      icon: LuUsers,
+      icon: Users,
       color: "purple",
       bgColor: "bg-purple-50",
       iconColor: "text-purple-600",
@@ -55,7 +55,7 @@ const Textbook = () => {
     {
       title: "Currently Issued",
       value: totalIssued,
-      icon: LuClock,
+      icon: Clock,
       color: "amber",
       bgColor: "bg-amber-50",
       iconColor: "text-amber-600",
@@ -64,7 +64,7 @@ const Textbook = () => {
     {
       title: "Available",
       value: totalAvailable,
-      icon: LuCircleCheck,
+      icon: CircleCheck,
       color: "green",
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
@@ -89,7 +89,7 @@ const Textbook = () => {
           {/* Search Bar */}
           <div className="relative w-full lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LuSearch className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -133,7 +133,7 @@ const Textbook = () => {
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <LuTriangleAlert className="w-6 h-6 text-red-600" />
+                  <TriangleAlert className="w-6 h-6 text-red-600" />
                 </div>
               </div>
               <div className="flex-1">
@@ -147,7 +147,7 @@ const Textbook = () => {
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button className="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
-                    <LuUsers className="w-4 h-4 mr-1.5" />
+                    <Users className="w-4 h-4 mr-1.5" />
                     View Overdue List
                   </button>
                   <button className="inline-flex items-center px-3 py-1.5 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors">

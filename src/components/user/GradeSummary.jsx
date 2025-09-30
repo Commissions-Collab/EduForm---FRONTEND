@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuAward, LuBookOpen } from "react-icons/lu";
+import { Award } from "lucide-react";
 
 const GradeSummary = ({
   quarter,
@@ -64,7 +64,7 @@ const GradeSummary = ({
           </p>
         </div>
         <div className="p-3 bg-blue-100 rounded-lg self-start sm:self-center">
-          <LuAward className="w-6 h-6 text-blue-600 animate-pulse" />
+          <Award className="w-6 h-6 text-blue-600 animate-pulse" />
         </div>
       </div>
     </div>

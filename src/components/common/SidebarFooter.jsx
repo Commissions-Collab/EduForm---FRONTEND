@@ -1,4 +1,4 @@
-import { LuUser, LuLogOut, LuChevronUp } from "react-icons/lu";
+import { LogOut, ChevronUp } from "lucide-react";
 import { useAuthStore } from "../../stores/auth";
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
@@ -113,7 +113,7 @@ const SidebarFooter = () => {
             {isLoggingOut ? (
               <ClipLoader size={16} color="#6B7280" />
             ) : (
-              <LuLogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4" />
             )}
           </button>
         </div>
@@ -125,7 +125,7 @@ const SidebarFooter = () => {
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
             aria-label="User menu"
           >
-            <LuChevronUp
+            <ChevronUp
               className={`w-4 h-4 transition-transform ${
                 showDropdown ? "rotate-180" : ""
               }`}
@@ -158,7 +158,7 @@ const SidebarFooter = () => {
               </>
             ) : (
               <>
-                <LuLogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
               </>
             )}

@@ -1,14 +1,6 @@
 // components/admin/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
-
-import {
-  LuTrendingUp,
-  LuCalendar,
-  LuUsers,
-  LuRefreshCw,
-  LuBadgeAlert,
-  LuClock,
-} from "react-icons/lu";
+import { TrendingUp, Calendar, Users, BadgeAlert, Clock } from "lucide-react";
 import useDashboardStore from "../../stores/admin/dashboardStore";
 import useFilterStore from "../../stores/admin/filterStore";
 import DashboardCard from "../../components/admin/DashboardCard";
@@ -174,7 +166,7 @@ const AdminDashboard = () => {
               {sectionInfo && (
                 <div className="flex flex-wrap items-center gap-6 text-sm">
                   <div className="flex items-center space-x-2">
-                    <LuUsers className="w-4 h-4 text-gray-400" />
+                    <Users className="w-4 h-4 text-gray-400" />
                     <span className="text-gray-500">Section:</span>
                     <span className="font-semibold text-gray-900 bg-gray-100 px-2 py-1 rounded">
                       {sectionInfo.section_name}
@@ -187,7 +179,7 @@ const AdminDashboard = () => {
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <LuCalendar className="w-4 h-4 text-gray-400" />
+                    <Calendar className="w-4 h-4 text-gray-400" />
                     <span className="text-gray-500">Academic Year:</span>
                     <span className="font-semibold text-gray-700">
                       {sectionInfo.academic_year}
@@ -199,7 +191,7 @@ const AdminDashboard = () => {
               {/* Controls */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
                 <div className="flex items-center space-x-2">
-                  <LuCalendar className="w-4 h-4 text-gray-400" />
+                  <Calendar className="w-4 h-4 text-gray-400" />
                   <input
                     type="date"
                     value={attendanceDate}
@@ -239,7 +231,7 @@ const AdminDashboard = () => {
             {/* Last Updated Info */}
             {lastUpdated && (
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-center space-x-2 text-xs text-gray-500">
-                <LuClock className="w-3 h-3" />
+                <Clock className="w-3 h-3" />
                 <span>
                   Last updated: {new Date(lastUpdated).toLocaleString()}
                 </span>
@@ -250,7 +242,7 @@ const AdminDashboard = () => {
           {/* Error Alert */}
           {error && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-              <LuBadgeAlert className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <BadgeAlert className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-red-800 mb-1">
                   Error loading dashboard data
@@ -272,7 +264,7 @@ const AdminDashboard = () => {
           {/* Dashboard Cards */}
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-              <LuTrendingUp className="w-5 h-5 text-indigo-600" />
+              <TrendingUp className="w-5 h-5 text-indigo-600" />
               <span>Today's Overview</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -293,7 +285,7 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="bg-[#3730A3] px-6 py-4">
                 <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-                  <LuCalendar className="w-5 h-5" />
+                  <Calendar className="w-5 h-5" />
                   <span>This Week's Summary</span>
                 </h2>
                 <p className="text-indigo-100 text-sm mt-1">
@@ -394,7 +386,7 @@ const AdminDashboard = () => {
                 ) : (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <LuCalendar className="w-8 h-8 text-gray-400" />
+                      <Calendar className="w-8 h-8 text-gray-400" />
                     </div>
                     <p className="text-gray-500">
                       {loading

@@ -1,11 +1,12 @@
 import React from "react";
+
 import {
-  LuClock,
-  LuCircleAlert,
-  LuCircleCheck,
-  LuCircleX,
-  LuSquareCheck,
-} from "react-icons/lu";
+  Clock,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  SquareCheck,
+} from "lucide-react";
 
 const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
   const getStatusStyle = (status) => {
@@ -26,13 +27,13 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
   const getStatusIcon = (status) => {
     switch (status) {
       case "present":
-        return <LuCircleCheck className="w-5 h-5 animate-pulse" />;
+        return <CircleCheck className="w-5 h-5 animate-pulse" />;
       case "late":
-        return <LuClock className="w-5 h-5 animate-pulse" />;
+        return <Clock className="w-5 h-5 animate-pulse" />;
       case "absent":
-        return <LuCircleX className="w-5 h-5 animate-pulse" />;
+        return <CircleX className="w-5 h-5 animate-pulse" />;
       case "excused":
-        return <LuSquareCheck className="w-5 h-5 animate-pulse" />;
+        return <SquareCheck className="w-5 h-5 animate-pulse" />;
       default:
         return null;
     }
@@ -43,7 +44,7 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Daily Attendance</h2>
         <div className="p-2 bg-gray-100 rounded-lg">
-          <LuClock className="w-5 h-5 text-gray-600 animate-pulse" />
+          <Clock className="w-5 h-5 text-gray-600 animate-pulse" />
         </div>
       </div>
       {loading ? (
@@ -55,7 +56,7 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
       ) : error ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-            <LuCircleAlert className="w-6 h-6 text-red-600" />
+            <CircleAlert className="w-6 h-6 text-red-600" />
           </div>
           <div>
             <p className="font-medium text-red-900">
@@ -67,7 +68,7 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
       ) : dailyStatus.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-            <LuClock className="w-6 h-6 text-gray-400" />
+            <Clock className="w-6 h-6 text-gray-400" />
           </div>
           <p className="text-sm text-gray-500">
             No attendance records available

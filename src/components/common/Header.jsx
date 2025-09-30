@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { LuMenu, LuBell, LuRefreshCw, LuX } from "react-icons/lu";
+import { Menu, Bell, RefreshCcw, X } from "lucide-react";
 import { useAuthStore } from "../../stores/auth";
 import useFilterStore from "../../stores/admin/filterStore";
 import useDashboardStore from "../../stores/admin/dashboardStore";
@@ -148,7 +148,7 @@ const Header = () => {
                 className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-700 hover:text-gray-900"
                 aria-label="Toggle mobile menu"
               >
-                <LuMenu className="w-5 h-5" />
+                <Menu className="w-5 h-5" />
               </button>
 
               {/* Global Filters */}
@@ -203,7 +203,7 @@ const Header = () => {
                     className="relative p-2.5 hover:bg-gray-100 text-gray-700 hover:text-gray-900 rounded-lg transition-all duration-200"
                     aria-label="View notifications"
                   >
-                    <LuBell className="w-5 h-5" />
+                    <Bell className="w-5 h-5" />
                     <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium border-2 border-white shadow-sm">
                       3
                     </span>
@@ -226,7 +226,7 @@ const Header = () => {
                             onClick={() => setIsNotifOpen(false)}
                             className="p-1 hover:bg-white/20 rounded-md transition-colors"
                           >
-                            <LuX className="w-4 h-4" />
+                            <X className="w-4 h-4" />
                           </button>
                         </div>
                       </div>

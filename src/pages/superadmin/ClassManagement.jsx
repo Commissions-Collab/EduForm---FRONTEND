@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuSearch, LuCalendar, LuGraduationCap } from "react-icons/lu";
+import { Search, Calendar, GraduationCap } from "lucide-react";
 import useClassManagementStore from "../../stores/superAdmin/classManagementStore";
 import AcademicYearModal from "../../components/superadmin/AcademicYearModal";
 import YearLevelModal from "../../components/superadmin/YearLevelModal";
@@ -24,18 +24,24 @@ const ClassManagement = () => {
   } = useClassManagementStore();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("academicYears");
   const [isAcademicYearModalOpen, setIsAcademicYearModalOpen] = useState(false);
   const [isYearLevelModalOpen, setIsYearLevelModalOpen] = useState(false);
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState(null);
   const [selectedYearLevel, setSelectedYearLevel] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
+  const [currentPage, setCurrentPage] = useState({
+    academicYears: 1,
+    yearLevels: 1,
+    sections: 1,
+  });
 
   useEffect(() => {
-    fetchAcademicYears();
-    fetchYearLevels();
-    fetchSections();
-  }, [fetchAcademicYears, fetchYearLevels, fetchSections]);
+    fetchAcademicYears(currentPage.academicYears);
+    fetchYearLevels(currentPage.yearLevels);
+    fetchSections(currentPage.sections);
+  }, [currentPage, fetchAcademicYears, fetchYearLevels, fetchSections]);
 
   useEffect(() => {
     if (error) {
@@ -66,10 +72,14 @@ const ClassManagement = () => {
     }
   };
 
+  const handlePageChange = (tab, page) => {
+    setCurrentPage((prev) => ({ ...prev, [tab]: page }));
+  };
+
   const summary = {
-    totalAcademicYears: academicYears.length,
-    totalYearLevels: yearLevels.length,
-    totalSections: sections.length,
+    totalAcademicYears: academicYears.total || 0,
+    totalYearLevels: yearLevels.total || 0,
+    totalSections: sections.total || 0,
   };
 
   return (
@@ -89,7 +99,7 @@ const ClassManagement = () => {
           </div>
           <div className="relative w-full lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LuSearch className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -114,7 +124,7 @@ const ClassManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
-                <LuCalendar className="w-6 h-6 text-blue-600" />
+                <Calendar className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
@@ -129,7 +139,7 @@ const ClassManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <LuGraduationCap className="w-6 h-6 text-green-600" />
+                <GraduationCap className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -144,74 +154,116 @@ const ClassManagement = () => {
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
-                <LuGraduationCap className="w-6 h-6 text-purple-600" />
+                <GraduationCap className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Academic Years Section */}
-      <section className="mb-8">
-        <ClassManagementTable
-          title="Academic Years"
-          data={academicYears}
-          type="academic year"
-          searchTerm={searchTerm}
-          loading={loading}
-          error={error}
-          onAdd={() => {
-            setSelectedAcademicYear(null);
-            setIsAcademicYearModalOpen(true);
-          }}
-          onEdit={(item) => {
-            setSelectedAcademicYear(item);
-            setIsAcademicYearModalOpen(true);
-          }}
-          onDelete={handleDelete}
-        />
-      </section>
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab("academicYears")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "academicYears"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Academic Years
+            </button>
+            <button
+              onClick={() => setActiveTab("yearLevels")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "yearLevels"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Year Levels
+            </button>
+            <button
+              onClick={() => setActiveTab("sections")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "sections"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Sections
+            </button>
+          </nav>
+        </div>
+      </div>
 
-      {/* Year Levels Section */}
+      {/* Tab Content */}
       <section className="mb-8">
-        <ClassManagementTable
-          title="Year Levels"
-          data={yearLevels}
-          type="year level"
-          searchTerm={searchTerm}
-          loading={loading}
-          error={error}
-          onAdd={() => {
-            setSelectedYearLevel(null);
-            setIsYearLevelModalOpen(true);
-          }}
-          onEdit={(item) => {
-            setSelectedYearLevel(item);
-            setIsYearLevelModalOpen(true);
-          }}
-          onDelete={handleDelete}
-        />
-      </section>
-
-      {/* Sections Section */}
-      <section className="mb-8">
-        <ClassManagementTable
-          title="Sections"
-          data={sections}
-          type="section"
-          searchTerm={searchTerm}
-          loading={loading}
-          error={error}
-          onAdd={() => {
-            setSelectedSection(null);
-            setIsSectionModalOpen(true);
-          }}
-          onEdit={(item) => {
-            setSelectedSection(item);
-            setIsSectionModalOpen(true);
-          }}
-          onDelete={handleDelete}
-        />
+        {activeTab === "academicYears" && (
+          <ClassManagementTable
+            title="Academic Years"
+            data={academicYears}
+            type="academic year"
+            searchTerm={searchTerm}
+            loading={loading}
+            error={error}
+            onAdd={() => {
+              setSelectedAcademicYear(null);
+              setIsAcademicYearModalOpen(true);
+            }}
+            onEdit={(item) => {
+              setSelectedAcademicYear(item);
+              setIsAcademicYearModalOpen(true);
+            }}
+            onDelete={handleDelete}
+            currentPage={currentPage.academicYears}
+            onPageChange={(page) => handlePageChange("academicYears", page)}
+          />
+        )}
+        {activeTab === "yearLevels" && (
+          <ClassManagementTable
+            title="Year Levels"
+            data={yearLevels}
+            type="year level"
+            searchTerm={searchTerm}
+            loading={loading}
+            error={error}
+            onAdd={() => {
+              setSelectedYearLevel(null);
+              setIsYearLevelModalOpen(true);
+            }}
+            onEdit={(item) => {
+              setSelectedYearLevel(item);
+              setIsYearLevelModalOpen(true);
+            }}
+            onDelete={handleDelete}
+            currentPage={currentPage.yearLevels}
+            onPageChange={(page) => handlePageChange("yearLevels", page)}
+          />
+        )}
+        {activeTab === "sections" && (
+          <ClassManagementTable
+            title="Sections"
+            data={sections}
+            type="section"
+            searchTerm={searchTerm}
+            loading={loading}
+            error={error}
+            onAdd={() => {
+              setSelectedSection(null);
+              setIsSectionModalOpen(true);
+            }}
+            onEdit={(item) => {
+              setSelectedSection(item);
+              setIsSectionModalOpen(true);
+            }}
+            onDelete={handleDelete}
+            currentPage={currentPage.sections}
+            onPageChange={(page) => handlePageChange("sections", page)}
+          />
+        )}
       </section>
 
       {/* Modals */}
@@ -229,8 +281,8 @@ const ClassManagement = () => {
         isOpen={isSectionModalOpen}
         onClose={() => setIsSectionModalOpen(false)}
         selectedSection={selectedSection}
-        yearLevels={yearLevels}
-        academicYears={academicYears}
+        yearLevels={yearLevels.data || []}
+        academicYears={academicYears.data || []}
       />
     </main>
   );

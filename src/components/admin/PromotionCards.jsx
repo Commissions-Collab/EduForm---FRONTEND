@@ -1,5 +1,5 @@
 import React from "react";
-import { LuTrendingUp, LuUsers, LuAward, LuUserCheck } from "react-icons/lu";
+import { TrendingUp, User, Award, UserCheck } from "lucide-react";
 
 const PromotionCards = ({ stats = {} }) => {
   const cardData = [
@@ -7,7 +7,7 @@ const PromotionCards = ({ stats = {} }) => {
       label: "Total Students",
       value: stats.total || 0,
       change: "All enrolled",
-      icon: LuUsers,
+      icon: User,
       iconColor: "text-blue-600",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-100",
@@ -16,7 +16,7 @@ const PromotionCards = ({ stats = {} }) => {
       label: "Promoted",
       value: stats.promoted || 0,
       change: `${stats.promotedPercentage || 0}% promotion rate`,
-      icon: LuUserCheck,
+      icon: UserCheck,
       iconColor: "text-green-600",
       bgColor: "bg-green-50",
       borderColor: "border-green-100",
@@ -25,7 +25,7 @@ const PromotionCards = ({ stats = {} }) => {
       label: "With Honors",
       value: stats.withHonors || 0,
       change: `${stats.honorsPercentage || 0}% of students`,
-      icon: LuAward,
+      icon: Award,
       iconColor: "text-yellow-600",
       bgColor: "bg-yellow-50",
       borderColor: "border-yellow-100",
@@ -34,7 +34,7 @@ const PromotionCards = ({ stats = {} }) => {
       label: "Retained",
       value: stats.retained || 0,
       change: `${stats.retainedPercentage || 0}% retention rate`,
-      icon: LuTrendingUp,
+      icon: TrendingUp,
       iconColor: "text-red-600",
       bgColor: "bg-red-50",
       borderColor: "border-red-100",

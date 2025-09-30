@@ -1,13 +1,13 @@
 import React from "react";
 import {
-  LuEye,
-  LuBookOpen,
-  LuUsers,
-  LuClock,
-  LuTriangleAlert,
-  LuCircleCheck,
-  LuMenu,
-} from "react-icons/lu";
+  Eye,
+  BookOpen,
+  Users,
+  Clock,
+  TriangleAlert,
+  CircleCheck,
+  Menu,
+} from "lucide-react";
 import Pagination from "./Pagination";
 import useTextbooksStore from "../../stores/admin/textbookStore";
 
@@ -131,31 +131,31 @@ const TextbookTable = ({ searchTerm }) => {
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  <LuBookOpen className="w-4 h-4" />
+                  <BookOpen className="w-4 h-4" />
                   Title & Subject
                 </div>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <LuUsers className="w-4 h-4" />
+                  <Users className="w-4 h-4" />
                   Inventory
                 </div>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <LuClock className="w-4 h-4" />
+                  <Clock className="w-4 h-4" />
                   Issued
                 </div>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <LuTriangleAlert className="w-4 h-4" />
+                  <TriangleAlert className="w-4 h-4" />
                   Overdue
                 </div>
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="flex items-center justify-center gap-2">
-                  <LuCircleCheck className="w-4 h-4" />
+                  <CircleCheck className="w-4 h-4" />
                   Available
                 </div>
               </th>
@@ -173,7 +173,7 @@ const TextbookTable = ({ searchTerm }) => {
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <LuTriangleAlert className="w-6 h-6 text-red-600" />
+                      <TriangleAlert className="w-6 h-6 text-red-600" />
                     </div>
                     <div>
                       <p className="font-medium text-red-900">
@@ -191,7 +191,7 @@ const TextbookTable = ({ searchTerm }) => {
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                      <LuBookOpen className="w-6 h-6 text-gray-400" />
+                      <BookOpen className="w-6 h-6 text-gray-400" />
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
@@ -221,7 +221,7 @@ const TextbookTable = ({ searchTerm }) => {
                     <td className="px-6 py-4">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <LuBookOpen className="w-5 h-5 text-white" />
+                          <BookOpen className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-gray-900 mb-1 line-clamp-4">
@@ -313,11 +313,11 @@ const TextbookTable = ({ searchTerm }) => {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors">
-                          <LuEye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" />
                           View
                         </button>
                         <button className="inline-flex items-center gap-1 px-2 py-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                          <LuMenu className="w-4 h-4" />
+                          <Menu className="w-4 h-4" />
                         </button>
                       </div>
                     </td>

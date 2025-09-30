@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuActivity } from "react-icons/lu";
+import { Activity } from "lucide-react";
 import { getItem } from "../../../lib/utils";
 import BmiStudentTable from "../../../components/admin/BmiStudentTable";
 import useBmiStore from "../../../stores/admin/bmiStore";
@@ -98,7 +98,7 @@ const HealthProfile = () => {
           {!hasAllFilters && (
             <div className="mt-6 bg-white rounded-lg p-8 border border-gray-200 shadow-sm text-center">
               <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <LuActivity className="w-6 h-6 text-gray-400" />
+                <Activity className="w-6 h-6 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Select Filters to View Health Profile

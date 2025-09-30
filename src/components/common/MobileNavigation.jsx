@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { adminNav, studentNav, superAdminNav } from "../../constants";
 import SidebarFooter from "./SidebarFooter";
 import { useAuthStore } from "../../stores/auth";
-import { LuX } from "react-icons/lu";
+import { X } from "lucide-react";
 
 // Mobile navigation categories for teachers (same as desktop)
 const mobileTeacherNavCategories = [
@@ -142,7 +142,7 @@ const MobileNavigation = ({ onClose }) => {
             className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
             aria-label="Close navigation"
           >
-            <LuX size={20} />
+            <X size={20} />
           </button>
         </div>
 

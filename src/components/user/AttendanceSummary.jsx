@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LuClock, LuUserX } from "react-icons/lu";
+import { Clock } from "lucide-react";
 
 const AttendanceSummary = ({
   attendanceRate,
@@ -69,7 +69,7 @@ const AttendanceSummary = ({
           </p>
         </div>
         <div className="p-3 bg-blue-100 rounded-lg self-start sm:self-center">
-          <LuClock className="w-6 h-6 text-blue-600 animate-pulse" />
+          <Clock className="w-6 h-6 text-blue-600 animate-pulse" />
         </div>
       </div>
     </div>

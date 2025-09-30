@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LuX, LuSave } from "react-icons/lu";
+import { X, Save } from "lucide-react";
 import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
 
 const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
@@ -122,7 +122,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
             className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-colors"
             aria-label="Close modal"
           >
-            <LuX className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -379,7 +379,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                   : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
             >
-              <LuSave className="w-4 h-4" />
+              <Save className="w-4 h-4" />
               <span>{selectedEnrollment ? "Update" : "Save"}</span>
             </button>
           </div>

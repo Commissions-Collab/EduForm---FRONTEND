@@ -1,13 +1,7 @@
 // src/components/UserComponents/AchievementsCertificates.jsx
 import React from "react";
-import {
-  LuDownload,
-  LuShare2,
-  LuAward,
-  LuCalendar,
-  LuCircleUser,
-} from "react-icons/lu";
-
+import { Award, Calendar, CircleUser, Download } from "lucide-react";
+import useStoreUser from "../../stores/userStore";
 const AchievementsCertificates = () => {
   const {
     achievementsData,
@@ -19,13 +13,13 @@ const AchievementsCertificates = () => {
   const getCategoryIcon = (category) => {
     switch (category.toLowerCase()) {
       case "academic":
-        return <LuAward className="w-5 h-5 text-blue-600" />;
+        return <Award className="w-5 h-5 text-blue-600" />;
       case "attendance":
-        return <LuCalendar className="w-5 h-5 text-green-600" />;
+        return <Calendar className="w-5 h-5 text-green-600" />;
       case "competition":
-        return <LuAward className="w-5 h-5 text-purple-600" />;
+        return <Award className="w-5 h-5 text-purple-600" />;
       default:
-        return <LuAward className="w-5 h-5 text-gray-600" />;
+        return <Award className="w-5 h-5 text-gray-600" />;
     }
   };
 
@@ -75,7 +69,7 @@ const AchievementsCertificates = () => {
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">
               Academic Awards
             </h3>
-            <LuAward className="w-5 h-5 text-blue-600" />
+            <Award className="w-5 h-5 text-blue-600" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold text-gray-900">
@@ -97,7 +91,7 @@ const AchievementsCertificates = () => {
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">
               Attendance Awards
             </h3>
-            <LuCalendar className="w-5 h-5 text-green-600" />
+            <Calendar className="w-5 h-5 text-green-600" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold text-gray-900">
@@ -119,7 +113,7 @@ const AchievementsCertificates = () => {
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">
               Total Certificates
             </h3>
-            <LuCircleUser className="w-5 h-5 text-purple-600" />
+            <CircleUser className="w-5 h-5 text-purple-600" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold text-gray-900">
@@ -137,7 +131,7 @@ const AchievementsCertificates = () => {
       {achievementsData.academic_awards.length > 0 && (
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <LuAward className="w-5 h-5 mr-2 text-blue-600" />
+            <Award className="w-5 h-5 mr-2 text-blue-600" />
             Academic Awards
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -176,7 +170,7 @@ const AchievementsCertificates = () => {
                     }
                     className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
-                    <LuDownload className="w-4 h-4" />
+                    <Download className="w-4 h-4" />
                     Download
                   </button>
                 </div>
@@ -190,7 +184,7 @@ const AchievementsCertificates = () => {
       {achievementsData.attendance_awards.length > 0 && (
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <LuCalendar className="w-5 h-5 mr-2 text-green-600" />
+            <Calendar className="w-5 h-5 mr-2 text-green-600" />
             Attendance Awards
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -232,7 +226,7 @@ const AchievementsCertificates = () => {
                     }
                     className="flex items-center gap-1 text-green-600 hover:text-green-800 text-sm font-medium"
                   >
-                    <LuDownload className="w-4 h-4" />
+                    <Download className="w-4 h-4" />
                     Download
                   </button>
                 </div>
