@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Search, Users, Clock, UserCheck } from "lucide-react";
+import { Search, Users, Clock, UserCheck, BookOpen } from "lucide-react";
 import WorkloadTable from "../../../components/admin/WorkloadTable";
 import useWorkloadsStore from "../../../stores/admin/workloadStore";
 
 const Workload = () => {
-  // Destructure state and actions from the store
   const { fetchWorkloads, workloadSummary, loading } = useWorkloadsStore();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch data when the component mounts
   useEffect(() => {
     fetchWorkloads();
   }, [fetchWorkloads]);
+
+  // Calculate total hours from workloads if needed
+  const totalHours = workloadSummary?.total_hours || 0;
 
   return (
     <main className="bg-gray-50/50 p-4 lg:p-6">
@@ -44,15 +45,15 @@ const Workload = () => {
 
         {/* Summary Statistics */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {/* Total Sections Card */}
+          {/* Class Sections Card */}
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-600 mb-1">
-                  Total Sections
+                  Class Sections
                 </p>
                 <p className="text-2xl font-bold text-blue-900">
-                  {loading ? "..." : workloadSummary?.totalSections || 0}
+                  {loading ? "..." : workloadSummary?.class_sections || 0}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -69,7 +70,7 @@ const Workload = () => {
                   Total Students
                 </p>
                 <p className="text-2xl font-bold text-green-900">
-                  {loading ? "..." : workloadSummary?.totalStudents || 0}
+                  {loading ? "..." : workloadSummary?.total_students || 0}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -78,32 +79,32 @@ const Workload = () => {
             </div>
           </div>
 
-          {/* Total Hours Card */}
+          {/* Subject Areas Card */}
           <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-600 mb-1">
-                  Total Hours
+                  Subject Areas
                 </p>
                 <p className="text-2xl font-bold text-purple-900">
-                  {loading ? "..." : workloadSummary?.totalHours || 0}
+                  {loading ? "..." : workloadSummary?.subject_areas || 0}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
-                <Clock className="w-6 h-6 text-purple-600" />
+                <BookOpen className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>
 
-          {/* Advisory Roles Card */}
+          {/* Advisory Duties Card */}
           <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl p-6 border border-amber-200 hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-amber-600 mb-1">
-                  Advisory Roles
+                  Advisory Duties
                 </p>
                 <p className="text-2xl font-bold text-amber-900">
-                  {loading ? "..." : workloadSummary?.advisoryCount || 0}
+                  {loading ? "..." : workloadSummary?.advisory_duties || 0}
                 </p>
               </div>
               <div className="p-3 bg-amber-100 rounded-lg">

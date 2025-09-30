@@ -1,5 +1,4 @@
-import React from "react";
-
+import React, { useState } from "react";
 import {
   User,
   Ruler,
@@ -9,9 +8,20 @@ import {
   TrendingUp,
   TrendingDown,
   TriangleAlert,
+  Edit2,
+  Trash2,
+  X,
+  Save,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import useBmiStore from "../../stores/admin/bmiStore";
 
 const BmiStudentTable = ({ students, loading, error }) => {
+  const { updateStudentBmi, deleteStudentBmi } = useBmiStore();
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const getBmiStatusConfig = (status) => {
     const configs = {
       Underweight: {
@@ -21,7 +31,7 @@ const BmiStudentTable = ({ students, loading, error }) => {
         icon: TrendingDown,
         color: "text-yellow-600",
       },
-      "Normal weight": {
+      Normal: {
         bg: "bg-green-50",
         text: "text-green-800",
         border: "border-green-200",
@@ -43,7 +53,7 @@ const BmiStudentTable = ({ students, loading, error }) => {
         color: "text-red-600",
       },
     };
-    return configs[status] || configs["Normal weight"];
+    return configs[status] || configs["Normal"];
   };
 
   const getInitials = (name) => {
@@ -66,7 +76,53 @@ const BmiStudentTable = ({ students, loading, error }) => {
     return "text-red-600";
   };
 
-  // Skeleton Loader Component
+  const handleEdit = (student) => {
+    setEditingId(student.bmi_record_id);
+    setEditForm({
+      student_id: student.student_id,
+      height_cm: student.height || "",
+      weight_kg: student.weight || "",
+      remarks: student.remarks || "",
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm({});
+  };
+
+  const handleSaveEdit = async (bmiRecordId) => {
+    if (!editForm.height_cm || !editForm.weight_kg) {
+      toast.error("Height and weight are required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await updateStudentBmi(bmiRecordId, editForm);
+      setEditingId(null);
+      setEditForm({});
+    } catch (error) {
+      console.error("Error updating BMI:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (bmiRecordId, studentName) => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete BMI record for ${studentName}?`
+      )
+    ) {
+      try {
+        await deleteStudentBmi(bmiRecordId);
+      } catch (error) {
+        console.error("Error deleting BMI:", error);
+      }
+    }
+  };
+
   const SkeletonRow = () => (
     <tr className="animate-pulse">
       <td className="px-6 py-4">
@@ -93,17 +149,21 @@ const BmiStudentTable = ({ students, loading, error }) => {
       <td className="px-6 py-4 text-center">
         <div className="w-20 h-5 bg-gray-200 rounded mx-auto"></div>
       </td>
+      <td className="px-6 py-4 text-center">
+        <div className="w-16 h-5 bg-gray-200 rounded mx-auto"></div>
+      </td>
     </tr>
   );
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="border-b border-gray-200 ">
+      <div className="border-b border-gray-200">
         <div className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">BMI</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                BMI Records
+              </h2>
               <p className="text-sm text-gray-600">
                 BMI tracking and health status monitoring for students
               </p>
@@ -119,7 +179,6 @@ const BmiStudentTable = ({ students, loading, error }) => {
         </div>
       </div>
 
-      {/* Content */}
       <div>
         {loading ? (
           <div className="overflow-x-auto">
@@ -155,6 +214,9 @@ const BmiStudentTable = ({ students, loading, error }) => {
                       <Heart className="w-4 h-4" />
                       Health Status
                     </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -230,17 +292,23 @@ const BmiStudentTable = ({ students, loading, error }) => {
                       Health Status
                     </div>
                   </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {students.map((student) => {
                   const statusConfig = getBmiStatusConfig(student.bmi_status);
                   const StatusIcon = statusConfig.icon;
+                  const isEditing = editingId === student.bmi_record_id;
 
                   return (
                     <tr
                       key={student.student_id}
-                      className="hover:bg-gray-50/50 transition-colors"
+                      className={`hover:bg-gray-50/50 transition-colors ${
+                        isEditing ? "bg-blue-50/30" : ""
+                      }`}
                     >
                       {/* Student Name */}
                       <td className="px-6 py-4">
@@ -261,26 +329,58 @@ const BmiStudentTable = ({ students, loading, error }) => {
 
                       {/* Height */}
                       <td className="px-6 py-4 text-center">
-                        <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-gray-900">
-                            {student.height ?? "-"}
-                          </span>
-                          {student.height && (
-                            <span className="text-xs text-gray-500">cm</span>
-                          )}
-                        </div>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editForm.height_cm}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                height_cm: e.target.value,
+                              })
+                            }
+                            className="w-20 px-2 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="cm"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <span className="text-lg font-bold text-gray-900">
+                              {student.height ?? "-"}
+                            </span>
+                            {student.height && (
+                              <span className="text-xs text-gray-500">cm</span>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       {/* Weight */}
                       <td className="px-6 py-4 text-center">
-                        <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-gray-900">
-                            {student.weight ?? "-"}
-                          </span>
-                          {student.weight && (
-                            <span className="text-xs text-gray-500">kg</span>
-                          )}
-                        </div>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editForm.weight_kg}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                weight_kg: e.target.value,
+                              })
+                            }
+                            className="w-20 px-2 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="kg"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <span className="text-lg font-bold text-gray-900">
+                              {student.weight ?? "-"}
+                            </span>
+                            {student.weight && (
+                              <span className="text-xs text-gray-500">kg</span>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       {/* BMI */}
@@ -312,6 +412,56 @@ const BmiStudentTable = ({ students, loading, error }) => {
                           </span>
                         ) : (
                           <span className="text-gray-400 text-sm">-</span>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-6 py-4 text-center">
+                        {isEditing ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() =>
+                                handleSaveEdit(student.bmi_record_id)
+                              }
+                              disabled={isSubmitting}
+                              className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                              title="Save"
+                            >
+                              <Save className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              disabled={isSubmitting}
+                              className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                              title="Cancel"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(student)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit"
+                              disabled={!student.bmi_record_id}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDelete(
+                                  student.bmi_record_id,
+                                  student.name
+                                )
+                              }
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                              disabled={!student.bmi_record_id}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>

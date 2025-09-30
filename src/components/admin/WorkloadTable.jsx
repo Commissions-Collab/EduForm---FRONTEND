@@ -1,5 +1,4 @@
 import React, { useMemo, useEffect } from "react";
-
 import {
   Users,
   BookOpen,
@@ -19,11 +18,10 @@ const WorkloadTable = ({ searchTerm }) => {
     error,
     currentPage,
     setCurrentPage,
-    paginatedRecords,
-    totalPages,
+    getPaginatedRecords,
+    getTotalPages,
   } = useWorkloadsStore();
 
-  // Memoize the filtered records
   const filteredRecords = useMemo(
     () =>
       workloads.filter((record) =>
@@ -34,12 +32,14 @@ const WorkloadTable = ({ searchTerm }) => {
 
   // Reset to page 1 when search term changes
   useEffect(() => {
-    if (currentPage !== 1) {
+    if (currentPage !== 1 && searchTerm) {
       setCurrentPage(1);
     }
-  }, [searchTerm, setCurrentPage]);
+  }, [searchTerm]);
 
   const totalRecords = filteredRecords.length;
+  const paginatedRecords = getPaginatedRecords(filteredRecords);
+  const totalPages = getTotalPages(totalRecords);
 
   const getWorkloadLevel = (hours) => {
     if (hours >= 20)
@@ -78,7 +78,6 @@ const WorkloadTable = ({ searchTerm }) => {
     return colors[hash % colors.length];
   };
 
-  // Skeleton row (repeat for loading state)
   const SkeletonRow = () => (
     <tr className="animate-pulse">
       <td className="px-6 py-4">
@@ -185,7 +184,6 @@ const WorkloadTable = ({ searchTerm }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              // Show 5 skeleton rows
               Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : error ? (
               <tr>
@@ -203,7 +201,7 @@ const WorkloadTable = ({ searchTerm }) => {
                   </div>
                 </td>
               </tr>
-            ) : paginatedRecords().length === 0 ? (
+            ) : paginatedRecords.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
@@ -224,13 +222,13 @@ const WorkloadTable = ({ searchTerm }) => {
                 </td>
               </tr>
             ) : (
-              paginatedRecords().map((record, index) => {
+              paginatedRecords.map((record, index) => {
                 const workloadLevel = getWorkloadLevel(
                   record.hours_per_week || 0
                 );
                 return (
                   <tr
-                    key={index}
+                    key={`${record.section}-${index}`}
                     className="hover:bg-gray-50/50 transition-colors"
                   >
                     {/* Section */}
@@ -250,6 +248,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         </div>
                       </div>
                     </td>
+
                     {/* Students */}
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center">
@@ -259,6 +258,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         <span className="text-xs text-gray-500">students</span>
                       </div>
                     </td>
+
                     {/* Subjects */}
                     <td className="px-6 py-4">
                       <div className="max-w-xs">
@@ -271,8 +271,7 @@ const WorkloadTable = ({ searchTerm }) => {
                               {record.subjects_display}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {record.subjects_display.split(",").length}{" "}
-                              subject(s)
+                              {record.subjects?.length || 0} subject(s)
                             </p>
                           </>
                         ) : (
@@ -282,6 +281,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         )}
                       </div>
                     </td>
+
                     {/* Advisory Role */}
                     <td className="px-6 py-4 text-center">
                       <span
@@ -301,6 +301,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         )}
                       </span>
                     </td>
+
                     {/* Hours per Week */}
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center gap-2">
@@ -315,6 +316,7 @@ const WorkloadTable = ({ searchTerm }) => {
                         </span>
                       </div>
                     </td>
+
                     {/* Actions */}
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
@@ -340,13 +342,13 @@ const WorkloadTable = ({ searchTerm }) => {
         <div className="border-t border-gray-200 bg-white px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
-              Showing {currentPage * 10 - 9} to{" "}
+              Showing {Math.min((currentPage - 1) * 10 + 1, totalRecords)} to{" "}
               {Math.min(currentPage * 10, totalRecords)} of {totalRecords}{" "}
               results
             </p>
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages()}
+              totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
           </div>

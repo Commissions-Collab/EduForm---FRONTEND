@@ -49,19 +49,33 @@ const useBmiStore = create((set, get) => ({
         throw new Error("Invalid BMI data");
       }
 
+      const filters = useFilterStore.getState().globalFilters;
+
+      // Prepare payload aligned with backend expectations
+      const payload = {
+        student_id: bmiData.student_id, // This should be the student's actual ID
+        academic_year_id: filters.academicYearId,
+        quarter_id: filters.quarterId,
+        recorded_at:
+          bmiData.recorded_at || new Date().toISOString().split("T")[0],
+        height_cm: parseFloat(bmiData.height_cm),
+        weight_kg: parseFloat(bmiData.weight_kg),
+        remarks: bmiData.remarks || null,
+      };
+
       await fetchCsrfToken();
       const { data, status } = await axiosInstance.post(
         "/teacher/student-bmi",
-        bmiData,
+        payload,
         { timeout: 10000 }
       );
 
-      if (status !== 200) {
+      if (status !== 201 && status !== 200) {
         throw new Error(data?.message || "Invalid response from server");
       }
 
       toast.success("BMI record added successfully!");
-      await get().fetchBmiStudents(); // Refresh list
+      await get().fetchBmiStudents();
       set({ loading: false });
       return data;
     } catch (err) {
@@ -70,21 +84,35 @@ const useBmiStore = create((set, get) => ({
     }
   },
 
-  updateStudentBmi: async (id, bmiData) => {
+  updateStudentBmi: async (bmiRecordId, bmiData) => {
     set({ loading: true, error: null });
 
     try {
-      if (typeof id !== "string" || !id.trim()) {
+      if (!bmiRecordId) {
         throw new Error("Invalid BMI record ID");
       }
       if (!bmiData || typeof bmiData !== "object") {
         throw new Error("Invalid BMI data");
       }
 
+      const filters = useFilterStore.getState().globalFilters;
+
+      // Prepare payload aligned with backend expectations
+      const payload = {
+        student_id: bmiData.student_id,
+        academic_year_id: filters.academicYearId,
+        quarter_id: filters.quarterId,
+        recorded_at:
+          bmiData.recorded_at || new Date().toISOString().split("T")[0],
+        height_cm: parseFloat(bmiData.height_cm),
+        weight_kg: parseFloat(bmiData.weight_kg),
+        remarks: bmiData.remarks || null,
+      };
+
       await fetchCsrfToken();
       const { data, status } = await axiosInstance.put(
-        `/teacher/student-bmi/${id}`,
-        bmiData,
+        `/teacher/student-bmi/${bmiRecordId}`,
+        payload,
         { timeout: 10000 }
       );
 
@@ -93,7 +121,7 @@ const useBmiStore = create((set, get) => ({
       }
 
       toast.success("BMI record updated successfully!");
-      await get().fetchBmiStudents(); // Refresh list
+      await get().fetchBmiStudents();
       set({ loading: false });
       return data;
     } catch (err) {
@@ -102,20 +130,18 @@ const useBmiStore = create((set, get) => ({
     }
   },
 
-  deleteStudentBmi: async (id) => {
+  deleteStudentBmi: async (bmiRecordId) => {
     set({ loading: true, error: null });
 
     try {
-      if (typeof id !== "string" || !id.trim()) {
+      if (!bmiRecordId) {
         throw new Error("Invalid BMI record ID");
       }
 
       await fetchCsrfToken();
       const { data, status } = await axiosInstance.delete(
-        `/teacher/student-bmi/${id}`,
-        {
-          timeout: 10000,
-        }
+        `/teacher/student-bmi/${bmiRecordId}`,
+        { timeout: 10000 }
       );
 
       if (status !== 200) {
@@ -123,7 +149,7 @@ const useBmiStore = create((set, get) => ({
       }
 
       toast.success("BMI record deleted successfully!");
-      await get().fetchBmiStudents(); // Refresh list
+      await get().fetchBmiStudents();
       set({ loading: false });
       return data;
     } catch (err) {
@@ -145,6 +171,19 @@ const useBmiStore = create((set, get) => ({
     }
   },
 }));
+
+// Error handler helper
+const handleError = (err, defaultMessage, set) => {
+  const message =
+    err?.response?.data?.message ||
+    err?.response?.data?.error ||
+    err?.message ||
+    defaultMessage;
+
+  set({ loading: false, error: message });
+  toast.error(message);
+  return message;
+};
 
 // Centralized unauthorized event handler
 const handleUnauthorized = () => {
