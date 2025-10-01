@@ -31,13 +31,14 @@ const Achievements = () => {
     ...certificates.data.attendance_awards,
   ].filter(
     (cert) =>
-      cert.description?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
-      cert.quarter?.toLowerCase()?.includes(searchTerm.toLowerCase())
+      (cert.description?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase()
+      ) ||
+      (cert.quarter?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   return (
     <main className="p-4 lg:p-8 min-h-screen relative overflow-hidden">
-      {/* Header Section */}
       <div className="relative z-10 mb-8 animate-fade-in">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white bg-opacity-80 backdrop-blur-sm rounded-xl p-6 shadow-sm">
           <div>
@@ -51,7 +52,6 @@ const Achievements = () => {
         </div>
       </div>
 
-      {/* Search Input */}
       <div className="relative z-10 mb-6 animate-slide-in">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -65,7 +65,6 @@ const Achievements = () => {
         </div>
       </div>
 
-      {/* Summary Banner */}
       <div className="relative z-10 bg-white bg-opacity-80 backdrop-blur-sm rounded-xl p-6 mb-8 flex flex-col sm:flex-row sm:items-center gap-6 shadow-lg animate-slide-up">
         <div className="flex-1">
           <p className="text-sm font-medium text-blue-600 mb-1">
@@ -102,7 +101,6 @@ const Achievements = () => {
         </div>
       </div>
 
-      {/* Achievements Timeline */}
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">
@@ -128,7 +126,6 @@ const Achievements = () => {
           )}
         </div>
         <div className="relative space-y-8 lg:space-y-12">
-          {/* Timeline Line */}
           <div className="absolute left-4 lg:left-8 top-0 h-full w-1 bg-blue-300 rounded-full animate-grow-line"></div>
           {certificates.isLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
@@ -211,13 +208,13 @@ const Achievements = () => {
                       </span>
                     )}
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {cert.description}
+                      {cert.description || "Certificate"}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
-                      {cert.category} • {cert.quarter}
+                      {cert.category} • {cert.quarter || "Unknown Quarter"}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Issued: {cert.issued_date}
+                      Issued: {cert.issued_date || "Unknown Date"}
                     </p>
                     {cert.average && (
                       <p className="text-sm text-gray-500 mt-1">

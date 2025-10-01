@@ -10,20 +10,12 @@ const teacherNavCategories = [
     items: adminNav.slice(0, 1), // Dashboard
   },
   {
-    title: "Student Management",
-    items: adminNav.slice(1, 4), // Student List, Approval, Health
+    title: "School Forms (SF 2-9)",
+    items: adminNav.slice(1, 8), // Daily Attendance (SF 2) through Academic Records (SF 9)
   },
   {
-    title: "Attendance & Records",
-    items: adminNav.slice(4, 7), // Daily, Monthly, Academic Records
-  },
-  {
-    title: "Academic Resources",
-    items: adminNav.slice(7, 9), // Textbooks, Workload
-  },
-  {
-    title: "Reports & Communication",
-    items: adminNav.slice(9), // Promotion, Certificates, Parent Conference
+    title: "Documents & Communication",
+    items: adminNav.slice(8),
   },
 ];
 
