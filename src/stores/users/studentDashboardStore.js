@@ -22,26 +22,34 @@ const useStudentDashboardStore = create((set) => ({
     try {
       const { data } = await axiosInstance.get("/student/dashboard");
       console.log("fetchDashboard Response:", data);
+
       set({
         data: {
           grades: {
-            total_average: data.grades || 0,
-            subjects: data.grades_data || [], // Map backend's grades array if needed
+            total_average: data.grades?.total_average || 0,
+            subjects: Array.isArray(data.grades?.subjects)
+              ? data.grades.subjects
+              : [],
           },
           grade_change_percent: data.grade_change_percent || 0,
           attendance_rate: {
             present_percent: data.attendance_rate?.present_percent || 0,
-            recent_absents: data.attendance_rate?.recent_absents || [],
+            recent_absents: Array.isArray(data.attendance_rate?.recent_absents)
+              ? data.attendance_rate.recent_absents
+              : [],
           },
           borrow_book: data.borrow_book || 0,
           book_due_this_week: data.book_due_this_week || 0,
-          notifications: data.notifications || [],
+          notifications: Array.isArray(data.notifications)
+            ? data.notifications
+            : [],
         },
         loading: false,
       });
     } catch (error) {
       let message =
         error?.response?.data?.message || "Failed to fetch dashboard data";
+
       // Handle non-JSON responses (e.g., HTML from 404)
       if (
         error.response &&
@@ -49,11 +57,13 @@ const useStudentDashboardStore = create((set) => ({
       ) {
         message = "Server error occurred while fetching dashboard data";
       }
+
       console.error("fetchDashboard Error:", {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
       });
+
       set({
         error: message,
         loading: false,
@@ -66,9 +76,11 @@ const useStudentDashboardStore = create((set) => ({
           notifications: [],
         },
       });
+
       if (error.response?.status === 401 || error.response?.status === 403) {
         window.dispatchEvent(new Event("unauthorized"));
       }
+
       toast.error(message);
     }
   },
@@ -96,8 +108,18 @@ const useStudentDashboardStore = create((set) => ({
   },
 }));
 
-window.addEventListener("unauthorized", () => {
+// Centralized unauthorized event handler
+const handleUnauthorized = () => {
   useStudentDashboardStore.getState().resetStudentDashboardStore();
-});
+};
+
+window.addEventListener("unauthorized", handleUnauthorized);
+
+// Cleanup on module unload (for hot-reloading scenarios)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    window.removeEventListener("unauthorized", handleUnauthorized);
+  });
+}
 
 export default useStudentDashboardStore;
