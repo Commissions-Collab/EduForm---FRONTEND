@@ -84,7 +84,7 @@ const StudentAttendanceHistory = () => {
   };
 
   return (
-    <main className="p-4 lg:p-6 bg-gray-50 min-h-screen">
+    <main className="p-3 sm:p-4 lg:p-6 min-h-screen">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
           Student Attendance History

@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from "react";
-
 import { CircleCheck, CircleX, Clock, Square, Eye, Check } from "lucide-react";
 import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
@@ -29,7 +28,6 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
   const [bulkReason, setBulkReason] = useState("");
   const [showBulkActions, setShowBulkActions] = useState(false);
 
-  // Extract students into records
   const records = useMemo(() => {
     const students = scheduleAttendance?.students || [];
     return students.map((student) => ({
@@ -48,7 +46,6 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
     }));
   }, [scheduleAttendance, localAttendanceState]);
 
-  // Pagination
   const totalPages = Math.ceil(records.length / RECORDS_PER_PAGE);
   const paginatedRecords = records.slice(
     (currentPage - 1) * RECORDS_PER_PAGE,
@@ -87,7 +84,6 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
             : "",
       });
 
-      // Refresh data
       if (
         globalFilters.sectionId &&
         globalFilters.academicYearId &&
@@ -140,7 +136,6 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
     }
   };
 
-  // Bulk selection handlers
   const handleSelectStudent = (studentId) => {
     const newSelected = new Set(selectedStudents);
     if (newSelected.has(studentId)) {
@@ -179,7 +174,6 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
         attendances,
       });
 
-      // Clear selection and refresh
       setSelectedStudents(new Set());
       setShowBulkActions(false);
       setBulkReason("");
@@ -204,24 +198,23 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
 
   const hasRecords = paginatedRecords.length > 0;
 
-  // Skeleton loader rows
   const SkeletonRows = () => (
     <>
       {Array.from({ length: RECORDS_PER_PAGE }).map((_, idx) => (
         <tr key={idx} className="animate-pulse">
-          <td className="px-4 py-4">
+          <td className="px-2 sm:px-4 py-4">
             <div className="w-5 h-5 bg-gray-200 rounded"></div>
           </td>
-          <td className="px-4 py-4">
-            <div className="h-4 bg-gray-200 rounded w-40"></div>
+          <td className="px-2 sm:px-4 py-4">
+            <div className="h-4 bg-gray-200 rounded w-32 sm:w-40"></div>
           </td>
-          <td className="px-4 py-4 text-center">
+          <td className="px-2 sm:px-4 py-4 text-center">
             <div className="h-8 w-20 mx-auto bg-gray-200 rounded-full"></div>
           </td>
-          <td className="px-4 py-4 text-center">
+          <td className="px-2 sm:px-4 py-4 text-center hidden md:table-cell">
             <div className="h-4 w-24 mx-auto bg-gray-200 rounded"></div>
           </td>
-          <td className="px-4 py-4 text-center">
+          <td className="px-2 sm:px-4 py-4 text-center hidden lg:table-cell">
             <div className="h-4 w-16 mx-auto bg-gray-200 rounded"></div>
           </td>
         </tr>
@@ -233,52 +226,56 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
     <div className="space-y-4">
       {/* Bulk Actions Bar */}
       {showBulkActions && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-blue-900">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <span className="text-xs sm:text-sm font-medium text-blue-900">
                 {selectedStudents.size} student
                 {selectedStudents.size !== 1 ? "s" : ""} selected
               </span>
 
-              <div className="flex items-center space-x-2">
-                <label className="text-sm text-blue-700">Status:</label>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-xs sm:text-sm text-blue-700">
+                  Status:
+                </label>
                 <select
                   value={bulkStatus}
                   onChange={(e) => setBulkStatus(e.target.value)}
-                  className="text-sm border border-blue-300 rounded px-2 py-1"
+                  className="text-xs sm:text-sm border border-blue-300 rounded px-2 py-1"
                 >
                   <option value="present">Present</option>
                   <option value="absent">Absent</option>
                   <option value="late">Late</option>
                   <option value="excused">Excused</option>
                 </select>
-              </div>
 
-              {bulkStatus === "absent" && (
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm text-blue-700">Reason:</label>
-                  <select
-                    value={bulkReason}
-                    onChange={(e) => setBulkReason(e.target.value)}
-                    className="text-sm border border-blue-300 rounded px-2 py-1"
-                  >
-                    <option value="">Select Reason</option>
-                    {reasons.map((reason, idx) => (
-                      <option key={idx} value={reason}>
-                        {reason}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+                {bulkStatus === "absent" && (
+                  <>
+                    <label className="text-xs sm:text-sm text-blue-700">
+                      Reason:
+                    </label>
+                    <select
+                      value={bulkReason}
+                      onChange={(e) => setBulkReason(e.target.value)}
+                      className="text-xs sm:text-sm border border-blue-300 rounded px-2 py-1"
+                    >
+                      <option value="">Select Reason</option>
+                      {reasons.map((reason, idx) => (
+                        <option key={idx} value={reason}>
+                          {reason}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleBulkUpdate}
                 disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 Update Selected
               </button>
@@ -287,7 +284,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                   setSelectedStudents(new Set());
                   setShowBulkActions(false);
                 }}
-                className="px-3 py-2 text-blue-600 text-sm hover:text-blue-800 transition-colors"
+                className="px-3 py-2 text-blue-600 text-xs sm:text-sm hover:text-blue-800 transition-colors"
               >
                 Cancel
               </button>
@@ -301,41 +298,41 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left">
+              <th className="px-2 sm:px-4 py-3 text-left">
                 <button
                   onClick={handleSelectAll}
-                  className="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700"
+                  className="flex items-center space-x-1 sm:space-x-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700"
                 >
                   {selectedStudents.size === paginatedRecords.length &&
                   paginatedRecords.length > 0 ? (
-                    <Check size={16} />
+                    <Check size={14} />
                   ) : (
-                    <Square size={16} />
+                    <Square size={14} />
                   )}
-                  <span>Select All</span>
+                  <span className="hidden sm:inline">Select All</span>
                 </button>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Student Name
               </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                 Status
               </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                 Reason
               </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {loading && records.length === 0 ? ( // only show skeleton on first load
+            {loading && records.length === 0 ? (
               <SkeletonRows />
             ) : error ? (
               <tr>
                 <td colSpan={5}>
-                  <div className="flex justify-center items-center h-64 text-red-600 font-medium">
+                  <div className="flex justify-center items-center h-64 text-red-600 font-medium text-sm px-4">
                     {error}
                   </div>
                 </td>
@@ -343,7 +340,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
             ) : !hasRecords ? (
               <tr>
                 <td colSpan={5}>
-                  <div className="flex justify-center items-center h-64 text-gray-600 font-medium">
+                  <div className="flex justify-center items-center h-64 text-gray-600 font-medium text-sm">
                     No attendance records available.
                   </div>
                 </td>
@@ -358,28 +355,56 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                       : "hover:bg-gray-50"
                   }
                 >
-                  <td className="px-4 py-4">
+                  <td className="px-2 sm:px-4 py-3 sm:py-4">
                     <button
                       onClick={() => handleSelectStudent(student.student_id)}
                       className="text-gray-400 hover:text-blue-600"
                     >
                       {selectedStudents.has(student.student_id) ? (
-                        <Check size={18} className="text-blue-600" />
+                        <Check size={16} className="text-blue-600" />
                       ) : (
-                        <Square size={18} />
+                        <Square size={16} />
                       )}
                     </button>
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-900 font-medium">
-                    {student.name}
+                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 font-medium">
+                    <div className="flex flex-col">
+                      <span>{student.name}</span>
+                      {/* Mobile: Show reason below name if absent */}
+                      {student.status === "absent" && (
+                        <select
+                          value={student.reason || ""}
+                          onChange={(e) =>
+                            setReason(student.student_id, e.target.value)
+                          }
+                          className="mt-2 w-full p-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 md:hidden"
+                        >
+                          <option value="">Select Reason</option>
+                          {reasons.map((reason, idx) => (
+                            <option key={idx} value={reason}>
+                              {reason}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      {/* Mobile: Show history button */}
+                      <button
+                        onClick={() => handleViewHistory(student.student_id)}
+                        className="mt-2 inline-flex items-center text-blue-600 hover:text-blue-800 text-xs lg:hidden"
+                        title="View attendance history"
+                      >
+                        <Eye size={12} />
+                        <span className="ml-1">History</span>
+                      </button>
+                    </div>
                   </td>
-                  <td className="px-4 py-4 text-sm">
-                    <div className="flex justify-center space-x-2">
+                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-sm">
+                    <div className="flex justify-center space-x-1 sm:space-x-2">
                       {["present", "absent", "late"].map((status) => (
                         <button
                           key={status}
                           onClick={() => setStatus(student.student_id, status)}
-                          className={`p-1 rounded-full transition-all ${getStatusButtonStyle(
+                          className={`p-0.5 sm:p-1 rounded-full transition-all ${getStatusButtonStyle(
                             student.status,
                             status
                           )}`}
@@ -388,24 +413,26 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                           }
                         >
                           {status === "present" && (
-                            <CircleCheck className="w-8 h-8" />
+                            <CircleCheck className="w-6 h-6 sm:w-8 sm:h-8" />
                           )}
                           {status === "absent" && (
-                            <CircleX className="w-8 h-8" />
+                            <CircleX className="w-6 h-6 sm:w-8 sm:h-8" />
                           )}
-                          {status === "late" && <Clock className="w-8 h-8" />}
+                          {status === "late" && (
+                            <Clock className="w-6 h-6 sm:w-8 sm:h-8" />
+                          )}
                         </button>
                       ))}
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-sm text-center">
+                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-sm text-center hidden md:table-cell">
                     {student.status === "absent" ? (
                       <select
                         value={student.reason || ""}
                         onChange={(e) =>
                           setReason(student.student_id, e.target.value)
                         }
-                        className="w-36 p-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-32 lg:w-36 p-1 border border-gray-300 rounded text-xs sm:text-sm focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select Reason</option>
                         {reasons.map((reason, idx) => (
@@ -418,13 +445,13 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-4 py-4 text-sm text-center">
+                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-sm text-center hidden lg:table-cell">
                     <button
                       onClick={() => handleViewHistory(student.student_id)}
-                      className="inline-flex items-center px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                      className="inline-flex items-center px-2 sm:px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors text-xs sm:text-sm"
                       title="View attendance history"
                     >
-                      <Eye size={14} />
+                      <Eye size={12} />
                       <span className="ml-1">History</span>
                     </button>
                   </td>
@@ -434,6 +461,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
           </tbody>
         </table>
       </div>
+
       {/* Pagination */}
       {!loading && hasRecords && (
         <PaginationControls
@@ -446,7 +474,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
 
       {/* Selection Summary */}
       {selectedStudents.size > 0 && (
-        <div className="text-sm text-gray-600 text-center">
+        <div className="text-xs sm:text-sm text-gray-600 text-center">
           {selectedStudents.size} of {records.length} students selected
         </div>
       )}

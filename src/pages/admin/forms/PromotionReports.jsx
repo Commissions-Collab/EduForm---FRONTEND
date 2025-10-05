@@ -90,7 +90,7 @@ const PromotionReport = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <main className="p-4 lg:p-6">
+      <main className="p-3 sm:p-4 lg:p-6">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
