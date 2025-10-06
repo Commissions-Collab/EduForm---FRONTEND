@@ -4,6 +4,7 @@ import { getItem } from "../../../lib/utils";
 import BmiStudentTable from "../../../components/admin/BmiStudentTable";
 import useBmiStore from "../../../stores/admin/bmiStore";
 import useFilterStore from "../../../stores/admin/filterStore";
+
 const HealthProfile = () => {
   const { bmiStudents, loading, error, fetchBmiStudents } = useBmiStore();
   const { globalFilters } = useFilterStore();
@@ -27,7 +28,6 @@ const HealthProfile = () => {
   }, [fetchBmiStudents]);
 
   useEffect(() => {
-    // Listen to global filter changes
     const handleGlobalFiltersChanged = (event) => {
       const { academicYearId, quarterId, sectionId } = event.detail;
 
@@ -51,7 +51,6 @@ const HealthProfile = () => {
   }, [fetchBmiStudents]);
 
   useEffect(() => {
-    // Sync with global filters from useFilterStore
     setSelectedAcademicYear(globalFilters.academicYearId || "");
     setSelectedQuarter(globalFilters.quarterId || "");
     setSelectedSection(globalFilters.sectionId || "");
@@ -74,14 +73,16 @@ const HealthProfile = () => {
   const hasData = bmiStudents?.length > 0;
 
   return (
-    <div className="bg-gray-50">
-      <main className="p-4">
+    <div className="bg-gray-50 min-h-screen">
+      <main className="p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-4 sm:space-y-0">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
             <div>
-              <h1 className="page-title">Health Profile (SF)</h1>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                Health Profile (SF)
+              </h1>
+              <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-600 mt-2">
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
                   SF8
                 </span>
@@ -96,14 +97,14 @@ const HealthProfile = () => {
 
           {/* No Filters Message */}
           {!hasAllFilters && (
-            <div className="mt-6 bg-white rounded-lg p-8 border border-gray-200 shadow-sm text-center">
+            <div className="mt-6 bg-white rounded-lg p-6 sm:p-8 border border-gray-200 shadow-sm text-center">
               <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Activity className="w-6 h-6 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                 Select Filters to View Health Profile
               </h3>
-              <p className="text-gray-500">
+              <p className="text-sm sm:text-base text-gray-500">
                 Please select Academic Year, Quarter, and Section from the
                 filter dropdown in the header to view BMI and health records.
               </p>

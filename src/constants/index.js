@@ -59,20 +59,14 @@ export const adminNav = [
   },
 
   {
-    name: "Student Approval",
-    icon: CircleCheck,
-    url: "/teacher/studentApproval",
-  },
-  {
-    name: "Health Profile (SF 8)",
-    icon: HeartPulse,
-    url: "/teacher/healthProfile",
-  },
-
-  {
     name: "Daily Attendance (SF 2)",
     icon: CalendarCheck,
     url: "/teacher/attendance",
+  },
+  {
+    name: "Textbooks (SF 3)",
+    icon: BookText,
+    url: "/teacher/textbook",
   },
   {
     name: "Monthly Summary (SF 4)",
@@ -80,33 +74,35 @@ export const adminNav = [
     url: "/teacher/attendanceMonthlySummary",
   },
   {
-    name: "Academic Records (SF 9)",
-    icon: ClipboardList,
-    url: "/teacher/grades",
-  },
-
-  {
-    name: "Textbooks (SF 3)",
-    icon: BookText,
-    url: "/teacher/textbook",
+    name: "Promotion (SF 5 & SF 6)",
+    icon: SignalHigh,
+    url: "/teacher/promotionReports",
   },
   {
     name: "Workload (SF 7)",
     icon: Briefcase,
     url: "/teacher/workload",
   },
-
   {
-    name: "Promotion (SF 5 & SF 6)",
-    icon: SignalHigh,
-    url: "/teacher/promotionReports",
+    name: "Health Profile (SF 8)",
+    icon: HeartPulse,
+    url: "/teacher/healthProfile",
+  },
+  {
+    name: "Academic Records (SF 9)",
+    icon: ClipboardList,
+    url: "/teacher/grades",
+  },
+  {
+    name: "Student Approval",
+    icon: CircleCheck,
+    url: "/teacher/studentApproval",
   },
   {
     name: "Certificates",
     icon: Award,
     url: "/teacher/certificates",
   },
-
   {
     name: "Parent Conference",
     icon: Users,

@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 import { adminNav, studentNav, superAdminNav } from "../../constants";
 import { Link, useLocation } from "react-router-dom";
 import SidebarFooter from "./SidebarFooter";
@@ -10,31 +12,50 @@ const teacherNavCategories = [
     items: adminNav.slice(0, 1), // Dashboard
   },
   {
-    title: "Student Management",
-    items: adminNav.slice(1, 4), // Student List, Approval, Health
+    title: "School Forms (SF 2-9)",
+    items: adminNav.slice(1, 8), // Daily Attendance (SF 2) through Academic Records (SF 9)
   },
   {
-    title: "Attendance & Records",
-    items: adminNav.slice(4, 7), // Daily, Monthly, Academic Records
-  },
-  {
-    title: "Academic Resources",
-    items: adminNav.slice(7, 9), // Textbooks, Workload
-  },
-  {
-    title: "Reports & Communication",
-    items: adminNav.slice(9), // Promotion, Certificates, Parent Conference
+    title: "Documents & Communication",
+    items: adminNav.slice(8),
   },
 ];
 
 const Sidebar = () => {
   const user = useAuthStore((state) => state.user);
   const { pathname } = useLocation();
+  const [expandedCategories, setExpandedCategories] = useState({});
 
   if (!user) return null;
 
+  // Toggle category expand/collapse
+  const toggleCategory = (title) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
+
+  // Auto-expand category if it contains the active route
+  useEffect(() => {
+    if (user.role?.toLowerCase() !== "teacher") return;
+
+    const newExpanded = {};
+    teacherNavCategories.forEach((category) => {
+      const isActive = category.items.some((item) => item.url === pathname);
+      if (isActive) {
+        newExpanded[category.title] = true;
+      }
+    });
+
+    setExpandedCategories((prev) => ({
+      ...prev, // Preserve manual expansions/collapses
+      ...newExpanded, // Ensure active categories are expanded
+    }));
+  }, [pathname, user.role]);
+
   const renderNavItems = (items) => (
-    <ul className="space-y-1">
+    <ul className="space-y-1 transition-all duration-200 overflow-hidden">
       {items.map(({ name, url, icon: Icon }) => (
         <li key={name}>
           <Link
@@ -56,6 +77,9 @@ const Sidebar = () => {
             <span className="hidden lg:block text-sm font-medium truncate">
               {name}
             </span>
+            <span className="lg:hidden text-xs font-medium truncate flex-1">
+              {name}
+            </span>
           </Link>
         </li>
       ))}
@@ -64,15 +88,33 @@ const Sidebar = () => {
 
   const renderCategorizedNav = () => {
     return (
-      <nav className="space-y-6">
-        {teacherNavCategories.map((category, index) => (
-          <div key={category.title}>
-            <h3 className="hidden lg:block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">
-              {category.title}
-            </h3>
-            {renderNavItems(category.items)}
-          </div>
-        ))}
+      <nav className="space-y-4 lg:space-y-6">
+        {teacherNavCategories.map((category) => {
+          const isExpanded = expandedCategories[category.title];
+          return (
+            <div key={category.title} className="space-y-1">
+              {/* Clickable Category Title */}
+              <h3
+                className={`cursor-pointer flex items-center justify-between text-xs font-semibold uppercase tracking-wide mb-2 px-3 py-1.5 rounded-lg transition-all duration-200 ${
+                  isExpanded
+                    ? "text-gray-700 bg-gray-50"
+                    : "text-gray-400 hover:bg-gray-50"
+                }`}
+                onClick={() => toggleCategory(category.title)}
+              >
+                <span className="truncate lg:pr-2">{category.title}</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0 transition-transform duration-200 ${
+                    isExpanded ? "rotate-180" : ""
+                  }`}
+                />
+              </h3>
+
+              {/* Items - Conditionally Rendered */}
+              {isExpanded && renderNavItems(category.items)}
+            </div>
+          );
+        })}
       </nav>
     );
   };
@@ -82,7 +124,7 @@ const Sidebar = () => {
       case "super_admin":
         return (
           <nav>
-            <h3 className="hidden lg:block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">
               System Administration
             </h3>
             {renderNavItems(superAdminNav)}
@@ -93,7 +135,7 @@ const Sidebar = () => {
       case "student":
         return (
           <nav>
-            <h3 className="hidden lg:block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">
               Student Portal
             </h3>
             {renderNavItems(studentNav)}

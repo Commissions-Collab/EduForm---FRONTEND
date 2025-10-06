@@ -18,7 +18,7 @@ const useAchievementsStore = create((set) => ({
     isLoading: false,
     error: null,
   },
-  downloaded: {}, // Track downloaded certificates
+  downloaded: {},
   fetchCertificates: async () => {
     set((state) => ({
       certificates: { ...state.certificates, isLoading: true, error: null },
@@ -29,8 +29,12 @@ const useAchievementsStore = create((set) => ({
         certificates: { ...state.certificates, data, isLoading: false },
       }));
     } catch (error) {
-      const message =
-        error?.response?.data?.message || "Failed to fetch certificates";
+      let message = "Failed to fetch certificates";
+      if (error?.response?.status === 404) {
+        message = "No active academic year found. Please contact support.";
+      } else if (error?.response?.data?.message) {
+        message = error.response.data.message;
+      }
       set((state) => ({
         certificates: {
           ...state.certificates,
@@ -55,7 +59,6 @@ const useAchievementsStore = create((set) => ({
           responseType: "blob",
         }
       );
-      // Check if response is a PDF or an error
       const contentType = response.headers["content-type"];
       if (contentType.includes("application/json")) {
         const text = await response.data.text();
@@ -66,10 +69,16 @@ const useAchievementsStore = create((set) => ({
         }));
         return false;
       }
+      const cert = [
+        ...useAchievementsStore.getState().certificates.data.academic_awards,
+        ...useAchievementsStore.getState().certificates.data.attendance_awards,
+      ].find((c) => c.type === type && c.quarter_id === quarterId);
+      const quarterName =
+        cert?.quarter?.toLowerCase().replace(/\s+/g, "-") || quarterId;
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `certificate-${type}-${quarterId}.pdf`);
+      link.setAttribute("download", `certificate-${type}-${quarterName}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();

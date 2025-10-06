@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
   Calendar,
   Clock,
@@ -51,7 +50,6 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
     fetchWeeklySchedule,
   ]);
 
-  // Display toast for errors
   useEffect(() => {
     if (error) {
       toast.error(`Failed to load schedule: ${error}`, {
@@ -154,16 +152,18 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
-  // Show loading message if no filters are set yet
   if (!academicYearId || !sectionId) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="text-center py-8">
-          <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-medium text-gray-600 mb-2">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <div className="text-center py-6 sm:py-8">
+          <Calendar
+            size={40}
+            className="mx-auto mb-4 text-gray-400 sm:w-12 sm:h-12"
+          />
+          <h3 className="text-base sm:text-lg font-medium text-gray-600 mb-2">
             Please select filters
           </h3>
-          <p className="text-gray-500">
+          <p className="text-sm sm:text-base text-gray-500">
             Select an Academic Year and Section from the header to view the
             schedule.
           </p>
@@ -173,20 +173,20 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
             Weekly Schedule
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
             Click on any class to manage attendance
           </p>
         </div>
 
         {/* Week Navigation */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-center sm:justify-end space-x-2 sm:space-x-4">
           <button
             onClick={() => navigateWeek("prev")}
             className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
@@ -195,9 +195,9 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
             <ChevronLeft size={16} />
           </button>
 
-          <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-lg">
-            <Calendar size={16} className="text-blue-600" />
-            <span className="font-medium text-blue-800">
+          <div className="flex items-center space-x-2 bg-blue-50 px-3 sm:px-4 py-2 rounded-lg">
+            <Calendar size={14} className="text-blue-600 hidden sm:block" />
+            <span className="font-medium text-blue-800 text-xs sm:text-sm">
               {formatWeekRange()}
             </span>
           </div>
@@ -213,9 +213,11 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-600 font-medium">Failed to load schedule</p>
-          <p className="text-red-500 text-sm">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 sm:mb-6">
+          <p className="text-red-600 font-medium text-sm sm:text-base">
+            Failed to load schedule
+          </p>
+          <p className="text-red-500 text-xs sm:text-sm">{error}</p>
           <button
             onClick={() => {
               if (academicYearId && sectionId) {
@@ -232,7 +234,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
                 );
               }
             }}
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="mt-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Retry
           </button>
@@ -240,7 +242,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           {days.map((day) => (
             <div key={day} className="space-y-3">
               <div className="text-center p-3 bg-gray-100 rounded-t-lg">
@@ -258,7 +260,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           {days.map((day) => {
             const daySchedules = getDaySchedules(day);
             const dayInfo = weeklySchedule?.schedule?.[day];
@@ -275,8 +277,10 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
                       : "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  <div className="font-semibold">{day}</div>
-                  <div className="text-sm">
+                  <div className="font-semibold text-sm sm:text-base">
+                    {day}
+                  </div>
+                  <div className="text-xs sm:text-sm">
                     {dayDate.toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -313,21 +317,24 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
 
                         <div className="space-y-2">
                           <div className="flex items-start space-x-2">
-                            <Book size={14} className="mt-0.5 flex-shrink-0" />
-                            <div className="text-sm font-semibold leading-tight">
+                            <Book
+                              size={12}
+                              className="mt-0.5 flex-shrink-0 hidden sm:block"
+                            />
+                            <div className="text-xs sm:text-sm font-semibold leading-tight">
                               {schedule.subject?.name || "Unknown Subject"}
                             </div>
                           </div>
 
                           <div className="flex items-center space-x-2">
-                            <Users size={12} />
+                            <Users size={10} className="hidden sm:block" />
                             <div className="text-xs">
                               {schedule.section?.name || "Unknown Section"}
                             </div>
                           </div>
 
                           <div className="flex items-center space-x-2">
-                            <Clock size={12} />
+                            <Clock size={10} className="hidden sm:block" />
                             <div className="text-xs">
                               {formatTime(schedule.time_start)} -{" "}
                               {formatTime(schedule.time_end)}
@@ -336,7 +343,7 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
 
                           {schedule.room && (
                             <div className="flex items-center space-x-2">
-                              <MapPin size={12} />
+                              <MapPin size={10} className="hidden sm:block" />
                               <div className="text-xs">{schedule.room}</div>
                             </div>
                           )}
@@ -356,8 +363,10 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
                     ))
                   ) : (
                     <div className="text-center text-gray-400 p-4">
-                      <Calendar size={24} className="mx-auto mb-2 opacity-50" />
-                      <div className="text-sm">No classes scheduled</div>
+                      <Calendar size={20} className="mx-auto mb-2 opacity-50" />
+                      <div className="text-xs sm:text-sm">
+                        No classes scheduled
+                      </div>
                     </div>
                   )}
                 </div>
@@ -369,8 +378,8 @@ const WeeklyScheduleView = ({ onScheduleClick }) => {
 
       {/* Summary */}
       {weeklySchedule?.schedules && weeklySchedule.schedules.length > 0 && (
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <div className="text-sm text-blue-700">
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 rounded-lg">
+          <div className="text-xs sm:text-sm text-blue-700">
             <strong>Week Summary:</strong> {weeklySchedule.schedules.length}{" "}
             classes scheduled
             {weeklySchedule.calendar_events &&
