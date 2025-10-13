@@ -10,6 +10,8 @@ import SuperAdminRoutes from "./routes/superAdminRoutes";
 import AdminRoutes from "./routes/adminRoutes";
 import UserRoutes from "./routes/userRoutes";
 import LoadingPage from "./components/common/LoadingPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
   const { initializeAuth, checkAuth, isCheckingAuth, isPostLoginLoading } =
@@ -39,6 +41,15 @@ function App() {
             {SuperAdminRoutes}
             {AdminRoutes}
             {UserRoutes}
+
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
