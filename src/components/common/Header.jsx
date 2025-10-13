@@ -14,8 +14,6 @@ import NotificationBell from "../NotificationBell";
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const notifDropdownRef = useRef(null);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   // Get user role from auth store
   const userRole = useAuthStore((state) => state.user?.role);
@@ -166,49 +164,7 @@ const Header = () => {
             {/* Right Section */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Notifications - Hidden for super_admin */}
-              {shouldShowNotifications && (
-                <div className="relative" ref={notifDropdownRef}>
-                  <button
-                    onClick={() => setIsNotifOpen(!isNotifOpen)}
-                    className="relative p-2.5 hover:bg-gray-100 text-gray-700 hover:text-gray-900 rounded-lg transition-all duration-200"
-                    aria-label="View notifications"
-                  >
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium border-2 border-white shadow-sm">
-                      3
-                    </span>
-                  </button>
-
-                  {/* Notifications Dropdown */}
-                  {isNotifOpen && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 overflow-hidden">
-                      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-white">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold text-sm">
-                              Notifications
-                            </h3>
-                            <p className="text-xs text-indigo-100">
-                              3 unread messages
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setIsNotifOpen(false)}
-                            className="p-1 hover:bg-white/20 rounded-md transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="max-h-64 overflow-y-auto">
-                        <div className="p-4 text-center text-gray-500 text-sm">
-                          No new notifications
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {shouldShowNotifications && <NotificationBell />}
             </div>
           </div>
         </div>
