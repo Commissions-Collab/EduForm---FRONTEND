@@ -56,15 +56,20 @@ const useEnrollmentStore = create((set, get) => ({
   fetchStudents: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/students?page=1&per_page=1000");
+      const { data } = await axiosInstance.get(
+        "/admin/students?page=1&per_page=1000"
+      );
 
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch students");
       }
-      const students = extractData(data, "data") || extractData(data, "students");
+      const students =
+        extractData(data, "data") || extractData(data, "students");
       set({ students, loading: false });
       if (students.length === 0) {
-        toast.error("No students available. Please add students in the admin panel.");
+        toast.error(
+          "No students available. Please add students in the admin panel."
+        );
       }
     } catch (err) {
       const message = handleError(err, "Failed to load students");
@@ -76,7 +81,9 @@ const useEnrollmentStore = create((set, get) => ({
   fetchAcademicYears: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/academic-years?page=1&per_page=100");
+      const { data } = await axiosInstance.get(
+        "/admin/academic-years?page=1&per_page=100"
+      );
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch academic years");
       }
@@ -98,11 +105,14 @@ const useEnrollmentStore = create((set, get) => ({
   fetchYearLevels: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/year-level?page=1&per_page=100");
+      const { data } = await axiosInstance.get(
+        "/admin/year-level?page=1&per_page=100"
+      );
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch year levels");
       }
-      const yearLevels = extractData(data, "yearLevel") || extractData(data, "data");
+      const yearLevels =
+        extractData(data, "yearLevel") || extractData(data, "data");
       set({ yearLevels, loading: false });
       if (yearLevels.length === 0) {
         toast.error(
@@ -119,11 +129,14 @@ const useEnrollmentStore = create((set, get) => ({
   fetchSections: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/admin/section?page=1&per_page=100");
+      const { data } = await axiosInstance.get(
+        "/admin/section?page=1&per_page=100"
+      );
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch sections");
       }
-      const sections = extractData(data, "sections") || extractData(data, "data");
+      const sections =
+        extractData(data, "sections") || extractData(data, "data");
       set({ sections, loading: false });
       if (sections.length === 0) {
         toast.error(
@@ -302,7 +315,7 @@ const handleUnauthorized = () => {
   useEnrollmentStore.getState().reset();
 };
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.addEventListener("unauthorized", handleUnauthorized);
 
   // Cleanup on module unload

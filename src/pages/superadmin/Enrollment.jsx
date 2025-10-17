@@ -130,11 +130,11 @@ const Enrollment = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Enrollment Management
+              Enrollment/Student Management
             </h1>
             <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mt-1">
               <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-medium">
-                Admin Panel
+                SF1
               </span>
             </div>
           </div>

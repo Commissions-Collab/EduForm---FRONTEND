@@ -319,14 +319,6 @@ const AdminDashboard = () => {
                             {weeklySummary.attendanceTrends.bestDay}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Improvement
-                          </span>
-                          <span className="font-semibold text-blue-600">
-                            {weeklySummary.attendanceTrends.improvement}
-                          </span>
-                        </div>
                       </div>
                     </div>
 
@@ -343,22 +335,6 @@ const AdminDashboard = () => {
                           </span>
                           <span className="font-bold text-purple-700 text-lg">
                             {weeklySummary.academicUpdates.gradesSubmitted}%
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Reports Generated
-                          </span>
-                          <span className="font-semibold text-gray-900">
-                            {weeklySummary.academicUpdates.reportsGenerated}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Pending Reviews
-                          </span>
-                          <span className="font-semibold text-amber-600">
-                            {weeklySummary.academicUpdates.pendingReviews}
                           </span>
                         </div>
                       </div>

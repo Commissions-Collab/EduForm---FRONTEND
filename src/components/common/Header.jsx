@@ -9,12 +9,11 @@ import useAttendanceStore from "../../stores/admin/attendanceStore";
 import useBmiStore from "../../stores/admin/bmiStore";
 import GlobalFilterDropdown from "../admin/GlobalFilterDropdown";
 import MobileNavigation from "./MobileNavigation";
+import NotificationBell from "../NotificationBell";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const notifDropdownRef = useRef();
 
   // Get user role from auth store
   const userRole = useAuthStore((state) => state.user?.role);
@@ -34,20 +33,6 @@ const Header = () => {
     (state) => state.fetchMonthlyAttendance
   );
   const fetchBmiStudents = useBmiStore((state) => state.fetchBmiStudents);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        notifDropdownRef.current &&
-        !notifDropdownRef.current.contains(event.target)
-      ) {
-        setIsNotifOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Listen for global filter changes and refresh data
   useEffect(() => {
@@ -179,49 +164,7 @@ const Header = () => {
             {/* Right Section */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Notifications - Hidden for super_admin */}
-              {shouldShowNotifications && (
-                <div className="relative" ref={notifDropdownRef}>
-                  <button
-                    onClick={() => setIsNotifOpen(!isNotifOpen)}
-                    className="relative p-1.5 sm:p-2.5 hover:bg-gray-100 text-gray-700 hover:text-gray-900 rounded-lg transition-all duration-200 flex-shrink-0"
-                    aria-label="View notifications"
-                  >
-                    <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-4.5 h-4.5 sm:w-5 sm:h-5 flex items-center justify-center rounded-full font-medium border-2 border-white shadow-sm">
-                      3
-                    </span>
-                  </button>
-
-                  {/* Notifications Dropdown - Smaller size */}
-                  {isNotifOpen && (
-                    <div className="absolute right-0 mt-2 w-72 max-w-[90vw] bg-white border border-gray-200/60 rounded-xl shadow-xl z-50 overflow-hidden">
-                      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-2.5 text-white">
-                        <div className="flex items-center justify-between">
-                          <div className="min-w-0">
-                            <h3 className="font-semibold text-xs truncate">
-                              Notifications
-                            </h3>
-                            <p className="text-xs text-indigo-100 hidden sm:block">
-                              3 unread messages
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setIsNotifOpen(false)}
-                            className="p-1 hover:bg-white/20 rounded-md transition-colors flex-shrink-0"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="max-h-48 sm:max-h-64 overflow-y-auto">
-                        <div className="p-3 text-center text-gray-500 text-xs">
-                          No new notifications
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {shouldShowNotifications && <NotificationBell />}
             </div>
           </div>
         </div>

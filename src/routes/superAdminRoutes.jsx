@@ -7,6 +7,7 @@ import Enrollment from "../pages/superadmin/Enrollment";
 import AcademicCalendar from "../pages/superadmin/AcademicCalendar";
 import ClassManagement from "../pages/superadmin/ClassManagement";
 import TeacherManagement from "../pages/superadmin/TeacherManagement";
+import AttendanceMonthlySummary from "../pages/superadmin/AttendanceMonthlySummary";
 
 const SuperAdminRoutes = (
   <Route
@@ -23,6 +24,10 @@ const SuperAdminRoutes = (
     <Route path="enrollment" element={<Enrollment />} />
     <Route path="calendar" element={<AcademicCalendar />} />
     <Route path="class" element={<ClassManagement />} />
+    <Route
+      path="attendanceMonthlySummary"
+      element={<AttendanceMonthlySummary />}
+    />
     <Route path="teacher" element={<TeacherManagement />} />
   </Route>
 );
