@@ -19,7 +19,6 @@ const handleError = (err, defaultMessage, set) => {
   return message;
 };
 
-/** @type {import('zustand').StoreApi<AttendanceState & AttendanceActions>} */
 const useAttendanceStore = create((set, get) => ({
   scheduleAttendance: {},
   studentAttendance: {},

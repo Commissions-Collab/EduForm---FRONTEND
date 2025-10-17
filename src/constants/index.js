@@ -30,10 +30,16 @@ export const superAdminNav = [
     url: "/super_admin/dashboard",
   },
   {
-    name: "Enrollment",
+    name: "Student Management (SF 1)",
     icon: FileText,
     url: "/super_admin/enrollment",
   },
+  {
+    name: "Monthly Summary (SF 4)",
+    icon: CalendarDays,
+    url: "/super_admin/attendanceMonthlySummary",
+  },
+
   {
     name: "Academic Calendar",
     icon: CalendarDays,
@@ -67,11 +73,6 @@ export const adminNav = [
     name: "Textbooks (SF 3)",
     icon: BookText,
     url: "/teacher/textbook",
-  },
-  {
-    name: "Monthly Summary (SF 4)",
-    icon: CalendarDays,
-    url: "/teacher/attendanceMonthlySummary",
   },
   {
     name: "Promotion (SF 5 & SF 6)",

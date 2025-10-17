@@ -682,19 +682,18 @@ const AcademicCalendar = () => {
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <header className="mb-8">
-          <div className="flex items-center space-x-4 mb-6">
-            <CalendarDays className="w-8 h-8 text-indigo-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Academic Calendar
-              </h1>
-              <p className="text-gray-600 text-sm mt-1">
-                Manage school events and class days ({total} total events)
-              </p>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Academic Calendar
+            </h1>
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mt-1">
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-medium">
+                Manage academic events and holidays
+              </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-5 p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
               <div className="flex items-center space-x-3">
                 <select

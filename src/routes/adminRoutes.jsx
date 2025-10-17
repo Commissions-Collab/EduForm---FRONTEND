@@ -14,7 +14,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import StudentApproval from "../pages/admin/forms/StudentApproval";
 
 import DailyAttendance from "../pages/admin/forms/Attendance";
-import AttendanceMonthlySummary from "../pages/admin/forms/AttendanceMonthlySummary";
+
 import StudentAttendanceHistory from "../pages/admin/StudentAttendanceHistory";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
@@ -31,10 +31,7 @@ const AdminRoutes = (
   >
     <Route path="dashboard" element={<AdminDashboard />} />
     <Route path="attendance" element={<DailyAttendance />} />
-    <Route
-      path="attendanceMonthlySummary"
-      element={<AttendanceMonthlySummary />}
-    />
+
     <Route
       path="attendance/history/:scheduleId/:studentId"
       element={<StudentAttendanceHistory />}
