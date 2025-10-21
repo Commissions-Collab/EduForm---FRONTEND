@@ -1,23 +1,20 @@
 import React, { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 import useAuthStore from "../../stores/auth";
 import { clearStorage } from "../../lib/utils";
 import toast from "react-hot-toast";
 
-// Type definitions for form data
-/** @typedef {{ LRN: string, first_name: string, middle_name?: string, last_name: string, birthday: string, gender: string, parents_fullname?: string, relationship_to_student?: string, parents_number?: string, parents_email?: string, email: string, password: string, password_confirmation: string }} SignUpFormData */
-
-/**
- * SignUp component for user registration
- * @returns {JSX.Element} SignUp form component
- */
 const SignUp = () => {
   const navigate = useNavigate();
   const { register: registerUser, isRegistering, authError } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [registrationError, setRegistrationError] = useState(null);
 
   const {
     register,
@@ -26,6 +23,9 @@ const SignUp = () => {
     trigger,
     getValues,
     setError,
+    reset,
+    watch,
+    clearErrors,
   } = useForm({
     mode: "onBlur",
     defaultValues: {
@@ -45,6 +45,7 @@ const SignUp = () => {
     },
   });
 
+  const password = watch("password");
   const totalSteps = 4;
 
   // Handle image upload with validation
@@ -121,6 +122,7 @@ const SignUp = () => {
       }
 
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+      setRegistrationError(null);
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
         console.error("Error proceeding to next step:", {
@@ -135,11 +137,12 @@ const SignUp = () => {
   // Go to the previous step
   const prevStep = useCallback(() => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setRegistrationError(null);
   }, []);
 
-  // Handle form submission
+  // Handle form submission with proper error recovery
   const onSubmit = useCallback(
-    async (/** @type {SignUpFormData} */ data) => {
+    async (data) => {
       try {
         if (data.password !== data.password_confirmation) {
           setError("password_confirmation", {
@@ -148,7 +151,8 @@ const SignUp = () => {
           return;
         }
 
-        clearStorage();
+        setRegistrationError(null);
+
         const formData = new FormData();
         formData.append("LRN", data.LRN);
         formData.append("first_name", data.first_name);
@@ -170,26 +174,23 @@ const SignUp = () => {
           formData.append("image", imageFile);
         }
 
-        // Debug FormData
-        if (process.env.NODE_ENV !== "production") {
-          for (const [key, value] of formData.entries()) {
-            console.log(
-              `${key}: ${value instanceof File ? value.name : value}`
-            );
-          }
-        }
-
         const result = await registerUser(formData);
         if (result.success) {
           toast.success(
             result.message ||
-              "Registration request submitted. Awaiting approval."
+              "Registration request submitted. Your account will be reviewed by an administrator. You'll receive an email once approved."
           );
+          // Reset form completely for fresh start
+          reset();
+          setImageFile(null);
+          setImagePreview(null);
+          setCurrentStep(1);
+          setRegistrationError(null);
+          clearErrors();
           navigate("/sign-in");
         } else {
-          setError("form", {
-            message: result.message || "Registration failed",
-          });
+          // Set specific error that can be cleared when user tries again
+          setRegistrationError(result.message || "Registration failed");
         }
       } catch (error) {
         if (process.env.NODE_ENV !== "production") {
@@ -198,12 +199,12 @@ const SignUp = () => {
             data,
           });
         }
-        setError("form", {
-          message: "An unexpected error occurred during registration",
-        });
+        setRegistrationError(
+          "An unexpected error occurred during registration. Please try again."
+        );
       }
     },
-    [registerUser, navigate, setError, imageFile, clearStorage, toast]
+    [registerUser, navigate, setError, imageFile, reset, clearErrors]
   );
 
   const renderStepContent = useCallback(() => {
@@ -225,7 +226,9 @@ const SignUp = () => {
                 {...register("LRN", { required: "LRN is required" })}
                 id="LRN"
                 placeholder="Learner Reference Number (LRN)"
-                className={`form-input ${errors.LRN ? "border-red-500" : ""}`}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                  errors.LRN ? "border-red-500" : "border-gray-300"
+                }`}
                 aria-invalid={errors.LRN ? "true" : "false"}
                 aria-describedby={errors.LRN ? "LRN-error" : undefined}
               />
@@ -253,8 +256,8 @@ const SignUp = () => {
                   })}
                   id="first_name"
                   placeholder="First Name"
-                  className={`form-input ${
-                    errors.first_name ? "border-red-500" : ""
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                    errors.first_name ? "border-red-500" : "border-gray-300"
                   }`}
                   aria-invalid={errors.first_name ? "true" : "false"}
                   aria-describedby={
@@ -282,7 +285,7 @@ const SignUp = () => {
                   {...register("middle_name")}
                   id="middle_name"
                   placeholder="Middle Name (Optional)"
-                  className="form-input"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition"
                   aria-describedby="middle_name-info"
                 />
                 <span id="middle_name-info" className="sr-only">
@@ -303,8 +306,8 @@ const SignUp = () => {
                 })}
                 id="last_name"
                 placeholder="Last Name"
-                className={`form-input ${
-                  errors.last_name ? "border-red-500" : ""
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                  errors.last_name ? "border-red-500" : "border-gray-300"
                 }`}
                 aria-invalid={errors.last_name ? "true" : "false"}
                 aria-describedby={
@@ -342,8 +345,8 @@ const SignUp = () => {
                     },
                   })}
                   id="birthday"
-                  className={`form-input ${
-                    errors.birthday ? "border-red-500" : ""
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                    errors.birthday ? "border-red-500" : "border-gray-300"
                   }`}
                   aria-invalid={errors.birthday ? "true" : "false"}
                   aria-describedby={
@@ -370,8 +373,8 @@ const SignUp = () => {
                 <select
                   {...register("gender", { required: "Gender is required" })}
                   id="gender"
-                  className={`form-input ${
-                    errors.gender ? "border-red-500" : ""
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                    errors.gender ? "border-red-500" : "border-gray-300"
                   }`}
                   aria-invalid={errors.gender ? "true" : "false"}
                   aria-describedby={errors.gender ? "gender-error" : undefined}
@@ -400,6 +403,9 @@ const SignUp = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Parent/Guardian Information
             </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              All fields are optional
+            </p>
             <div>
               <label
                 htmlFor="parents_fullname"
@@ -411,7 +417,7 @@ const SignUp = () => {
                 {...register("parents_fullname")}
                 id="parents_fullname"
                 placeholder="Parent's Full Name"
-                className="form-input"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition"
                 aria-describedby="parents_fullname-info"
               />
               <span id="parents_fullname-info" className="sr-only">
@@ -429,7 +435,7 @@ const SignUp = () => {
                 {...register("relationship_to_student")}
                 id="relationship_to_student"
                 placeholder="Relationship"
-                className="form-input"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition"
                 aria-describedby="relationship_to_student-info"
               />
               <span id="relationship_to_student-info" className="sr-only">
@@ -452,8 +458,8 @@ const SignUp = () => {
                 })}
                 id="parents_number"
                 placeholder="Parent's Number"
-                className={`form-input ${
-                  errors.parents_number ? "border-red-500" : ""
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                  errors.parents_number ? "border-red-500" : "border-gray-300"
                 }`}
                 aria-invalid={errors.parents_number ? "true" : "false"}
                 aria-describedby={
@@ -491,8 +497,8 @@ const SignUp = () => {
                 })}
                 id="parents_email"
                 placeholder="Parent's Email"
-                className={`form-input ${
-                  errors.parents_email ? "border-red-500" : ""
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                  errors.parents_email ? "border-red-500" : "border-gray-300"
                 }`}
                 aria-invalid={errors.parents_email ? "true" : "false"}
                 aria-describedby={
@@ -523,7 +529,7 @@ const SignUp = () => {
               Profile Picture
             </h3>
             <p className="text-gray-600 text-sm mb-4">
-              Add a profile picture to personalize your account (Optional).
+              Add a profile picture to personalize your account.
             </p>
             <div className="flex flex-col items-center space-y-4">
               {imagePreview ? (
@@ -620,7 +626,9 @@ const SignUp = () => {
                 })}
                 id="email"
                 placeholder="Email"
-                className={`form-input ${errors.email ? "border-red-500" : ""}`}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                  errors.email ? "border-red-500" : "border-gray-300"
+                }`}
                 aria-invalid={errors.email ? "true" : "false"}
                 aria-describedby={errors.email ? "email-error" : undefined}
               />
@@ -637,29 +645,39 @@ const SignUp = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1 sr-only"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Password
               </label>
-              <input
-                type="password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters",
-                  },
-                })}
-                id="password"
-                placeholder="Password"
-                className={`form-input ${
-                  errors.password ? "border-red-500" : ""
-                }`}
-                aria-invalid={errors.password ? "true" : "false"}
-                aria-describedby={
-                  errors.password ? "password-error" : undefined
-                }
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters",
+                    },
+                  })}
+                  id="password"
+                  placeholder="Password"
+                  className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  }`}
+                  aria-invalid={errors.password ? "true" : "false"}
+                  aria-describedby={
+                    errors.password ? "password-error" : undefined
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {errors.password && (
                 <p
                   className="text-red-500 text-sm mt-1"
@@ -673,29 +691,47 @@ const SignUp = () => {
             <div>
               <label
                 htmlFor="password_confirmation"
-                className="block text-sm font-medium text-gray-700 mb-1 sr-only"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Confirm Password
               </label>
-              <input
-                type="password"
-                {...register("password_confirmation", {
-                  required: "Password confirmation is required",
-                  validate: (value) =>
-                    value === getValues("password") || "Passwords do not match",
-                })}
-                id="password_confirmation"
-                placeholder="Confirm Password"
-                className={`form-input ${
-                  errors.password_confirmation ? "border-red-500" : ""
-                }`}
-                aria-invalid={errors.password_confirmation ? "true" : "false"}
-                aria-describedby={
-                  errors.password_confirmation
-                    ? "password_confirmation-error"
-                    : undefined
-                }
-              />
+              <div className="relative">
+                <input
+                  type={showPasswordConfirm ? "text" : "password"}
+                  {...register("password_confirmation", {
+                    required: "Password confirmation is required",
+                    validate: (value) =>
+                      value === password || "Passwords do not match",
+                  })}
+                  id="password_confirmation"
+                  placeholder="Confirm Password"
+                  className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-[#3730A3] focus:border-transparent outline-none transition ${
+                    errors.password_confirmation
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                  aria-invalid={errors.password_confirmation ? "true" : "false"}
+                  aria-describedby={
+                    errors.password_confirmation
+                      ? "password_confirmation-error"
+                      : undefined
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  aria-label={
+                    showPasswordConfirm ? "Hide password" : "Show password"
+                  }
+                >
+                  {showPasswordConfirm ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
               {errors.password_confirmation && (
                 <p
                   className="text-red-500 text-sm mt-1"
@@ -706,23 +742,13 @@ const SignUp = () => {
                 </p>
               )}
             </div>
-            {errors.form && (
-              <p
-                className="text-red-500 text-sm mt-1 text-center"
-                id="form-error"
+            {registrationError && (
+              <div
+                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
                 role="alert"
               >
-                {errors.form.message}
-              </p>
-            )}
-            {authError && !errors.form && (
-              <p
-                className="text-red-500 text-sm mt-1 text-center"
-                id="auth-error"
-                role="alert"
-              >
-                {authError}
-              </p>
+                {registrationError}
+              </div>
             )}
           </div>
         );
@@ -737,9 +763,10 @@ const SignUp = () => {
     imageFile,
     handleImageUpload,
     removeImage,
-    getValues,
-    setError,
-    authError,
+    showPassword,
+    showPasswordConfirm,
+    password,
+    registrationError,
   ]);
 
   return (

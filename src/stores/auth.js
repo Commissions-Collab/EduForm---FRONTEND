@@ -247,6 +247,12 @@ export const useAuthStore = create((set, get) => ({
     set({ isRegistering: true, authError: null });
     try {
       await fetchCsrfToken();
+
+      // Remove image if it's not provided (already null)
+      if (!formData.get("image")) {
+        formData.delete("image");
+      }
+
       const { data, status } = await axiosInstance.post("/register", formData, {
         timeout: 10000,
         headers: { "Content-Type": "multipart/form-data" },
@@ -279,13 +285,7 @@ export const useAuthStore = create((set, get) => ({
       const message = err.response?.data?.errors
         ? Object.values(err.response.data.errors).flat().join(", ")
         : err.response?.data?.message || err.message || "Registration failed";
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Registration error", {
-          status: err.response?.status,
-          data: err.response?.data,
-          message: err.message,
-        });
-      }
+
       set({ authError: message, isRegistering: false });
       toast.error(message);
       return { success: false, message };
