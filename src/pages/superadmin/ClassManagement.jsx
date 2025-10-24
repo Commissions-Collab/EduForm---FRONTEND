@@ -37,6 +37,14 @@ const ClassManagement = () => {
     sections: 1,
   });
 
+  // Initial load effect - fetch data on component mount
+  useEffect(() => {
+    fetchAcademicYears(1);
+    fetchYearLevels(1);
+    fetchSections(1);
+  }, []); // Empty dependency array - runs once on mount
+
+  // Page change effect - refetch when currentPage changes
   useEffect(() => {
     fetchAcademicYears(currentPage.academicYears);
     fetchYearLevels(currentPage.yearLevels);
