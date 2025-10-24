@@ -3,7 +3,7 @@ import { getItem, removeItem } from "./utils";
 import toast from "react-hot-toast";
 
 // Configuration constants aligned with backend
-const BASE_URL = "http://127.0.0.1:8000/api";
+const BASE_URL = "http://127.0.0.1:8000/api"; //https://api.acad-flow.com
 const SANCTUM_CSRF_URL = BASE_URL.replace("/api", "") + "/sanctum/csrf-cookie";
 const SESSION_LIFETIME_MINUTES = 120; // Match backend SESSION_LIFETIME
 
