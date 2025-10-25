@@ -53,12 +53,12 @@ const Enrollment = () => {
     fetchSections,
   ]);
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      clearError();
-    }
-  }, [error, clearError]);
+  // useEffect(() => {
+  //   if (error) {
+  //     toast.error(error);
+  //     clearError();
+  //   }
+  // }, [error, clearError]);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this enrollment?")) {

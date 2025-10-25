@@ -26,7 +26,7 @@ const useEnrollmentStore = create((set, get) => ({
   loading: false,
   error: null,
 
-  fetchEnrollments: async (page = 1, perPage = 25) => {
+  fetchEnrollments: async (page = 1, perPage = 25, skipToast = false) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
@@ -48,12 +48,11 @@ const useEnrollmentStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load enrollments");
       set({ error: message, enrollments: [], loading: false });
-      toast.error(message);
+      if (!skipToast) toast.error(message);
     }
   },
 
-  // Add dedicated method to fetch all students
-  fetchStudents: async () => {
+  fetchStudents: async (showToast = true) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
@@ -66,19 +65,14 @@ const useEnrollmentStore = create((set, get) => ({
       const students =
         extractData(data, "data") || extractData(data, "students");
       set({ students, loading: false });
-      if (students.length === 0) {
-        toast.error(
-          "No students available. Please add students in the admin panel."
-        );
-      }
     } catch (err) {
       const message = handleError(err, "Failed to load students");
       set({ error: message, students: [], loading: false });
-      toast.error(message);
+      if (showToast) toast.error(message);
     }
   },
 
-  fetchAcademicYears: async () => {
+  fetchAcademicYears: async (showToast = true) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
@@ -90,19 +84,14 @@ const useEnrollmentStore = create((set, get) => ({
       const academicYears =
         extractData(data, "data") || extractData(data, "academic_years");
       set({ academicYears, loading: false });
-      if (academicYears.length === 0) {
-        toast.error(
-          "No academic years available. Please add academic years in the admin panel."
-        );
-      }
     } catch (err) {
       const message = handleError(err, "Failed to load academic years");
       set({ error: message, academicYears: [], loading: false });
-      toast.error(message);
+      if (showToast) toast.error(message);
     }
   },
 
-  fetchYearLevels: async () => {
+  fetchYearLevels: async (showToast = true) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
@@ -114,19 +103,14 @@ const useEnrollmentStore = create((set, get) => ({
       const yearLevels =
         extractData(data, "yearLevel") || extractData(data, "data");
       set({ yearLevels, loading: false });
-      if (yearLevels.length === 0) {
-        toast.error(
-          "No grade levels available. Please add grade levels in the admin panel."
-        );
-      }
     } catch (err) {
       const message = handleError(err, "Failed to load year levels");
       set({ error: message, yearLevels: [], loading: false });
-      toast.error(message);
+      if (showToast) toast.error(message);
     }
   },
 
-  fetchSections: async () => {
+  fetchSections: async (showToast = true) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
@@ -138,15 +122,10 @@ const useEnrollmentStore = create((set, get) => ({
       const sections =
         extractData(data, "sections") || extractData(data, "data");
       set({ sections, loading: false });
-      if (sections.length === 0) {
-        toast.error(
-          "No sections available. Please add sections in the admin panel."
-        );
-      }
     } catch (err) {
       const message = handleError(err, "Failed to load sections");
       set({ error: message, sections: [], loading: false });
-      toast.error(message);
+      if (showToast) toast.error(message);
     }
   },
 
@@ -165,7 +144,8 @@ const useEnrollmentStore = create((set, get) => ({
       toast.success("Enrollment created successfully");
       await get().fetchEnrollments(
         get().pagination.current_page,
-        get().pagination.per_page
+        get().pagination.per_page,
+        false
       );
       return data;
     } catch (err) {
@@ -180,7 +160,6 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
-      // Fix: Use correct endpoint
       const { data } = await axiosInstance.post(
         "/admin/enrollments/bulk-store",
         bulkData
@@ -192,7 +171,8 @@ const useEnrollmentStore = create((set, get) => ({
       toast.success(`${data.count || 0} students enrolled successfully`);
       await get().fetchEnrollments(
         get().pagination.current_page,
-        get().pagination.per_page
+        get().pagination.per_page,
+        false
       );
       return data;
     } catch (err) {
@@ -235,7 +215,8 @@ const useEnrollmentStore = create((set, get) => ({
       toast.success("Enrollment updated successfully");
       await get().fetchEnrollments(
         get().pagination.current_page,
-        get().pagination.per_page
+        get().pagination.per_page,
+        false
       );
       return data;
     } catch (err) {
@@ -258,7 +239,8 @@ const useEnrollmentStore = create((set, get) => ({
       toast.success("Enrollment deleted successfully");
       await get().fetchEnrollments(
         get().pagination.current_page,
-        get().pagination.per_page
+        get().pagination.per_page,
+        false
       );
       return data;
     } catch (err) {
@@ -284,7 +266,8 @@ const useEnrollmentStore = create((set, get) => ({
       toast.success(`${data.count || 0} students promoted successfully`);
       await get().fetchEnrollments(
         get().pagination.current_page,
-        get().pagination.per_page
+        get().pagination.per_page,
+        false
       );
       return data;
     } catch (err) {
