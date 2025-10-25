@@ -6,6 +6,7 @@ import TeacherModal from "../../components/superadmin/TeacherModal";
 import TeacherManagementTable from "../../components/superadmin/TeacherManagementTable";
 import AssignScheduleModal from "../../components/superadmin/AssignScheduleModal";
 import AssignAdviserModal from "../../components/superadmin/AssignAdviserModal";
+import AssignSubjectModal from "../../components/superadmin/AssignSubjectModal";
 
 const TeacherManagement = () => {
   const {
@@ -24,7 +25,8 @@ const TeacherManagement = () => {
 
   const [isAdviserModalOpen, setIsAdviserModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-
+  const [isAssignSubjectModalOpen, setIsAssignSubjectModalOpen] =
+    useState(false);
   useEffect(() => {
     fetchTeachers(1, 25); // Fetch first page with 25 teachers
   }, [fetchTeachers]);
@@ -46,10 +48,16 @@ const TeacherManagement = () => {
     setIsAdviserModalOpen(true);
   };
 
+  const handleOpenAssignSubjectModal = (teacher) => {
+    setSelectedTeacher(teacher);
+    setIsAssignSubjectModalOpen(true);
+  };
+
   const handleCloseAllModals = () => {
     setIsTeacherModalOpen(false);
     setIsScheduleModalOpen(false);
     setIsAdviserModalOpen(false);
+    setIsAssignSubjectModalOpen(false); // ✅ NEW
     setSelectedTeacher(null);
   };
 
@@ -147,6 +155,7 @@ const TeacherManagement = () => {
         </div>
       </div>
 
+      {/* Teachers Table */}
       <section className="mb-6 sm:mb-8">
         <TeacherManagementTable
           title="Teachers"
@@ -165,9 +174,11 @@ const TeacherManagement = () => {
           onDelete={handleDelete}
           onAssignSchedule={handleOpenScheduleModal}
           onAssignAdviser={handleOpenAdviserModal}
+          onAssignSubjects={handleOpenAssignSubjectModal}
         />
       </section>
 
+      {/* Modals */}
       <TeacherModal
         isOpen={isTeacherModalOpen}
         onClose={() => setIsTeacherModalOpen(false)}
@@ -182,6 +193,12 @@ const TeacherManagement = () => {
 
       <AssignAdviserModal
         isOpen={isAdviserModalOpen}
+        onClose={handleCloseAllModals}
+        teacher={selectedTeacher}
+      />
+
+      <AssignSubjectModal
+        isOpen={isAssignSubjectModalOpen}
         onClose={handleCloseAllModals}
         teacher={selectedTeacher}
       />

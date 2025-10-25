@@ -8,8 +8,10 @@ const handleError = (err, defaultMessage) => {
 
 const useClassManagementStore = create((set, get) => ({
   academicYears: {},
+  quarters: {},
   yearLevels: {},
   sections: {},
+  subjects: {},
   loading: false,
   error: null,
 
@@ -89,14 +91,133 @@ const useClassManagementStore = create((set, get) => ({
     }
   },
 
+  fetchQuarters: async (page = 1, search = "") => {
+    set({ loading: true, error: null, currentPage: page });
+    try {
+      const { data } = await axiosInstance.get(
+        `/admin/quarters?page=${page}&search=${search}`
+      );
+      set({ quarters: data.quarters || {}, loading: false });
+    } catch (err) {
+      // Only show error if it's not a "no data" scenario
+      if (err.response?.status !== 404) {
+        const message = handleError(err, "Failed to load quarters");
+        set({ error: message, loading: false });
+        toast.error(message);
+      } else {
+        // No data found - set empty state without error
+        set({
+          quarters: {
+            data: [],
+            total: 0,
+            per_page: 25,
+            current_page: page,
+            last_page: 1,
+          },
+          loading: false,
+        });
+      }
+    }
+  },
+
+  createQuarter: async (quarterDataArray) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.post(
+        "/admin/quarters",
+        quarterDataArray
+      );
+      toast.success(data.message || "Quarters created successfully");
+      await get().fetchQuarters(1);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to create quarters");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  fetchQuarterById: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(`/admin/quarters/${id}`);
+      set({ loading: false });
+      return data.quarter;
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch quarter details");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  updateQuarterDates: async (id, formData) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.patch(
+        `/admin/quarters/${id}`,
+        formData
+      );
+      toast.success("Quarter updated successfully");
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to update quarter");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  deleteQuarter: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.delete(`/admin/quarters/${id}`);
+      toast.success("Quarter deleted successfully");
+      await get().fetchQuarters(get().quarters.current_page || 1);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to delete quarter");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  fetchQuartersByAcademicYear: async (academicYearId) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(
+        `/admin/quarters/academic-year/${academicYearId}`
+      );
+      set({ loading: false });
+      return data.quarters || [];
+    } catch (err) {
+      // Don't show error for empty data - just return empty array
+      if (err.response?.status === 404) {
+        set({ loading: false });
+        return [];
+      }
+      const message = handleError(err, "Failed to load quarters");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
   fetchYearLevels: async (page = 1) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
         `/admin/year-level?page=${page}`
       );
-      console.log("Year Levels fetched:", data);
-      set({ yearLevels: data.yearLevel || {}, loading: false });
+      set({ yearLevels: data, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load year levels");
       set({ error: message, loading: false });
@@ -162,11 +283,7 @@ const useClassManagementStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(`/admin/section?page=${page}`);
-
-      // Access sections data - try multiple possible keys
-      const sectionsData = data.data || data.sections || data;
-
-      set({ sections: sectionsData || {}, loading: false });
+      set({ sections: data, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load sections");
       set({ error: message, loading: false });
@@ -234,11 +351,100 @@ const useClassManagementStore = create((set, get) => ({
     }
   },
 
+  fetchSubjects: async (page = 1) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(`/admin/subjects?page=${page}`);
+      set({ subjects: data || {}, loading: false });
+    } catch (err) {
+      const message = handleError(err, "Failed to load subjects");
+      set({ error: message, loading: false });
+      toast.error(message);
+    }
+  },
+
+  createSubjects: async (subjectsData) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.post("/admin/subjects", {
+        subjects: subjectsData,
+      });
+      toast.success(data.message || "Subjects created successfully");
+      await get().fetchSubjects(1);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to create subjects");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  updateSubject: async (id, subjectData) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.put(
+        `/admin/subjects/${id}`,
+        subjectData
+      );
+      toast.success("Subject updated successfully");
+      await get().fetchSubjects(get().subjects.current_page || 1);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to update subject");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  deleteSubject: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.delete(`/admin/subjects/${id}`);
+      toast.success("Subject deleted successfully");
+      await get().fetchSubjects(get().subjects.current_page || 1);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to delete subject");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  toggleSubjectActive: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.patch(
+        `/admin/subjects/${id}/toggle-active`
+      );
+      toast.success("Subject status updated successfully");
+      await get().fetchSubjects(get().subjects.current_page || 1);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to update subject status");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
   reset: () =>
     set({
       academicYears: {},
+      quarters: {},
       yearLevels: {},
       sections: {},
+      subjects: {},
       loading: false,
       error: null,
     }),

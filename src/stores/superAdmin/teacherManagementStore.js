@@ -26,6 +26,7 @@ const useTeacherManagementStore = create((set, get) => ({
   academicYear: null,
   quarters: [],
   subjects: [],
+  sections: [],
 
   fetchDropdownData: async () => {
     set({ loading: true, error: null });
@@ -238,6 +239,79 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
+  assignSubjects: async (assignmentData) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.post(
+        "/admin/teacher/assign-subjects",
+        assignmentData
+      );
+
+      if (data.success === false) {
+        throw new Error(data.message || "Failed to assign subjects");
+      }
+
+      set({ loading: false });
+      toast.success(data.message || "Subjects assigned successfully");
+
+      await get().fetchTeachers(
+        get().pagination.current_page,
+        get().pagination.per_page
+      );
+
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to assign subjects");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  fetchSubjects: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get("/admin/teacher/subjects");
+
+      if (!data?.success) {
+        throw new Error(data?.message || "Failed to load subjects");
+      }
+
+      set({
+        subjects: Array.isArray(data.data) ? data.data : [],
+        loading: false,
+      });
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch subjects");
+      set({ error: message, loading: false });
+      toast.error(message);
+    }
+  },
+
+  fetchSectionsByYear: async (academicYearId) => {
+    if (!academicYearId) return;
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(
+        `/admin/teacher/sections/${academicYearId}`
+      );
+
+      if (!data?.success) {
+        throw new Error(data?.message || "Failed to load sections");
+      }
+
+      set({
+        sections: Array.isArray(data.data) ? data.data : [],
+        loading: false,
+      });
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch sections");
+      set({ error: message, loading: false });
+      toast.error(message);
+    }
+  },
+
   clearError: () => set({ error: null }),
 
   reset: () =>
@@ -249,6 +323,7 @@ const useTeacherManagementStore = create((set, get) => ({
       academicYear: null,
       quarters: [],
       subjects: [],
+      sections: [],
     }),
 }));
 

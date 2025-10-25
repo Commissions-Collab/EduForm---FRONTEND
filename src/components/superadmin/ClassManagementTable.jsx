@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
-
-import { Calendar, GraduationCap, Eye, Menu, Plus } from "lucide-react";
+import { Calendar, GraduationCap, Eye, Menu, Layers } from "lucide-react";
 import Pagination from "./Pagination";
 
 const ClassManagementTable = ({
@@ -13,14 +12,18 @@ const ClassManagementTable = ({
   onAdd,
   onEdit,
   onDelete,
+  onManageQuarters,
+  onToggleActive, // New prop for subject toggle
   currentPage,
   onPageChange,
 }) => {
-  // Memoize filtered records
   const filteredRecords = useMemo(() => {
-    return (data.data || []).filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return (data.data || []).filter((item) => {
+      const searchLower = searchTerm.toLowerCase();
+      const nameMatch = item.name?.toLowerCase().includes(searchLower);
+      const codeMatch = item.code?.toLowerCase().includes(searchLower);
+      return nameMatch || codeMatch;
+    });
   }, [data, searchTerm]);
 
   const totalRecords = data.total || 0;
@@ -29,7 +32,6 @@ const ClassManagementTable = ({
   const from = data.from || currentPage * itemsPerPage - itemsPerPage + 1;
   const to = data.to || Math.min(currentPage * itemsPerPage, totalRecords);
 
-  // Color for section/year level badges
   const getItemColor = (name) => {
     const colors = [
       "bg-blue-100 text-blue-800 border-blue-200",
@@ -42,127 +44,6 @@ const ClassManagementTable = ({
     const hash = name?.split("").reduce((a, b) => a + b.charCodeAt(0), 0) || 0;
     return colors[hash % colors.length];
   };
-
-  // Mobile Card Component
-  const ItemCard = ({ item }) => {
-    return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            {type === "academic year" ? (
-              <Calendar className="w-4 h-4 text-white" />
-            ) : (
-              <GraduationCap className="w-4 h-4 text-white" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
-                {item.name}
-              </h3>
-            </div>
-            <div className="space-y-1 text-xs text-gray-600">
-              {type === "academic year" && (
-                <>
-                  <p>
-                    <span className="font-medium">Start:</span>{" "}
-                    {new Date(item.start_date).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <span className="font-medium">End:</span>{" "}
-                    {new Date(item.end_date).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <span className="font-medium">Status:</span>{" "}
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        item.is_current
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {item.is_current ? "Active" : "Inactive"}
-                    </span>
-                  </p>
-                </>
-              )}
-              {type === "year level" && (
-                <>
-                  <p>
-                    <span className="font-medium">Code:</span> {item.code}
-                  </p>
-                  <p>
-                    <span className="font-medium">Order:</span>{" "}
-                    {item.sort_order}
-                  </p>
-                </>
-              )}
-              {type === "section" && (
-                <>
-                  <p>
-                    <span className="font-medium">Year Level:</span>{" "}
-                    {item.yearLevel?.name || "Unknown"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Academic Year:</span>{" "}
-                    {item.academicYear?.name || "Unknown"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Strand:</span>{" "}
-                    {item.strand || "-"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Room:</span> {item.room}
-                  </p>
-                  <p>
-                    <span className="font-medium">Capacity:</span>{" "}
-                    {item.capacity}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 pt-3 border-t border-gray-200">
-          <button
-            onClick={() => onEdit(item)}
-            className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(type, item.id)}
-            className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-          >
-            <Menu className="w-3.5 h-3.5" />
-            Delete
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // Mobile Skeleton Card
-  const SkeletonCard = () => (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-32"></div>
-          <div className="space-y-1">
-            <div className="h-3 bg-gray-200 rounded w-48"></div>
-            <div className="h-3 bg-gray-200 rounded w-40"></div>
-            <div className="h-3 bg-gray-200 rounded w-24"></div>
-          </div>
-        </div>
-      </div>
-      <div className="flex gap-2 pt-3 border-t border-gray-200">
-        <div className="flex-1 h-6 bg-gray-200 rounded"></div>
-        <div className="flex-1 h-6 bg-gray-200 rounded"></div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -181,6 +62,8 @@ const ClassManagementTable = ({
                     ? "academic years"
                     : type === "year level"
                     ? "year levels"
+                    : type === "subject"
+                    ? "subjects"
                     : "class sections"}
                 </p>
               </div>
@@ -200,13 +83,13 @@ const ClassManagementTable = ({
               )}
             </div>
 
-            {/* Action Button */}
+            {/* Add Button */}
             <div className="flex justify-start">
               <button
                 onClick={onAdd}
                 className="flex items-center justify-center gap-2 px-3 py-2 text-xs sm:text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow"
               >
-                <Plus className="w-4 h-4" />
+                <span className="text-lg">+</span>
                 <span>Add {type.charAt(0).toUpperCase() + type.slice(1)}</span>
               </button>
             </div>
@@ -214,214 +97,321 @@ const ClassManagementTable = ({
         </div>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div className="p-4 space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : error ? (
-        <div className="px-4 py-12 text-center">
-          <div className="w-12 h-12 mx-auto mb-2">
-            {type === "academic year" ? (
-              <Calendar className="w-12 h-12 text-red-600" />
-            ) : (
-              <GraduationCap className="w-12 h-12 text-red-600" />
-            )}
-          </div>
-          <p className="font-medium text-red-900 text-sm">
-            Failed to load {type} data
-          </p>
-          <p className="text-xs text-red-600 mt-1">{error}</p>
-        </div>
-      ) : filteredRecords.length === 0 ? (
-        <div className="px-4 py-12 text-center">
-          <div className="w-12 h-12 mx-auto mb-2">
-            {type === "academic year" ? (
-              <Calendar className="w-12 h-12 text-gray-400" />
-            ) : (
-              <GraduationCap className="w-12 h-12 text-gray-400" />
-            )}
-          </div>
-          <p className="font-medium text-gray-900 text-sm">No {type}s found</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {searchTerm
-              ? "Try adjusting your search criteria"
-              : `No ${type}s available`}
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Mobile Card View */}
-          <div className="block lg:hidden p-4 space-y-4">
-            {filteredRecords.map((item) => (
-              <ItemCard key={item.id} item={item} />
-            ))}
-          </div>
+      {/* Table */}
+      {!loading && !error && filteredRecords.length > 0 && (
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50/50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    {type === "academic year" ? (
+                      <Calendar className="w-4 h-4" />
+                    ) : (
+                      <GraduationCap className="w-4 h-4" />
+                    )}
+                    Name
+                  </div>
+                </th>
 
-          {/* Desktop Table View */}
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50/50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      {type === "academic year" ? (
-                        <Calendar className="w-4 h-4" />
-                      ) : (
-                        <GraduationCap className="w-4 h-4" />
-                      )}
-                      Name
+                {/* Academic Year Columns */}
+                {type === "academic year" && (
+                  <>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Start Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      End Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Current
+                    </th>
+                  </>
+                )}
+
+                {/* Quarter Columns */}
+                {type === "quarters" && (
+                  <>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Academic Year
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Start Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      End Date
+                    </th>
+                  </>
+                )}
+
+                {/* Year Level Columns */}
+                {type === "year level" && (
+                  <>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Code
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Sort Order
+                    </th>
+                  </>
+                )}
+
+                {/* Section Columns */}
+                {type === "section" && (
+                  <>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Year Level
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Academic Year
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Strand
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Room
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Capacity
+                    </th>
+                  </>
+                )}
+
+                {/* Subject Columns */}
+                {type === "subject" && (
+                  <>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Code
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Units
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Description
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </>
+                )}
+
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredRecords.map((item) => (
+                <tr
+                  key={item.id}
+                  className="hover:bg-gray-50/50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        {type === "academic year" ? (
+                          <Calendar className="w-5 h-5 text-white" />
+                        ) : (
+                          <GraduationCap className="w-5 h-5 text-white" />
+                        )}
+                      </div>
+                      <div>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getItemColor(
+                            item.name
+                          )}`}
+                        >
+                          {item.name}
+                        </span>
+                      </div>
                     </div>
-                  </th>
+                  </td>
+
+                  {/* Academic Year Details */}
                   {type === "academic year" && (
                     <>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Start Date
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        End Date
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Current
-                      </th>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {new Date(item.start_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {new Date(item.end_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            item.is_current
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {item.is_current ? "Active" : "Inactive"}
+                        </span>
+                      </td>
                     </>
                   )}
+
+                  {/* Quarter Details */}
+                  {type === "quarters" && (
+                    <>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {item.academic_year?.name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {item.start_date
+                          ? new Date(item.start_date).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {item.end_date
+                          ? new Date(item.end_date).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                    </>
+                  )}
+
+                  {/* Year Level Details */}
                   {type === "year level" && (
                     <>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Code
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Sort Order
-                      </th>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <span className="px-2 py-1 bg-gray-100 rounded-md font-mono">
+                          {item.code || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md font-medium">
+                          {item.sort_order || 0}
+                        </span>
+                      </td>
                     </>
                   )}
+
+                  {/* Section Details */}
                   {type === "section" && (
                     <>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Year Level
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Academic Year
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Strand
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Room
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Capacity
-                      </th>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {item.year_level?.name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {item.academic_year?.name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {item.strand || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {item.room || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">
+                          {item.capacity || 0}
+                        </span>
+                      </td>
                     </>
                   )}
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRecords.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-gray-50/50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                          {type === "academic year" ? (
-                            <Calendar className="w-5 h-5 text-white" />
-                          ) : (
-                            <GraduationCap className="w-5 h-5 text-white" />
-                          )}
-                        </div>
-                        <div>
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getItemColor(
-                              item.name
-                            )}`}
-                          >
-                            {item.name}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    {type === "academic year" && (
-                      <>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {new Date(item.start_date).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {new Date(item.end_date).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              item.is_current
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {item.is_current ? "Active" : "Inactive"}
-                          </span>
-                        </td>
-                      </>
-                    )}
-                    {type === "year level" && (
-                      <>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+
+                  {/* Subject Details */}
+                  {type === "subject" && (
+                    <>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-md font-mono font-medium">
                           {item.code}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.sort_order}
-                        </td>
-                      </>
-                    )}
-                    {type === "section" && (
-                      <>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.yearLevel?.name || "Unknown"}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.academicYear?.name || "Unknown"}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.strand || "-"}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.room}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.capacity}
-                        </td>
-                      </>
-                    )}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => onEdit(item)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">
+                          {item.units} {item.units === 1 ? "unit" : "units"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                        {item.description || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
+                            item.is_active
+                              ? "bg-green-100 text-green-800 border-green-200"
+                              : "bg-gray-100 text-gray-800 border-gray-200"
+                          }`}
                         >
-                          <Eye className="w-3.5 h-3.5" />
-                          Edit
-                        </button>
+                          {item.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                    </>
+                  )}
+
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-2">
+                      {/* Toggle Active/Inactive - Only for Subjects */}
+                      {type === "subject" && onToggleActive && (
                         <button
-                          onClick={() => onDelete(type, item.id)}
-                          className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                          onClick={() => onToggleActive(item.id)}
+                          className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                            item.is_active
+                              ? "text-orange-600 hover:text-orange-800 hover:bg-orange-50"
+                              : "text-green-600 hover:text-green-800 hover:bg-green-50"
+                          }`}
+                          title={item.is_active ? "Deactivate" : "Activate"}
                         >
-                          <Menu className="w-4 h-4" />
-                          Delete
+                          {item.is_active ? "Deactivate" : "Activate"}
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+                      )}
+
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => onEdit(item)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        Edit
+                      </button>
+
+                      {/* Manage Quarters Button — only for Academic Years */}
+                      {type === "academic year" && onManageQuarters && (
+                        <button
+                          onClick={() => onManageQuarters(item)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors"
+                        >
+                          <Layers className="w-3.5 h-3.5" />
+                          Manage Quarters
+                        </button>
+                      )}
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => onDelete(type, item.id)}
+                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Menu className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-red-600 text-sm">{error}</div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && filteredRecords.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12">
+          <GraduationCap className="w-12 h-12 text-gray-400 mb-3" />
+          <p className="text-gray-500 text-sm">No {type}s found</p>
+        </div>
       )}
 
       {/* Pagination */}
