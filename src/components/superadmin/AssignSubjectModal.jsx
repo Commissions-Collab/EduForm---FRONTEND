@@ -6,6 +6,7 @@ import useTeacherManagementStore from "../../stores/superAdmin/teacherManagement
 const AssignSubjectModal = ({ isOpen, onClose, teacher }) => {
   const {
     fetchDropdownData,
+    fetchAvailableSubjects,
     fetchSubjects,
     fetchSectionsByYear,
     assignSubjects,
@@ -21,17 +22,18 @@ const AssignSubjectModal = ({ isOpen, onClose, teacher }) => {
     { subject_id: "", section_id: "", quarter_id: "" },
   ]);
 
-  // Fetch academic year + quarters on open
   useEffect(() => {
-    if (isOpen) fetchDropdownData();
-  }, [isOpen, fetchDropdownData]);
+    if (!isOpen || !teacher) return;
 
-  // Fetch subjects when modal opens
-  useEffect(() => {
-    if (isOpen) fetchSubjects();
-  }, [isOpen, fetchSubjects]);
+    // Only fetch dropdown once
+    fetchDropdownData().then(() => {
+      if (academicYear?.id) {
+        // Wait for dropdown setup, then fetch only available subjects
+        fetchAvailableSubjects(teacher.id, academicYear.id);
+      }
+    });
+  }, [isOpen, teacher, academicYear?.id]);
 
-  // Fetch sections when year changes
   useEffect(() => {
     if (selectedYear) fetchSectionsByYear(selectedYear);
   }, [selectedYear, fetchSectionsByYear]);
@@ -68,6 +70,7 @@ const AssignSubjectModal = ({ isOpen, onClose, teacher }) => {
         assignments,
       });
       toast.success("Subjects assigned successfully!");
+      fetchAvailableSubjects(teacher.id, selectedYear);
       onClose();
     } catch {
       toast.error("Failed to assign subjects.");
@@ -75,6 +78,10 @@ const AssignSubjectModal = ({ isOpen, onClose, teacher }) => {
   };
 
   if (!isOpen) return null;
+
+  const uniqueSubjects = [
+    ...new Map(subjects.map((s) => [s.name, s])).values(),
+  ];
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">

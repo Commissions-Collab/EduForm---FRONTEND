@@ -27,16 +27,15 @@ const useTeacherManagementStore = create((set, get) => ({
   quarters: [],
   subjects: [],
   sections: [],
+  selectedTeacherDetails: null,
 
   fetchDropdownData: async () => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get("/admin/teacher/filter-options");
-
       set({
         academicYear: data.academic_year || null,
         quarters: data.quarters || [],
-        subjects: data.subjects || [],
         sections: data.sections || [],
         loading: false,
       });
@@ -209,33 +208,39 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
-  assignAdviser: async (adviserData) => {
+  assignAdviser: async (payload) => {
     set({ loading: true, error: null });
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.post(
-        "/admin/teacher/assign-adviser",
-        adviserData
+        `/admin/teacher/assign-adviser`,
+        payload
       );
-
-      if (data.success === false) {
-        throw new Error(data.message || "Failed to assign adviser");
-      }
-
-      set({ loading: false });
       toast.success(data.message || "Teacher assigned as adviser successfully");
-
       await get().fetchTeachers(
         get().pagination.current_page,
         get().pagination.per_page
       );
-
-      return data;
+      set({ loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to assign adviser");
       set({ error: message, loading: false });
       toast.error(message);
-      throw err;
+    }
+  },
+
+  fetchSectionsByYear: async (academicYearId) => {
+    if (!academicYearId) return;
+    set({ loading: true });
+    try {
+      const { data } = await axiosInstance.get(
+        `/admin/teacher/available-sections/${academicYearId}`
+      );
+      set({ sections: data.data || [], loading: false });
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch sections");
+      set({ error: message, loading: false });
+      toast.error(message);
     }
   },
 
@@ -289,13 +294,14 @@ const useTeacherManagementStore = create((set, get) => ({
     }
   },
 
-  fetchSectionsByYear: async (academicYearId) => {
+  fetchSectionsByYear: async (academicYearId, teacherId = null) => {
     if (!academicYearId) return;
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get(
-        `/admin/teacher/sections/${academicYearId}`
-      );
+      const url = teacherId
+        ? `/admin/teacher/available-sections/${academicYearId}?teacher_id=${teacherId}`
+        : `/admin/teacher/available-sections/${academicYearId}`;
+      const { data } = await axiosInstance.get(url);
 
       if (!data?.success) {
         throw new Error(data?.message || "Failed to load sections");
@@ -307,6 +313,129 @@ const useTeacherManagementStore = create((set, get) => ({
       });
     } catch (err) {
       const message = handleError(err, "Failed to fetch sections");
+      set({ error: message, loading: false });
+      toast.error(message);
+    }
+  },
+
+  fetchTeacherSubjects: async (teacherId, academicYearId) => {
+    if (!teacherId || !academicYearId) return;
+    set({ loading: true, error: null });
+
+    try {
+      const { data } = await axiosInstance.get(
+        `/admin/teacher/${teacherId}/subjects/${academicYearId}`
+      );
+
+      if (!data?.success)
+        throw new Error(data?.message || "Failed to load teacher subjects");
+
+      set({
+        subjects: Array.isArray(data.data) ? data.data : [],
+        loading: false,
+      });
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch assigned subjects");
+      set({ error: message, loading: false, subjects: [] });
+      toast.error(message);
+    }
+  },
+
+  fetchTeacherDetails: async (teacherId) => {
+    if (!teacherId) return;
+    set({ loading: true, error: null });
+
+    try {
+      const { data } = await axiosInstance.get(`/admin/${teacherId}/details`);
+
+      if (!data?.success) {
+        throw new Error(data?.message || "Failed to load teacher details");
+      }
+
+      set({
+        selectedTeacherDetails: data.data,
+        loading: false,
+      });
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch teacher details");
+      set({ error: message, loading: false, selectedTeacherDetails: null });
+      toast.error(message);
+    }
+  },
+
+  removeAdviser: async (teacherId, academicYearId) => {
+    set({ loading: true, error: null });
+    try {
+      await fetchCsrfToken();
+      const { data } = await axiosInstance.delete(
+        `/admin/teacher/${teacherId}/remove-adviser/${academicYearId}`
+      );
+
+      if (!data?.success)
+        throw new Error(data?.message || "Failed to remove adviser");
+
+      toast.success(data.message || "Teacher adviser removed successfully");
+
+      await get().fetchTeachers(
+        get().pagination.current_page,
+        get().pagination.per_page
+      );
+
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      const message = handleError(err, "Failed to remove adviser");
+      set({ error: message, loading: false });
+      toast.error(message);
+      throw err;
+    }
+  },
+
+  fetchAvailableSubjects: async (teacherId, academicYearId) => {
+    if (!teacherId || !academicYearId) return;
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(
+        `/admin/teacher/${teacherId}/subjects/${academicYearId}/available`
+      );
+
+      if (!data?.success) {
+        throw new Error(data?.message || "Failed to load available subjects");
+      }
+
+      const availableSubjects = Array.isArray(data.data)
+        ? data.data.filter((s) => s?.id && s?.name)
+        : [];
+
+      set({
+        subjects: availableSubjects,
+        loading: false,
+      });
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch available subjects");
+      set({ error: message, loading: false });
+      toast.error(message);
+    }
+  },
+
+  fetchAssignedSubjectsOnly: async (teacherId, academicYearId) => {
+    if (!teacherId || !academicYearId) return;
+    set({ loading: true, error: null });
+    try {
+      const { data } = await axiosInstance.get(
+        `/admin/teacher/${teacherId}/subjects/${academicYearId}/assigned`
+      );
+
+      if (!data?.success) {
+        throw new Error(data?.message || "Failed to load assigned subjects");
+      }
+
+      set({
+        subjects: Array.isArray(data.data) ? data.data : [],
+        loading: false,
+      });
+    } catch (err) {
+      const message = handleError(err, "Failed to fetch assigned subjects");
       set({ error: message, loading: false });
       toast.error(message);
     }

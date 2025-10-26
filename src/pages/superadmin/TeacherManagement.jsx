@@ -7,6 +7,7 @@ import TeacherManagementTable from "../../components/superadmin/TeacherManagemen
 import AssignScheduleModal from "../../components/superadmin/AssignScheduleModal";
 import AssignAdviserModal from "../../components/superadmin/AssignAdviserModal";
 import AssignSubjectModal from "../../components/superadmin/AssignSubjectModal";
+import TeacherDetailsModal from "../../components/superadmin/TeacherDetailsModal";
 
 const TeacherManagement = () => {
   const {
@@ -16,6 +17,7 @@ const TeacherManagement = () => {
     error,
     fetchTeachers,
     deleteTeacher,
+    removeAdviser,
     clearError,
   } = useTeacherManagementStore();
 
@@ -27,6 +29,7 @@ const TeacherManagement = () => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isAssignSubjectModalOpen, setIsAssignSubjectModalOpen] =
     useState(false);
+  const [isViewDetailsOpen, setIsViewDetailsOpen] = useState(false);
   useEffect(() => {
     fetchTeachers(1, 25); // Fetch first page with 25 teachers
   }, [fetchTeachers]);
@@ -57,8 +60,32 @@ const TeacherManagement = () => {
     setIsTeacherModalOpen(false);
     setIsScheduleModalOpen(false);
     setIsAdviserModalOpen(false);
-    setIsAssignSubjectModalOpen(false); // ✅ NEW
+    setIsAssignSubjectModalOpen(false);
+    setIsViewDetailsOpen(false);
     setSelectedTeacher(null);
+  };
+
+  const handleRemoveAdviser = async (teacher) => {
+    if (!teacher?.id) return;
+    const academicYearId = teacher.section_advisors?.[0]?.academic_year_id;
+
+    if (!academicYearId) {
+      toast.error("No advisory found to remove.");
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Remove ${teacher.first_name} ${teacher.last_name} as adviser?`
+      )
+    ) {
+      try {
+        await removeAdviser(teacher.id, academicYearId);
+        toast.success("Adviser removed successfully.");
+      } catch {
+        toast.error("Failed to remove adviser.");
+      }
+    }
   };
 
   const handleDelete = async (id) => {
@@ -175,6 +202,11 @@ const TeacherManagement = () => {
           onAssignSchedule={handleOpenScheduleModal}
           onAssignAdviser={handleOpenAdviserModal}
           onAssignSubjects={handleOpenAssignSubjectModal}
+          onRemoveAdviser={handleRemoveAdviser}
+          onViewDetails={(teacher) => {
+            setSelectedTeacher(teacher);
+            setIsViewDetailsOpen(true);
+          }}
         />
       </section>
 
@@ -201,6 +233,12 @@ const TeacherManagement = () => {
         isOpen={isAssignSubjectModalOpen}
         onClose={handleCloseAllModals}
         teacher={selectedTeacher}
+      />
+
+      <TeacherDetailsModal
+        isOpen={isViewDetailsOpen}
+        onClose={handleCloseAllModals}
+        teacherId={selectedTeacher?.id}
       />
     </main>
   );

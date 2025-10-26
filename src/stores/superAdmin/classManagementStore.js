@@ -3,7 +3,25 @@ import toast from "react-hot-toast";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 
 const handleError = (err, defaultMessage) => {
-  return err?.response?.data?.message || defaultMessage;
+  const data = err?.response?.data;
+
+  if (data?.errors) {
+    const messages = Object.values(data.errors).flat();
+
+    // Show each validation message as toast
+    messages.forEach((msg) => {
+      toast.error(msg, {
+        duration: 4000,
+        position: "top-right",
+      });
+    });
+
+    return messages.join(", ");
+  }
+
+  const message = data?.message || defaultMessage;
+  toast.error(message, { duration: 4000, position: "top-right" });
+  return message;
 };
 
 const useClassManagementStore = create((set, get) => ({
@@ -26,7 +44,6 @@ const useClassManagementStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load academic years");
       set({ error: message, loading: false });
-      toast.error(message);
     }
   },
 
@@ -103,7 +120,6 @@ const useClassManagementStore = create((set, get) => ({
       if (err.response?.status !== 404) {
         const message = handleError(err, "Failed to load quarters");
         set({ error: message, loading: false });
-        toast.error(message);
       } else {
         // No data found - set empty state without error
         set({
@@ -206,7 +222,6 @@ const useClassManagementStore = create((set, get) => ({
       }
       const message = handleError(err, "Failed to load quarters");
       set({ error: message, loading: false });
-      toast.error(message);
       throw err;
     }
   },
@@ -221,7 +236,6 @@ const useClassManagementStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load year levels");
       set({ error: message, loading: false });
-      toast.error(message);
     }
   },
 
@@ -287,7 +301,6 @@ const useClassManagementStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load sections");
       set({ error: message, loading: false });
-      toast.error(message);
     }
   },
 
@@ -359,7 +372,6 @@ const useClassManagementStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load subjects");
       set({ error: message, loading: false });
-      toast.error(message);
     }
   },
 
