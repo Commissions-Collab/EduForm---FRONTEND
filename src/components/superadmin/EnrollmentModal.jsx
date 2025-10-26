@@ -43,7 +43,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
       });
     }
     setFormErrors({});
-  }, [selectedEnrollment]);
+  }, [selectedEnrollment, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,6 +119,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                 <p className="text-sm text-red-500">Error: {error}</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Student Dropdown */}
                   <div className="col-span-1 sm:col-span-2">
                     <label
                       htmlFor="student_id"
@@ -139,20 +140,18 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       required
                     >
                       <option value="">Select Student</option>
-                      {students.map((student) => (
-                        <option
-                          key={`student-${student.id}`}
-                          value={student.student.id}
-                        >
-                          {`${student.student.first_name || ""} ${
-                            student.student.middle_name
-                              ? student.student.middle_name + " "
-                              : ""
-                          }${student.student.last_name || ""} (${
-                            student.student.lrn || student.student.id
-                          })`}
-                        </option>
-                      ))}
+                      {Array.isArray(students) &&
+                        students.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {`${student.first_name || ""} ${
+                              student.middle_name
+                                ? student.middle_name + " "
+                                : ""
+                            }${student.last_name || ""} (${
+                              student.lrn || student.id
+                            })`}
+                          </option>
+                        ))}
                     </select>
                     {formErrors.student_id && (
                       <p className="text-xs text-red-500 mt-1">
@@ -161,6 +160,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                     )}
                   </div>
 
+                  {/* Academic Year Dropdown */}
                   <div>
                     <label
                       htmlFor="academic_year_id"
@@ -181,11 +181,12 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       required
                     >
                       <option value="">Select Academic Year</option>
-                      {academicYears.map((ay) => (
-                        <option key={ay.id} value={ay.id}>
-                          {ay.name || ay.year || ay.id}
-                        </option>
-                      ))}
+                      {Array.isArray(academicYears) &&
+                        academicYears.map((ay) => (
+                          <option key={ay.id} value={ay.id}>
+                            {ay.name || ay.id}
+                          </option>
+                        ))}
                     </select>
                     {formErrors.academic_year_id && (
                       <p className="text-xs text-red-500 mt-1">
@@ -194,6 +195,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                     )}
                   </div>
 
+                  {/* Grade Level Dropdown */}
                   <div>
                     <label
                       htmlFor="grade_level"
@@ -214,11 +216,12 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       required
                     >
                       <option value="">Select Grade Level</option>
-                      {yearLevels.map((yl) => (
-                        <option key={yl.id} value={yl.id}>
-                          {yl.name || `Grade ${yl.level}`}
-                        </option>
-                      ))}
+                      {Array.isArray(yearLevels) &&
+                        yearLevels.map((yl) => (
+                          <option key={yl.id} value={yl.id}>
+                            {yl.name || `Grade ${yl.code}`}
+                          </option>
+                        ))}
                     </select>
                     {formErrors.grade_level && (
                       <p className="text-xs text-red-500 mt-1">
@@ -227,6 +230,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                     )}
                   </div>
 
+                  {/* Section Dropdown */}
                   <div>
                     <label
                       htmlFor="section_id"
@@ -247,11 +251,12 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                       required
                     >
                       <option value="">Select Section</option>
-                      {sections.map((section) => (
-                        <option key={section.id} value={section.id}>
-                          {section.name}
-                        </option>
-                      ))}
+                      {Array.isArray(sections) &&
+                        sections.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.name}
+                          </option>
+                        ))}
                     </select>
                     {formErrors.section_id && (
                       <p className="text-xs text-red-500 mt-1">
@@ -260,6 +265,7 @@ const EnrollmentModal = ({ isOpen, onClose, selectedEnrollment }) => {
                     )}
                   </div>
 
+                  {/* Enrollment Status Dropdown */}
                   {selectedEnrollment && (
                     <div>
                       <label

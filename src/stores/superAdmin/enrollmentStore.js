@@ -56,14 +56,14 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
-        "/admin/students?page=1&per_page=1000"
+        "/admin/enrollment-students?page=1&per_page=1000"
       );
 
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch students");
       }
-      const students =
-        extractData(data, "data") || extractData(data, "students");
+      const students = extractData(data, "data");
+      console.log("Fetched Students:", students);
       set({ students, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load students");
@@ -76,13 +76,13 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
-        "/admin/academic-years?page=1&per_page=100"
+        "/admin/enrollment-academic-years?page=1&per_page=100"
       );
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch academic years");
       }
-      const academicYears =
-        extractData(data, "data") || extractData(data, "academic_years");
+      const academicYears = extractData(data, "data");
+      console.log("Fetched Academic Years:", academicYears);
       set({ academicYears, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load academic years");
@@ -95,13 +95,13 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
-        "/admin/year-level?page=1&per_page=100"
+        "/admin/enrollment-year-levels?page=1&per_page=100"
       );
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch year levels");
       }
-      const yearLevels =
-        extractData(data, "yearLevel") || extractData(data, "data");
+      const yearLevels = extractData(data, "data");
+      console.log("Fetched Year Levels:", yearLevels);
       set({ yearLevels, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load year levels");
@@ -114,13 +114,25 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
-        "/admin/section?page=1&per_page=100"
+        "/admin/enrollment-sections?page=1&per_page=100"
       );
       if (data.success === false) {
         throw new Error(data.message || "Failed to fetch sections");
       }
-      const sections =
-        extractData(data, "sections") || extractData(data, "data");
+      // Extract sections data - handle pagination wrapper
+      const sections = Array.isArray(data.data?.data)
+        ? data.data.data
+        : Array.isArray(data.data)
+        ? data.data
+        : [];
+
+      console.log("Raw API Response:", data);
+      console.log("Fetched Sections:", sections);
+      console.log("Sections count:", sections.length);
+      if (sections.length > 0) {
+        console.log("First section structure:", sections[0]);
+      }
+
       set({ sections, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load sections");
