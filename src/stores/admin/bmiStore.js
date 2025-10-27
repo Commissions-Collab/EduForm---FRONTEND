@@ -13,6 +13,7 @@ const useBmiStore = create((set, get) => ({
 
     try {
       const filters = useFilterStore.getState().globalFilters;
+      console.log("Fetching BMI with filters:", filters); // Debug log
       if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
         throw new Error("Missing required parameters for BMI data");
       }
@@ -50,10 +51,15 @@ const useBmiStore = create((set, get) => ({
       }
 
       const filters = useFilterStore.getState().globalFilters;
+      console.log("Adding BMI with filters:", filters, "Data:", bmiData); // Debug log
+
+      if (!filters.academicYearId || !filters.quarterId) {
+        throw new Error("Academic year and quarter are required");
+      }
 
       // Prepare payload aligned with backend expectations
       const payload = {
-        student_id: bmiData.student_id, // This should be the student's actual ID
+        student_id: bmiData.student_id,
         academic_year_id: filters.academicYearId,
         quarter_id: filters.quarterId,
         recorded_at:
@@ -96,6 +102,7 @@ const useBmiStore = create((set, get) => ({
       }
 
       const filters = useFilterStore.getState().globalFilters;
+      console.log("Updating BMI with filters:", filters, "Data:", bmiData); // Debug log
 
       // Prepare payload aligned with backend expectations
       const payload = {

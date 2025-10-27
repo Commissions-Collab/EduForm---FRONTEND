@@ -29,7 +29,6 @@ const Enrollment = () => {
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [selectedEnrollments, setSelectedEnrollments] = useState([]);
   const store = useEnrollmentStore.getState();
-  console.log("SECTIONS DATA:", JSON.stringify(store.sections, null, 2));
 
   useEffect(() => {
     const loadInitialData = async () => {

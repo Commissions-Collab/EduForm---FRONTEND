@@ -63,7 +63,6 @@ const useEnrollmentStore = create((set, get) => ({
         throw new Error(data.message || "Failed to fetch students");
       }
       const students = extractData(data, "data");
-      console.log("Fetched Students:", students);
       set({ students, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load students");
@@ -82,7 +81,6 @@ const useEnrollmentStore = create((set, get) => ({
         throw new Error(data.message || "Failed to fetch academic years");
       }
       const academicYears = extractData(data, "data");
-      console.log("Fetched Academic Years:", academicYears);
       set({ academicYears, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load academic years");
@@ -101,7 +99,6 @@ const useEnrollmentStore = create((set, get) => ({
         throw new Error(data.message || "Failed to fetch year levels");
       }
       const yearLevels = extractData(data, "data");
-      console.log("Fetched Year Levels:", yearLevels);
       set({ yearLevels, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load year levels");
@@ -125,13 +122,6 @@ const useEnrollmentStore = create((set, get) => ({
         : Array.isArray(data.data)
         ? data.data
         : [];
-
-      console.log("Raw API Response:", data);
-      console.log("Fetched Sections:", sections);
-      console.log("Sections count:", sections.length);
-      if (sections.length > 0) {
-        console.log("First section structure:", sections[0]);
-      }
 
       set({ sections, loading: false });
     } catch (err) {

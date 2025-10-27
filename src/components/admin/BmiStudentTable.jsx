@@ -12,15 +12,23 @@ import {
   Trash2,
   X,
   Save,
+  Plus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import useBmiStore from "../../stores/admin/bmiStore";
 
 const BmiStudentTable = ({ students, loading, error }) => {
-  const { updateStudentBmi, deleteStudentBmi } = useBmiStore();
+  const { updateStudentBmi, deleteStudentBmi, addStudentBmi } = useBmiStore();
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({
+    student_id: "",
+    height_cm: "",
+    weight_kg: "",
+    remarks: "",
+  });
 
   const getBmiStatusConfig = (status) => {
     const configs = {
@@ -80,8 +88,8 @@ const BmiStudentTable = ({ students, loading, error }) => {
     setEditingId(student.bmi_record_id);
     setEditForm({
       student_id: student.student_id,
-      height_cm: student.height || "",
-      weight_kg: student.weight || "",
+      height_cm: student.height != null ? String(student.height) : "",
+      weight_kg: student.weight != null ? String(student.weight) : "",
       remarks: student.remarks || "",
     });
   };
@@ -92,6 +100,10 @@ const BmiStudentTable = ({ students, loading, error }) => {
   };
 
   const handleSaveEdit = async (bmiRecordId) => {
+    if (!bmiRecordId) {
+      toast.error("Cannot update: No BMI record exists for this student");
+      return;
+    }
     if (!editForm.height_cm || !editForm.weight_kg) {
       toast.error("Height and weight are required");
       return;
@@ -99,11 +111,47 @@ const BmiStudentTable = ({ students, loading, error }) => {
 
     setIsSubmitting(true);
     try {
-      await updateStudentBmi(bmiRecordId, editForm);
+      const payload = {
+        ...editForm,
+        height_cm: parseFloat(editForm.height_cm),
+        weight_kg: parseFloat(editForm.weight_kg),
+      };
+      await updateStudentBmi(bmiRecordId, payload);
       setEditingId(null);
       setEditForm({});
+      toast.success("BMI record updated successfully!");
     } catch (error) {
       console.error("Error updating BMI:", error);
+      toast.error(error.message || "Failed to update BMI record");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddSubmit = async () => {
+    if (!addForm.student_id || !addForm.height_cm || !addForm.weight_kg) {
+      toast.error("Student, height, and weight are required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await addStudentBmi({
+        ...addForm,
+        height_cm: parseFloat(addForm.height_cm),
+        weight_kg: parseFloat(addForm.weight_kg),
+      });
+      setShowAddForm(false);
+      setAddForm({
+        student_id: "",
+        height_cm: "",
+        weight_kg: "",
+        remarks: "",
+      });
+      toast.success("BMI record added successfully!");
+    } catch (error) {
+      console.error("Error adding BMI:", error);
+      toast.error(error.message || "Failed to add BMI record");
     } finally {
       setIsSubmitting(false);
     }
@@ -119,6 +167,7 @@ const BmiStudentTable = ({ students, loading, error }) => {
         await deleteStudentBmi(bmiRecordId);
       } catch (error) {
         console.error("Error deleting BMI:", error);
+        toast.error(error.message || "Failed to delete BMI record");
       }
     }
   };
@@ -272,8 +321,8 @@ const BmiStudentTable = ({ students, loading, error }) => {
                 disabled={isSubmitting}
                 className="flex items-center gap-1 px-3 py-1.5 text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4" />
-                Save
+                {isSubmitting ? "Saving..." : <Save className="w-4 h-4" />}
+                {isSubmitting ? "Saving" : "Save"}
               </button>
               <button
                 onClick={handleCancelEdit}
@@ -324,16 +373,122 @@ const BmiStudentTable = ({ students, loading, error }) => {
                 BMI tracking and health status monitoring for students
               </p>
             </div>
-
-            {!loading && students.length > 0 && (
-              <div className="text-xs sm:text-sm text-gray-500">
-                {students.length}{" "}
-                {students.length === 1 ? "student" : "students"} recorded
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add BMI Record
+              </button>
+              {!loading && students.length > 0 && (
+                <div className="text-xs sm:text-sm text-gray-500">
+                  {students.length}{" "}
+                  {students.length === 1 ? "student" : "students"} recorded
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Add BMI Form */}
+      {showAddForm && (
+        <div className="p-4 border-b border-gray-200">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Add New BMI Record
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Student
+                </label>
+                <select
+                  value={addForm.student_id}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, student_id: e.target.value })
+                  }
+                  className="mt-1 w-full px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a student</option>
+                  {students
+                    .filter((student) => !student.bmi_record_id)
+                    .map((student) => (
+                      <option
+                        key={student.student_id}
+                        value={student.student_id}
+                      >
+                        {student.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Height (cm)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={addForm.height_cm}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, height_cm: e.target.value })
+                  }
+                  className="mt-1 w-full px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  placeholder="cm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={addForm.weight_kg}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, weight_kg: e.target.value })
+                  }
+                  className="mt-1 w-full px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  placeholder="kg"
+                />
+              </div>
+              <div className="sm:col-span-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Remarks
+                </label>
+                <textarea
+                  value={addForm.remarks}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, remarks: e.target.value })
+                  }
+                  className="mt-1 w-full px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  placeholder="Optional remarks"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={handleAddSubmit}
+                disabled={isSubmitting}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? "Saving..." : <Save className="w-4 h-4" />}
+                {isSubmitting ? "Saving" : "Save"}
+              </button>
+              <button
+                onClick={() => setShowAddForm(false)}
+                disabled={isSubmitting}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         {loading ? (
@@ -627,7 +782,11 @@ const BmiStudentTable = ({ students, loading, error }) => {
                                 className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
                                 title="Save"
                               >
-                                <Save className="w-4 h-4" />
+                                {isSubmitting ? (
+                                  "Saving..."
+                                ) : (
+                                  <Save className="w-4 h-4" />
+                                )}
                               </button>
                               <button
                                 onClick={handleCancelEdit}

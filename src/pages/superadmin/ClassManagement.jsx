@@ -156,7 +156,7 @@ const ClassManagement = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <SummaryCard
             title="Total Academic Years"
             value={summary.totalAcademicYears}
