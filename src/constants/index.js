@@ -30,6 +30,11 @@ export const superAdminNav = [
     url: "/super_admin/dashboard",
   },
   {
+    name: "Student Approval",
+    icon: CircleCheck,
+    url: "/super_admin/studentApproval",
+  },
+  {
     name: "Student Management (SF 1)",
     icon: FileText,
     url: "/super_admin/enrollment",
@@ -41,10 +46,16 @@ export const superAdminNav = [
   },
 
   {
+    name: "Textbooks Management",
+    icon: BookText,
+    url: "/super_admin/textbook",
+  },
+  {
     name: "Academic Calendar",
     icon: CalendarDays,
     url: "/super_admin/calendar",
   },
+
   {
     name: "Class Management",
     icon: Users,
@@ -94,11 +105,7 @@ export const adminNav = [
     icon: ClipboardList,
     url: "/teacher/grades",
   },
-  {
-    name: "Student Approval",
-    icon: CircleCheck,
-    url: "/teacher/studentApproval",
-  },
+
   {
     name: "Certificates",
     icon: Award,

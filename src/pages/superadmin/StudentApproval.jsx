@@ -10,8 +10,8 @@ import {
   Menu,
   IdCard,
 } from "lucide-react";
-import Pagination from "../../../components/admin/Pagination";
-import useStudentRequestsStore from "../../../stores/admin/studentRequest";
+import Pagination from "../../components/admin/Pagination";
+import useStudentRequestsStore from "../../stores/superAdmin/studentRequest";
 
 const StudentApproval = () => {
   const {

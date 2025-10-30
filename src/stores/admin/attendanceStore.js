@@ -384,54 +384,6 @@ const useAttendanceStore = create((set, get) => ({
     }
   },
 
-  fetchMonthlyAttendance: async (params = {}) => {
-    set({ loading: true, error: null });
-
-    try {
-      const filters = useFilterStore.getState().globalFilters;
-      if (!filters.sectionId) {
-        throw new Error("Missing section ID");
-      }
-
-      const now = new Date();
-      let month = params.month || now.getMonth() + 1;
-      let year = params.year || now.getFullYear();
-
-      if (
-        typeof params.month === "string" &&
-        params.month.match(/^\d{4}-\d{2}$/)
-      ) {
-        const [parsedYear, parsedMonth] = params.month.split("-").map(Number);
-        if (parsedMonth < 1 || parsedMonth > 12 || parsedYear < 2000) {
-          throw new Error("Invalid month format. Expected YYYY-MM");
-        }
-        month = parsedMonth;
-        year = parsedYear;
-      } else if (month < 1 || month > 12 || year < 2000) {
-        throw new Error("Invalid month or year");
-      }
-
-      const filterParams = {
-        month,
-        year,
-        academic_year_id: filters.academicYearId,
-      };
-
-      const { data, status } = await axiosInstance.get(
-        `/teacher/sections/${filters.sectionId}/monthly-attendance`,
-        { params: filterParams, timeout: 10000 }
-      );
-
-      if (status !== 200) {
-        throw new Error(data?.message || "Invalid response from server");
-      }
-
-      set({ monthlyAttendanceData: data?.data || null, loading: false });
-    } catch (err) {
-      handleError(err, "Unable to fetch monthly attendance", set);
-    }
-  },
-
   downloadQuarterlyAttendancePDF: async () => {
     set({ loading: true, error: null });
 

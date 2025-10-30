@@ -8,7 +8,7 @@ import useAttendanceStore from "./admin/attendanceStore";
 import useBmiStore from "./admin/bmiStore";
 import useCertificatesStore from "./admin/certificateStore";
 import useDashboardStore from "./admin/dashboardStore";
-import useStudentRequestsStore from "./admin/studentRequest";
+import useStudentRequestsStore from "./superAdmin/studentRequest";
 import useTextbooksStore from "./admin/textbookStore";
 import useWorkloadsStore from "./admin/workloadStore";
 import useGradesStore from "./admin/gradeStore";
