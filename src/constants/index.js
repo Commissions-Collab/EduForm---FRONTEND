@@ -44,6 +44,11 @@ export const superAdminNav = [
     icon: CalendarDays,
     url: "/super_admin/attendanceMonthlySummary",
   },
+  {
+    name: "Promotion Reports (SF 5 & SF 6)",
+    icon: CalendarDays,
+    url: "/super_admin/promotionReports",
+  },
 
   {
     name: "Textbooks Management",
