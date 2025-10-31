@@ -60,9 +60,46 @@ axiosInstance.interceptors.request.use((config) => {
 
 // Response interceptor handling Laravel session responses
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Normalize backend responses: some endpoints return { success: false, data: [] }
+    // meaning "no records" — treat these as successful empty responses so stores
+    // don't show false-positive errors. Only flip success to true when a data
+    // property exists (including empty arrays).
+    try {
+      if (
+        response?.data &&
+        response.data.success === false &&
+        Object.prototype.hasOwnProperty.call(response.data, 'data')
+      ) {
+        response.data.success = true; // normalize
+      }
+    } catch (e) {
+      // ignore normalization errors
+    }
+
+    return response;
+  },
   (error) => {
     const status = error?.response?.status;
+    // Sanitize technical server messages before they reach the UI
+    try {
+      const serverMessage = error?.response?.data?.message;
+      // Hide or replace messages that leak implementation details (bcrypt)
+      if (typeof serverMessage === 'string' && /bcrypt/i.test(serverMessage)) {
+        error.response.data.message = 'An internal server error occurred. Please try again or contact support.';
+      }
+      // Also sanitize arrays of validation errors if present
+      if (error?.response?.data?.errors) {
+        Object.keys(error.response.data.errors).forEach((k) => {
+          const arr = error.response.data.errors[k];
+          if (Array.isArray(arr)) {
+            error.response.data.errors[k] = arr.map((msg) => (typeof msg === 'string' && /bcrypt/i.test(msg) ? 'An internal server error occurred.' : msg));
+          }
+        });
+      }
+    } catch (e) {
+      // ignore any sanitization errors
+    }
 
     // Handle unauthorized and session expired responses
     if (status === 401) {

@@ -64,7 +64,7 @@ const useTeacherManagementStore = create((set, get) => ({
         `/admin/teacher?page=${page}&per_page=${perPage}`
       );
 
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to fetch teachers");
       }
 
@@ -279,7 +279,7 @@ const useTeacherManagementStore = create((set, get) => ({
     try {
       const { data } = await axiosInstance.get("/admin/teacher/subjects");
 
-      if (!data?.success) {
+      if (!data?.success && !data?.data) {
         throw new Error(data?.message || "Failed to load subjects");
       }
 
@@ -303,7 +303,7 @@ const useTeacherManagementStore = create((set, get) => ({
         : `/admin/teacher/available-sections/${academicYearId}`;
       const { data } = await axiosInstance.get(url);
 
-      if (!data?.success) {
+      if (!data?.success && !data?.data) {
         throw new Error(data?.message || "Failed to load sections");
       }
 
@@ -327,7 +327,7 @@ const useTeacherManagementStore = create((set, get) => ({
         `/admin/teacher/${teacherId}/subjects/${academicYearId}`
       );
 
-      if (!data?.success)
+      if (!data?.success && !data?.data)
         throw new Error(data?.message || "Failed to load teacher subjects");
 
       set({
@@ -348,7 +348,7 @@ const useTeacherManagementStore = create((set, get) => ({
     try {
       const { data } = await axiosInstance.get(`/admin/${teacherId}/details`);
 
-      if (!data?.success) {
+      if (!data?.success && !data?.data) {
         throw new Error(data?.message || "Failed to load teacher details");
       }
 
@@ -371,7 +371,7 @@ const useTeacherManagementStore = create((set, get) => ({
         `/admin/teacher/${teacherId}/remove-adviser/${academicYearId}`
       );
 
-      if (!data?.success)
+      if (!data?.success && !data?.data)
         throw new Error(data?.message || "Failed to remove adviser");
 
       toast.success(data.message || "Teacher adviser removed successfully");

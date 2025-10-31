@@ -32,7 +32,9 @@ const useEnrollmentStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/admin/enrollments?page=${page}&per_page=${perPage}`
       );
-      if (data.success === false) {
+      // If server explicitly says success:false but returned a data payload (even empty),
+      // treat it as a valid empty result instead of an error. Only throw when there's no data.
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to fetch enrollments");
       }
       const enrollments = extractData(data, "data");
@@ -59,7 +61,7 @@ const useEnrollmentStore = create((set, get) => ({
         "/admin/enrollment-students?page=1&per_page=1000"
       );
 
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to fetch students");
       }
       const students = extractData(data, "data");
@@ -77,7 +79,7 @@ const useEnrollmentStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         "/admin/enrollment-academic-years?page=1&per_page=100"
       );
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to fetch academic years");
       }
       const academicYears = extractData(data, "data");
@@ -95,7 +97,7 @@ const useEnrollmentStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         "/admin/enrollment-year-levels?page=1&per_page=100"
       );
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to fetch year levels");
       }
       const yearLevels = extractData(data, "data");
@@ -113,7 +115,7 @@ const useEnrollmentStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         "/admin/enrollment-sections?page=1&per_page=100"
       );
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to fetch sections");
       }
       // Extract sections data - handle pagination wrapper
@@ -139,7 +141,7 @@ const useEnrollmentStore = create((set, get) => ({
         "/admin/enrollments",
         enrollmentData
       );
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to create enrollment");
       }
       set({ loading: false });
@@ -166,7 +168,7 @@ const useEnrollmentStore = create((set, get) => ({
         "/admin/enrollments/bulk-store",
         bulkData
       );
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to create bulk enrollments");
       }
       set({ loading: false });
@@ -189,7 +191,7 @@ const useEnrollmentStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(`/admin/enrollments/${id}`);
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to fetch enrollment");
       }
       set({ loading: false });
@@ -210,7 +212,7 @@ const useEnrollmentStore = create((set, get) => ({
         `/admin/enrollments/${id}`,
         enrollmentData
       );
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to update enrollment");
       }
       set({ loading: false });
@@ -234,7 +236,7 @@ const useEnrollmentStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.delete(`/admin/enrollments/${id}`);
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to delete enrollment");
       }
       set({ loading: false });
@@ -261,7 +263,7 @@ const useEnrollmentStore = create((set, get) => ({
         "/admin/enrollments/promote",
         promotionData
       );
-      if (data.success === false) {
+      if (data.success === false && !data.data) {
         throw new Error(data.message || "Failed to promote students");
       }
       set({ loading: false });
