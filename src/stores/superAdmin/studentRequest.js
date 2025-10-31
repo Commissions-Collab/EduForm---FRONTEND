@@ -49,9 +49,9 @@ const useStudentRequestsStore = create((set, get) => ({
 
     try {
       const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-        axiosInstance.get("/teacher/students/pending", { timeout: 10000 }),
-        axiosInstance.get("/teacher/students/approved", { timeout: 10000 }),
-        axiosInstance.get("/teacher/students/rejected", { timeout: 10000 }),
+        axiosInstance.get("/admin/students/pending", { timeout: 10000 }),
+        axiosInstance.get("/admin/students/approved", { timeout: 10000 }),
+        axiosInstance.get("/admin/students/rejected", { timeout: 10000 }),
       ]);
 
       const validateResponse = (res, type) => {
@@ -86,7 +86,7 @@ const useStudentRequestsStore = create((set, get) => ({
 
       await fetchCsrfToken();
       const { status } = await axiosInstance.put(
-        `/teacher/student-requests/${id}/approve`,
+        `/admin/student-requests/${id}/approve`,
         {},
         { timeout: 10000 }
       );
@@ -118,7 +118,7 @@ const useStudentRequestsStore = create((set, get) => ({
 
       await fetchCsrfToken();
       const { status } = await axiosInstance.put(
-        `/teacher/student-requests/${id}/reject`,
+        `/admin/student-requests/${id}/reject`,
         {},
         { timeout: 10000 }
       );

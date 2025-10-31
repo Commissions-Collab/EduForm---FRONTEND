@@ -29,7 +29,7 @@ const useAcademicCalendarStore = create((set, get) => ({
   setSelectedYearId: (yearId) =>
     set({ selectedYearId: yearId, currentPage: 1 }),
 
-  fetchCalendars: async (page = 1, perPage = 10) => {
+  fetchCalendars: async (page = 1, perPage = 10, skipToast = false) => {
     set({ loading: true, error: null, currentPage: page });
     try {
       const { data } = await axiosInstance.get("/admin/academic-calendar", {
@@ -46,7 +46,7 @@ const useAcademicCalendarStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load academic calendars");
       set({ error: message, loading: false });
-      toast.error(message);
+      if (!skipToast) toast.error(message);
     }
   },
 
@@ -61,13 +61,13 @@ const useAcademicCalendarStore = create((set, get) => ({
       set({ loading: false });
       toast.success("Calendar entries created successfully");
 
-      // Refresh current view
+      // Refresh current view without showing additional toast
       const { currentPage, selectedYearId, fetchCalendars, fetchByYear } =
         get();
       if (selectedYearId) {
-        await fetchByYear(selectedYearId, currentPage);
+        await fetchByYear(selectedYearId, currentPage, true);
       } else {
-        await fetchCalendars(currentPage);
+        await fetchCalendars(currentPage, 10, true);
       }
       return data;
     } catch (err) {
@@ -78,7 +78,7 @@ const useAcademicCalendarStore = create((set, get) => ({
     }
   },
 
-  fetchCalendar: async (id) => {
+  fetchCalendar: async (id, skipToast = false) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get(
@@ -89,7 +89,7 @@ const useAcademicCalendarStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load calendar entry");
       set({ error: message, loading: false });
-      toast.error(message);
+      if (!skipToast) toast.error(message);
       throw err;
     }
   },
@@ -105,13 +105,13 @@ const useAcademicCalendarStore = create((set, get) => ({
       set({ loading: false });
       toast.success("Calendar entry updated successfully");
 
-      // Refresh current view
+      // Refresh current view without showing additional toast
       const { currentPage, selectedYearId, fetchCalendars, fetchByYear } =
         get();
       if (selectedYearId) {
-        await fetchByYear(selectedYearId, currentPage);
+        await fetchByYear(selectedYearId, currentPage, true);
       } else {
-        await fetchCalendars(currentPage);
+        await fetchCalendars(currentPage, 10, true);
       }
       return data;
     } catch (err) {
@@ -132,13 +132,13 @@ const useAcademicCalendarStore = create((set, get) => ({
       set({ loading: false });
       toast.success("Calendar entry deleted successfully");
 
-      // Refresh current view
+      // Refresh current view without showing additional toast
       const { currentPage, selectedYearId, fetchCalendars, fetchByYear } =
         get();
       if (selectedYearId) {
-        await fetchByYear(selectedYearId, currentPage);
+        await fetchByYear(selectedYearId, currentPage, true);
       } else {
-        await fetchCalendars(currentPage);
+        await fetchCalendars(currentPage, 10, true);
       }
       return data;
     } catch (err) {
@@ -149,7 +149,12 @@ const useAcademicCalendarStore = create((set, get) => ({
     }
   },
 
-  fetchByYear: async (academicYearId, page = 1, perPage = 10) => {
+  fetchByYear: async (
+    academicYearId,
+    page = 1,
+    perPage = 10,
+    skipToast = false
+  ) => {
     set({ loading: true, error: null, currentPage: page });
     try {
       const { data } = await axiosInstance.get(
@@ -160,7 +165,7 @@ const useAcademicCalendarStore = create((set, get) => ({
         calendars: data.data ?? [],
         loading: false,
         currentPage: data.current_page ?? 1,
-        totalPages: data.total_pages ?? 1,
+        totalPages: data.last_page ?? 1,
         total: data.total ?? 0,
         perPage: data.per_page ?? perPage,
         selectedYearId: academicYearId,
@@ -168,7 +173,7 @@ const useAcademicCalendarStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load calendars by year");
       set({ error: message, loading: false });
-      toast.error(message);
+      if (!skipToast) toast.error(message);
     }
   },
 
@@ -190,11 +195,13 @@ const handleUnauthorized = () => {
   useAcademicCalendarStore.getState().resetAcademicCalendarStore();
 };
 
-window.addEventListener("unauthorized", handleUnauthorized);
+if (typeof window !== "undefined") {
+  window.addEventListener("unauthorized", handleUnauthorized);
 
-// Cleanup on module unload
-window.addEventListener("unload", () => {
-  window.removeEventListener("unauthorized", handleUnauthorized);
-});
+  // Cleanup on module unload
+  window.addEventListener("unload", () => {
+    window.removeEventListener("unauthorized", handleUnauthorized);
+  });
+}
 
 export default useAcademicCalendarStore;

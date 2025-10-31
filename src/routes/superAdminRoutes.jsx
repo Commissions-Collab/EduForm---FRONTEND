@@ -8,6 +8,9 @@ import AcademicCalendar from "../pages/superadmin/AcademicCalendar";
 import ClassManagement from "../pages/superadmin/ClassManagement";
 import TeacherManagement from "../pages/superadmin/TeacherManagement";
 import AttendanceMonthlySummary from "../pages/superadmin/AttendanceMonthlySummary";
+import StudentApproval from "../pages/superadmin/StudentApproval";
+import Textbook from "../pages/superadmin/Textbook";
+import FormsSF5SF6 from "../pages/superadmin/FormsSF5SF6";
 
 const SuperAdminRoutes = (
   <Route
@@ -21,8 +24,11 @@ const SuperAdminRoutes = (
     }
   >
     <Route path="dashboard" element={<SuperAdminDashboard />} />
+    <Route path="studentApproval" element={<StudentApproval />} />
     <Route path="enrollment" element={<Enrollment />} />
     <Route path="calendar" element={<AcademicCalendar />} />
+    <Route path="textbook" element={<Textbook />} />
+    <Route path="promotionReports" element={<FormsSF5SF6 />} />
     <Route path="class" element={<ClassManagement />} />
     <Route
       path="attendanceMonthlySummary"

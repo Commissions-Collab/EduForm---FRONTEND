@@ -6,13 +6,10 @@ import PromotionReports from "../pages/admin/forms/PromotionReports";
 import Certificates from "../pages/admin/Certificates";
 import Textbook from "../pages/admin/forms/Textbook";
 import Workload from "../pages/admin/forms/Workload";
-import Attendance from "../pages/admin/forms/Attendance";
 import Grades from "../pages/admin/forms/AcademicRecords";
 import HealthProfile from "../pages/admin/forms/HealthProfile";
 import PermanentRecords from "../pages/admin/forms/PermanentRecords";
 import ProtectedRoute from "./ProtectedRoute";
-import StudentApproval from "../pages/admin/forms/StudentApproval";
-
 import DailyAttendance from "../pages/admin/forms/Attendance";
 
 import StudentAttendanceHistory from "../pages/admin/StudentAttendanceHistory";
@@ -42,7 +39,7 @@ const AdminRoutes = (
     <Route path="parentConference" element={<ParentConference />} />
     <Route path="textbook" element={<Textbook />} />
     <Route path="workload" element={<Workload />} />
-    <Route path="studentApproval" element={<StudentApproval />} />
+
     <Route path="healthProfile" element={<HealthProfile />} />
     <Route path="permanentRecords" element={<PermanentRecords />} />
   </Route>

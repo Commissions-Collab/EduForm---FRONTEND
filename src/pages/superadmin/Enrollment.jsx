@@ -28,6 +28,7 @@ const Enrollment = () => {
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [selectedEnrollments, setSelectedEnrollments] = useState([]);
+  const store = useEnrollmentStore.getState();
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -53,12 +54,12 @@ const Enrollment = () => {
     fetchSections,
   ]);
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      clearError();
-    }
-  }, [error, clearError]);
+  // useEffect(() => {
+  //   if (error) {
+  //     toast.error(error);
+  //     clearError();
+  //   }
+  // }, [error, clearError]);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this enrollment?")) {

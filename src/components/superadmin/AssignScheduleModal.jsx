@@ -1,17 +1,18 @@
-import { useEffect, useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import useTeacherManagementStore from "../../stores/superAdmin/teacherManagementStore";
 
 const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
   const {
     createTeacherSchedule,
-    subjects,
     academicYear,
     quarters,
     sections,
     fetchDropdownData,
+    fetchTeacherSubjects,
+    fetchAssignedSubjectsOnly,
     updateSectionsForYear,
+    subjects,
     loading,
   } = useTeacherManagementStore();
 
@@ -31,38 +32,46 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
   const [schedules, setSchedules] = useState([initialScheduleState]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchDropdownData(); // Now calls your controller endpoint
+    if (isOpen && teacher) {
+      fetchDropdownData();
+
+      if (academicYear?.id) {
+        fetchAssignedSubjectsOnly(teacher.id, academicYear.id);
+      }
     } else {
-      // Reset form when closing
       setSchedules([{ ...initialScheduleState }]);
       setAcademicYearId("");
       setIsSubmitting(false);
     }
-  }, [isOpen, fetchDropdownData]);
+  }, [
+    isOpen,
+    teacher,
+    academicYear?.id,
+    fetchDropdownData,
+    fetchAssignedSubjectsOnly,
+  ]);
 
   useEffect(() => {
-    // Auto-select current academic year if available
     if (academicYear && academicYear.id) {
       setAcademicYearId(academicYear.id.toString());
     }
   }, [academicYear]);
 
+  useEffect(() => {
+    if (teacher && academicYearId) {
+      fetchAssignedSubjectsOnly(teacher.id, academicYearId);
+    }
+  }, [teacher, academicYearId]);
+
   if (!isOpen || !teacher) return null;
 
   const handleAcademicYearChange = async (yearId) => {
     setAcademicYearId(yearId);
-
-    // Reset all sections in schedules when academic year changes
-    const resetSchedules = schedules.map((schedule) => ({
-      ...schedule,
-      section_id: "",
-    }));
+    const resetSchedules = schedules.map((s) => ({ ...s, section_id: "" }));
     setSchedules(resetSchedules);
-
-    // Update sections for the selected academic year
     if (yearId) {
       await updateSectionsForYear(yearId);
+      fetchTeacherSubjects(teacher.id, yearId);
     }
   };
 
@@ -72,13 +81,13 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
     if (!academicYearId) return;
 
     const isValid = schedules.every(
-      (schedule) =>
-        schedule.subject_id &&
-        schedule.section_id &&
-        schedule.quarter_id &&
-        schedule.day_of_week &&
-        schedule.start_time &&
-        schedule.end_time
+      (s) =>
+        s.subject_id &&
+        s.section_id &&
+        s.quarter_id &&
+        s.day_of_week &&
+        s.start_time &&
+        s.end_time
     );
 
     if (!isValid) return;
@@ -99,33 +108,20 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
   };
 
   const handleScheduleChange = (index, field, value) => {
-    const updatedSchedules = [...schedules];
-    updatedSchedules[index] = {
-      ...updatedSchedules[index],
-      [field]: value,
-    };
-    setSchedules(updatedSchedules);
+    const updated = [...schedules];
+    updated[index] = { ...updated[index], [field]: value };
+    setSchedules(updated);
   };
 
-  const addSchedule = () => {
+  const addSchedule = () =>
     setSchedules([...schedules, { ...initialScheduleState }]);
-  };
+  const removeSchedule = (index) =>
+    setSchedules((prev) => prev.filter((_, i) => i !== index));
 
-  const removeSchedule = (index) => {
-    if (schedules.length > 1) {
-      const updatedSchedules = schedules.filter((_, i) => i !== index);
-      setSchedules(updatedSchedules);
-    }
-  };
-
-  const formatTeacherName = (teacher) => {
-    const parts = [
-      teacher.first_name,
-      teacher.middle_name,
-      teacher.last_name,
-    ].filter(Boolean);
-    return parts.join(" ");
-  };
+  const formatTeacherName = (teacher) =>
+    [teacher.first_name, teacher.middle_name, teacher.last_name]
+      .filter(Boolean)
+      .join(" ");
 
   const dayOptions = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -142,7 +138,7 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Academic Year Selection */}
+          {/* Academic Year */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Academic Year *
@@ -165,7 +161,7 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
             </select>
           </div>
 
-          {/* Schedule Entries */}
+          {/* Schedule Cards */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">
@@ -205,7 +201,7 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Subject */}
+                  {/* Subject (Filtered) */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Subject *
@@ -223,14 +219,14 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
                       required
                     >
                       <option value="">Select Subject</option>
-                      {subjects && subjects.length > 0 ? (
+                      {subjects?.length > 0 ? (
                         subjects.map((subject) => (
                           <option key={subject.id} value={subject.id}>
                             {subject.name}
                           </option>
                         ))
                       ) : (
-                        <option disabled>Loading subjects...</option>
+                        <option disabled>No assigned subjects found</option>
                       )}
                     </select>
                   </div>
@@ -279,15 +275,11 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
                       required
                     >
                       <option value="">Select Quarter</option>
-                      {quarters && quarters.length > 0 ? (
-                        quarters.map((quarter) => (
-                          <option key={quarter.id} value={quarter.id}>
-                            {quarter.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option disabled>Loading quarters...</option>
-                      )}
+                      {quarters?.map((quarter) => (
+                        <option key={quarter.id} value={quarter.id}>
+                          {quarter.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -316,7 +308,7 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
                     </select>
                   </div>
 
-                  {/* Start Time */}
+                  {/* Time Inputs */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Start Time *
@@ -335,8 +327,6 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
                       required
                     />
                   </div>
-
-                  {/* End Time */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       End Time *
@@ -379,26 +369,17 @@ const AssignScheduleModal = ({ isOpen, onClose, teacher }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 transition-colors"
               disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors"
               disabled={isSubmitting || loading || schedules.length === 0}
             >
-              {isSubmitting ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating Schedules...
-                </span>
-              ) : (
-                `Create ${schedules.length} Schedule${
-                  schedules.length !== 1 ? "s" : ""
-                }`
-              )}
+              {isSubmitting ? "Creating..." : "Create Schedules"}
             </button>
           </div>
         </form>
