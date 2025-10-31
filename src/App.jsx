@@ -5,6 +5,8 @@ import useAuthStore from "./stores/auth";
 import AuthLayout from "./pages/auth/authLayout";
 import SignIn from "./pages/auth/signIn";
 import SignUp from "./pages/auth/signUp";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import NotFound from "./pages/NotFound";
 import SuperAdminRoutes from "./routes/superAdminRoutes";
 import AdminRoutes from "./routes/adminRoutes";
@@ -36,6 +38,8 @@ function App() {
               <Route index element={<SignIn />} />
               <Route path="sign-in" element={<SignIn />} />
               <Route path="sign-up" element={<SignUp />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
             </Route>
 
             {SuperAdminRoutes}

@@ -67,7 +67,7 @@ const useEnrollmentStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load students");
       set({ error: message, students: [], loading: false });
-      if (showToast) toast.error(message);
+      toast.error(message);
     }
   },
 
@@ -85,7 +85,7 @@ const useEnrollmentStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load academic years");
       set({ error: message, academicYears: [], loading: false });
-      if (showToast) toast.error(message);
+      toast.error(message);
     }
   },
 
@@ -103,7 +103,7 @@ const useEnrollmentStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load year levels");
       set({ error: message, yearLevels: [], loading: false });
-      if (showToast) toast.error(message);
+      toast.error(message);
     }
   },
 
@@ -127,7 +127,7 @@ const useEnrollmentStore = create((set, get) => ({
     } catch (err) {
       const message = handleError(err, "Failed to load sections");
       set({ error: message, sections: [], loading: false });
-      if (showToast) toast.error(message);
+      toast.error(message);
     }
   },
 
