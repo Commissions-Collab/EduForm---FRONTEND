@@ -5,6 +5,7 @@ import { axiosInstance } from "../../lib/axios";
 const useStudentGradeStore = create((set) => ({
   data: {
     quarter: "",
+    quarter_id: null,
     quarter_average: 0,
     honors_eligibility: null,
     grades: [],
@@ -15,43 +16,61 @@ const useStudentGradeStore = create((set) => ({
   fetchGrades: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosInstance.get("/student/student-grade");
+      // Use correct API route with /api prefix already handled by axios
+      const { data } = await axiosInstance.get("/student/student-grade", {
+        timeout: 10000,
+      });
+
       console.log("fetchGrades Response:", data);
+
+      // Handle both success and direct data responses
+      const responseData = data.success ? data.data : data;
+
       set({
         data: {
-          quarter: data.quarter || "",
-          quarter_average: data.quarter_average || 0,
-          honors_eligibility: data.honors_eligibility || null,
-          grades: data.grades || [],
+          quarter: responseData.quarter || "",
+          quarter_id: responseData.quarter_id || null,
+          quarter_average: responseData.quarter_average || 0,
+          honors_eligibility: responseData.honors_eligibility || null,
+          grades: Array.isArray(responseData.grades) ? responseData.grades : [],
         },
         loading: false,
       });
     } catch (error) {
-      let message = error?.response?.data?.error || "Failed to fetch grades";
+      let message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Failed to fetch grades";
+
       if (
         error.response &&
         !error.response.headers["content-type"]?.includes("application/json")
       ) {
         message = "Server error occurred while fetching grades";
       }
+
       console.error("fetchGrades Error:", {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
       });
+
       set({
         error: message,
         loading: false,
         data: {
           quarter: "",
+          quarter_id: null,
           quarter_average: 0,
           honors_eligibility: null,
           grades: [],
         },
       });
+
       if (error.response?.status === 401 || error.response?.status === 403) {
         window.dispatchEvent(new Event("unauthorized"));
       }
+
       toast.error(message);
     }
   },
@@ -64,6 +83,7 @@ const useStudentGradeStore = create((set) => ({
     set({
       data: {
         quarter: "",
+        quarter_id: null,
         quarter_average: 0,
         honors_eligibility: null,
         grades: [],

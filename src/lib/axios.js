@@ -3,7 +3,7 @@ import { getItem, removeItem } from "./utils";
 import toast from "react-hot-toast";
 
 // Configuration constants aligned with backend
-const BASE_URL = "http://127.0.0.1:8000/api"; //http://127.0.0.1:8000/api https://api.acad-flow.com
+const BASE_URL = "https://api.acad-flow.com"; //http://127.0.0.1:8000/api https://api.acad-flow.com
 const SANCTUM_CSRF_URL = BASE_URL.replace("/api", "") + "/sanctum/csrf-cookie";
 const SESSION_LIFETIME_MINUTES = 120; // Match backend SESSION_LIFETIME
 
@@ -69,7 +69,7 @@ axiosInstance.interceptors.response.use(
       if (
         response?.data &&
         response.data.success === false &&
-        Object.prototype.hasOwnProperty.call(response.data, 'data')
+        Object.prototype.hasOwnProperty.call(response.data, "data")
       ) {
         response.data.success = true; // normalize
       }
@@ -85,15 +85,20 @@ axiosInstance.interceptors.response.use(
     try {
       const serverMessage = error?.response?.data?.message;
       // Hide or replace messages that leak implementation details (bcrypt)
-      if (typeof serverMessage === 'string' && /bcrypt/i.test(serverMessage)) {
-        error.response.data.message = 'An internal server error occurred. Please try again or contact support.';
+      if (typeof serverMessage === "string" && /bcrypt/i.test(serverMessage)) {
+        error.response.data.message =
+          "An internal server error occurred. Please try again or contact support.";
       }
       // Also sanitize arrays of validation errors if present
       if (error?.response?.data?.errors) {
         Object.keys(error.response.data.errors).forEach((k) => {
           const arr = error.response.data.errors[k];
           if (Array.isArray(arr)) {
-            error.response.data.errors[k] = arr.map((msg) => (typeof msg === 'string' && /bcrypt/i.test(msg) ? 'An internal server error occurred.' : msg));
+            error.response.data.errors[k] = arr.map((msg) =>
+              typeof msg === "string" && /bcrypt/i.test(msg)
+                ? "An internal server error occurred."
+                : msg
+            );
           }
         });
       }

@@ -9,7 +9,10 @@ const useStudentDashboardStore = create((set) => ({
       subjects: [],
     },
     grade_change_percent: 0,
-    attendance_rate: { present_percent: 0, recent_absents: [] },
+    attendance_rate: {
+      present_percent: 0,
+      recent_absents: [],
+    },
     borrow_book: 0,
     book_due_this_week: 0,
     notifications: [],
@@ -19,29 +22,49 @@ const useStudentDashboardStore = create((set) => ({
 
   fetchDashboard: async () => {
     set({ loading: true, error: null });
+
     try {
-      const { data } = await axiosInstance.get("/student/dashboard");
+      // Use correct API route
+      const { data } = await axiosInstance.get("/student/dashboard", {
+        timeout: 10000,
+      });
+
       console.log("fetchDashboard Response:", data);
+
+      // Handle both success and direct data responses
+      const responseData = data.success ? data.data : data;
 
       set({
         data: {
           grades: {
-            total_average: data.grades?.total_average || 0,
-            subjects: Array.isArray(data.grades?.subjects)
-              ? data.grades.subjects
+            total_average:
+              responseData.grades?.total_average ??
+              responseData.total_average ??
+              0,
+            subjects: Array.isArray(responseData.grades?.subjects)
+              ? responseData.grades.subjects
+              : Array.isArray(responseData.subjects)
+              ? responseData.subjects
               : [],
           },
-          grade_change_percent: data.grade_change_percent || 0,
+          grade_change_percent: responseData.grade_change_percent ?? 0,
           attendance_rate: {
-            present_percent: data.attendance_rate?.present_percent || 0,
-            recent_absents: Array.isArray(data.attendance_rate?.recent_absents)
-              ? data.attendance_rate.recent_absents
+            present_percent:
+              responseData.attendance_rate?.present_percent ??
+              responseData.present_percent ??
+              0,
+            recent_absents: Array.isArray(
+              responseData.attendance_rate?.recent_absents
+            )
+              ? responseData.attendance_rate.recent_absents
+              : Array.isArray(responseData.recent_absents)
+              ? responseData.recent_absents
               : [],
           },
-          borrow_book: data.borrow_book || 0,
-          book_due_this_week: data.book_due_this_week || 0,
-          notifications: Array.isArray(data.notifications)
-            ? data.notifications
+          borrow_book: responseData.borrow_book ?? 0,
+          book_due_this_week: responseData.book_due_this_week ?? 0,
+          notifications: Array.isArray(responseData.notifications)
+            ? responseData.notifications
             : [],
         },
         loading: false,
@@ -68,9 +91,15 @@ const useStudentDashboardStore = create((set) => ({
         error: message,
         loading: false,
         data: {
-          grades: { total_average: 0, subjects: [] },
+          grades: {
+            total_average: 0,
+            subjects: [],
+          },
           grade_change_percent: 0,
-          attendance_rate: { present_percent: 0, recent_absents: [] },
+          attendance_rate: {
+            present_percent: 0,
+            recent_absents: [],
+          },
           borrow_book: 0,
           book_due_this_week: 0,
           notifications: [],
@@ -97,7 +126,10 @@ const useStudentDashboardStore = create((set) => ({
           subjects: [],
         },
         grade_change_percent: 0,
-        attendance_rate: { present_percent: 0, recent_absents: [] },
+        attendance_rate: {
+          present_percent: 0,
+          recent_absents: [],
+        },
         borrow_book: 0,
         book_due_this_week: 0,
         notifications: [],

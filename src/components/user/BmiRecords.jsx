@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Scale, CircleAlert, ChevronDown, ChevronUp } from "lucide-react";
 
-const BmiRecords = ({ data, loading, error }) => {
+const BmiRecords = ({ data = [], loading = false, error = null }) => {
+  const safeData = Array.isArray(data) ? data : [];
   const [sortOrder, setSortOrder] = useState("desc"); // Newest first
   const [expandedRemarks, setExpandedRemarks] = useState({});
 
@@ -26,9 +27,9 @@ const BmiRecords = ({ data, loading, error }) => {
     }
   };
 
-  const sortedData = [...data].sort((a, b) => {
-    const dateA = new Date(a.recorded_at);
-    const dateB = new Date(b.recorded_at);
+  const sortedData = [...safeData].sort((a, b) => {
+    const dateA = new Date(a.recorded_at || 0);
+    const dateB = new Date(b.recorded_at || 0);
     return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
   });
 
@@ -67,6 +68,7 @@ const BmiRecords = ({ data, loading, error }) => {
           </div>
         </div>
       </div>
+
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -92,7 +94,7 @@ const BmiRecords = ({ data, loading, error }) => {
             <p className="text-sm text-red-600 mt-1">{error}</p>
           </div>
         </div>
-      ) : data.length === 0 ? (
+      ) : safeData.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
             <Scale className="w-6 h-6 text-gray-400" />
@@ -101,80 +103,82 @@ const BmiRecords = ({ data, loading, error }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedData.map((record, index) => (
-            <div
-              key={record.id}
-              className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${getCategoryStyle(
-                record.category
-              )}`}
-              style={{ animationDelay: `${index * 100}ms` }}
-              role="article"
-              aria-label={`BMI record for ${
-                record.recorded_at
-                  ? new Date(record.recorded_at).toLocaleDateString("en-US")
-                  : "unknown date"
-              }`}
-            >
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">
-                    {record.recorded_at
-                      ? new Date(record.recorded_at).toLocaleDateString(
-                          "en-US",
-                          { month: "long", day: "numeric", year: "numeric" }
-                        )
+          {sortedData.map((record, index) => {
+            const recordDate = record.recorded_at
+              ? new Date(record.recorded_at).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "N/A";
+
+            return (
+              <div
+                key={record.id || index}
+                className={`rounded-lg p-4 border shadow-sm hover:shadow-md transition-all duration-200 ${getCategoryStyle(
+                  record.category
+                )}`}
+                style={{ animationDelay: `${index * 100}ms` }}
+                role="article"
+                aria-label={`BMI record for ${recordDate}`}
+              >
+                <div className="flex flex-col gap-2">
+                  {/* Date Header */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">{recordDate}</p>
+                    <div className="p-2 bg-white bg-opacity-50 rounded-lg">
+                      <Scale className="w-5 h-5 animate-pulse" />
+                    </div>
+                  </div>
+
+                  {/* BMI Value & Category */}
+                  <p className="text-xl font-bold">
+                    BMI: {record.bmi ? record.bmi.toFixed(1) : "N/A"} (
+                    {record.category || "N/A"})
+                  </p>
+
+                  {/* Height & Weight */}
+                  <p className="text-sm">
+                    Height: {record.height ? `${record.height} cm` : "N/A"}
+                  </p>
+                  <p className="text-sm">
+                    Weight: {record.weight ? `${record.weight} kg` : "N/A"}
+                  </p>
+
+                  {/* Quarter */}
+                  <p className="text-sm">
+                    Quarter:{" "}
+                    {record.quarter_id
+                      ? quarterNames[record.quarter_id] ||
+                        `Quarter ${record.quarter_id}`
                       : "N/A"}
                   </p>
-                  <div className="p-2 bg-white bg-opacity-50 rounded-lg">
-                    <Scale className="w-5 h-5 animate-pulse" />
-                  </div>
-                </div>
-                <p className="text-xl font-bold">
-                  BMI: {record.bmi ? record.bmi.toFixed(1) : "N/A"} (
-                  {record.category || "N/A"})
-                </p>
-                <p className="text-sm">
-                  Height: {record.height ? `${record.height} cm` : "N/A"}
-                </p>
-                <p className="text-sm">
-                  Weight: {record.weight ? `${record.weight} kg` : "N/A"}
-                </p>
-                <p className="text-sm">
-                  Quarter:{" "}
-                  {record.quarter_id
-                    ? quarterNames[record.quarter_id] ||
-                      `Quarter ${record.quarter_id}`
-                    : "N/A"}
-                </p>
-                {record.remarks && (
-                  <div className="text-sm text-gray-600">
-                    <button
-                      onClick={() => toggleRemarks(record.id)}
-                      className="flex items-center gap-1 text-blue-700 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      aria-expanded={!!expandedRemarks[record.id]}
-                      aria-label={`Toggle remarks for record on ${
-                        record.recorded_at
-                          ? new Date(record.recorded_at).toLocaleDateString(
-                              "en-US"
-                            )
-                          : "unknown date"
-                      }`}
-                    >
-                      Remarks
-                      {expandedRemarks[record.id] ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
+
+                  {/* Remarks Toggle */}
+                  {record.remarks && (
+                    <div className="text-sm">
+                      <button
+                        onClick={() => toggleRemarks(record.id || index)}
+                        className="flex items-center gap-1 text-blue-700 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-expanded={!!expandedRemarks[record.id || index]}
+                        aria-label={`Toggle remarks for record on ${recordDate}`}
+                      >
+                        Remarks
+                        {expandedRemarks[record.id || index] ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </button>
+                      {expandedRemarks[record.id || index] && (
+                        <p className="mt-1">{record.remarks}</p>
                       )}
-                    </button>
-                    {expandedRemarks[record.id] && (
-                      <p className="mt-1">{record.remarks}</p>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
