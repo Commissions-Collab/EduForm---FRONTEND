@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Printer,
   Eye,
@@ -11,10 +11,12 @@ import {
   Calendar,
   Lock,
   BadgeAlert,
+  Loader,
 } from "lucide-react";
 import PaginationControls from "./Pagination";
 import useCertificatesStore from "../../stores/admin/certificateStore";
 import useFilterStore from "../../stores/admin/filterStore";
+import toast from "react-hot-toast";
 
 const HonorsCertificateTable = ({
   searchName,
@@ -38,6 +40,8 @@ const HonorsCertificateTable = ({
 
   const { globalFilters } = useFilterStore();
 
+  const [downloading, setDownloading] = useState({});
+
   const filteredRecords = useMemo(() => {
     return honorCertificates.filter((record) => {
       const matchesName = (record.student_name || "")
@@ -56,8 +60,22 @@ const HonorsCertificateTable = ({
     previewCertificate("honor_roll", studentId, globalFilters.quarterId);
   };
 
-  const handleDownload = (studentId) => {
-    downloadCertificate("honor_roll", studentId, globalFilters.quarterId);
+  const handleDownload = async (studentId) => {
+    const key = `honor-${studentId}`;
+    setDownloading((prev) => ({ ...prev, [key]: true }));
+    try {
+      await downloadCertificate(
+        "honor_roll",
+        studentId,
+        globalFilters.quarterId
+      );
+      toast.success("Certificate downloaded successfully");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Failed to download certificate");
+    } finally {
+      setDownloading((prev) => ({ ...prev, [key]: false }));
+    }
   };
 
   const handlePrintAll = () => {
@@ -154,19 +172,24 @@ const HonorsCertificateTable = ({
         </button>
         <button
           className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-            record.can_generate
+            record.can_generate && !downloading[`honor-${record.id}`]
               ? "text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
               : "text-gray-400 bg-gray-100 cursor-not-allowed"
           }`}
           onClick={() => record.can_generate && handleDownload(record.id)}
-          disabled={!record.can_generate}
+          disabled={!record.can_generate || downloading[`honor-${record.id}`]}
         >
-          {record.can_generate ? (
-            <Download className="w-4 h-4" />
+          {downloading[`honor-${record.id}`] ? (
+            <>
+              <Loader className="w-4 h-4 animate-spin" />
+              Downloading...
+            </>
           ) : (
-            <Lock className="w-4 h-4" />
+            <>
+              <Download className="w-4 h-4" />
+              Download
+            </>
           )}
-          Download
         </button>
       </div>
     </div>
@@ -492,21 +515,30 @@ const HonorsCertificateTable = ({
                         </button>
                         <button
                           className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                            record.can_generate
+                            record.can_generate &&
+                            !downloading[`honor-${record.id}`]
                               ? "text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
                               : "text-gray-400 cursor-not-allowed"
                           }`}
                           onClick={() =>
                             record.can_generate && handleDownload(record.id)
                           }
-                          disabled={!record.can_generate}
+                          disabled={
+                            !record.can_generate ||
+                            downloading[`honor-${record.id}`]
+                          }
                         >
-                          {record.can_generate ? (
-                            <Download className="w-3.5 h-3.5" />
+                          {downloading[`honor-${record.id}`] ? (
+                            <>
+                              <Loader className="w-3.5 h-3.5 animate-spin" />
+                              Downloading...
+                            </>
                           ) : (
-                            <Lock className="w-3.5 h-3.5" />
+                            <>
+                              <Download className="w-3.5 h-3.5" />
+                              Download
+                            </>
                           )}
-                          Download
                         </button>
                       </div>
                     </td>

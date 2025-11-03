@@ -198,18 +198,6 @@ const DailyAttendance = () => {
               >
                 Mark All Absent ({summary.total})
               </button>
-              <button
-                onClick={() => {
-                  console.log(
-                    "Export attendance for",
-                    selectedSchedule.subject?.name,
-                    selectedDate
-                  );
-                }}
-                className="px-3 py-2 text-xs sm:text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors whitespace-nowrap"
-              >
-                Export Attendance
-              </button>
             </div>
           </div>
         )}

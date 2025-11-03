@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from "react";
 import PaginationControls from "./Pagination";
 import StatusBadge from "./StatusBadge";
-import { Loader, User, Save, Filter, PanelsLeftBottom } from "lucide-react";
+import {
+  Loader,
+  User,
+  Save,
+  Filter,
+  PanelsLeftBottom,
+  Download,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import useGradesStore from "../../stores/admin/gradeStore";
 import useFilterStore from "../../stores/admin/filterStore";
+
 const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
   const {
     students,
@@ -163,6 +171,101 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
     }
   };
 
+  const exportGradesToCSV = () => {
+    if (records.length === 0) {
+      toast.error("No grades to export");
+      return;
+    }
+
+    try {
+      // Get quarter name for filename
+      const quarterName =
+        filterOptions.quarters?.find((q) => q.id === quarterId)?.name ||
+        `Quarter ${quarterId}`;
+
+      // Prepare CSV headers
+      const csvHeaders = [
+        "Student Name",
+        "Student ID",
+        ...subjects.map((s) => s.name),
+        "Average",
+        "Status",
+      ];
+
+      // Prepare CSV rows
+      const csvRows = records.map((student) => {
+        // Get grades for each subject
+        const subjectGrades = subjects.map((subject) => {
+          const grade = student.grades?.find(
+            (g) => g.subject_id === subject.id
+          );
+          return grade?.grade ?? "";
+        });
+
+        // Calculate average
+        const filledGrades =
+          student.grades
+            ?.filter((g) => g.grade !== null && g.grade !== undefined)
+            ?.map((g) => Number(g.grade)) || [];
+
+        const average =
+          filledGrades.length > 0
+            ? (
+                filledGrades.reduce((a, b) => a + b, 0) / filledGrades.length
+              ).toFixed(2)
+            : "N/A";
+
+        return [
+          student.name || `${student.first_name} ${student.last_name}`.trim(),
+          student.student_number || "",
+          ...subjectGrades,
+          average,
+          student.status || "Incomplete",
+        ];
+      });
+
+      // Create CSV content
+      const csvContent = [
+        csvHeaders.join(","),
+        ...csvRows.map((row) =>
+          row
+            .map((cell) => {
+              // Escape quotes and wrap in quotes if contains comma
+              const escaped = String(cell).replace(/"/g, '""');
+              return escaped.includes(",") ? `"${escaped}"` : `"${escaped}"`;
+            })
+            .join(",")
+        ),
+      ].join("\n");
+
+      // Create blob and trigger download
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `grades-${quarterName.toLowerCase().replace(/\s+/g, "-")}-${
+          new Date().toISOString().split("T")[0]
+        }.csv`
+      );
+      link.style.visibility = "hidden";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Exported ${records.length} student grades`);
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export grades");
+    }
+  };
+
   const showFiltersMessage = !academicYearId || !quarterId || !sectionId;
 
   if (showFiltersMessage) {
@@ -212,7 +315,7 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
                 Enter grades — system computes average and status automatically
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
               {hasUnsavedChanges && (
                 <button
                   onClick={saveAllChanges}
@@ -231,9 +334,19 @@ const GradesTable = ({ academicYearId, quarterId, sectionId }) => {
                     : `Save All (${Object.keys(unsavedChanges).length})`}
                 </button>
               )}
+
               <div className="text-sm font-medium text-gray-700">
                 Quarter: {quarterName}
               </div>
+              <button
+                onClick={exportGradesToCSV}
+                disabled={!hasRecords || loading}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Export grades to CSV file"
+              >
+                <Download size={16} className="mr-2" />
+                Export Grades
+              </button>
             </div>
           </div>
         </div>

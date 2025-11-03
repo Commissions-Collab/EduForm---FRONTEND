@@ -95,17 +95,6 @@ const Grades = () => {
                 )}
               </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-3">
-              <button
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50"
-                disabled={!hasAllFilters || !hasData || isLoading}
-              >
-                <Download size={16} className="mr-2" />
-                Export Grades
-              </button>
-            </div>
           </div>
 
           {/* Stats Cards */}

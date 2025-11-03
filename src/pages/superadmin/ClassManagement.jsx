@@ -242,12 +242,6 @@ const ClassManagement = () => {
               setSelectedAcademicYear(item);
               setIsAcademicYearModalOpen(true);
             }}
-            onManageQuarters={(item) => {
-              // 👇 NEW BUTTON for "Manage Quarters"
-              setSelectedAcademicYear(item);
-              setModalMode("edit");
-              setIsQuarterModalOpen(true);
-            }}
             onDelete={handleDelete}
             currentPage={currentPage.academicYears}
             onPageChange={(page) => handlePageChange("academicYears", page)}

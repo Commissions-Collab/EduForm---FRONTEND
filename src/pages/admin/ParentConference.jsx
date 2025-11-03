@@ -87,13 +87,6 @@ const ParentConference = () => {
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <button
-            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-xs sm:text-sm"
-            onClick={() => alert("Schedule feature coming soon!")}
-          >
-            <Calendar size={14} className="sm:w-4 sm:h-4" />
-            <span>Schedule Conferences</span>
-          </button>
-          <button
             className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300 text-xs sm:text-sm"
             onClick={handlePrintAllReportCards}
             disabled={loading || conferenceStudents.length === 0}

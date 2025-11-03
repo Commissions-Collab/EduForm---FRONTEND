@@ -140,11 +140,6 @@ export const studentNav = [
     url: "/student/userAttendance",
   },
   {
-    name: "Textbooks",
-    icon: BookOpen,
-    url: "/student/text-books",
-  },
-  {
     name: "Health Profile",
     icon: Heart,
     url: "/student/health-profile",

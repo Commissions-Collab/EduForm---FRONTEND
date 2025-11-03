@@ -337,14 +337,6 @@ const AttendanceMonthlySummary = () => {
             </div>
             <div className="flex flex-wrap gap-3">
               <button
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
-                onClick={handlePrint}
-                disabled={loading}
-              >
-                <Printer size={18} />
-                Print
-              </button>
-              <button
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 disabled:opacity-50"
                 onClick={handleExportCSV}
                 disabled={downloadLoading || loading}
@@ -354,7 +346,7 @@ const AttendanceMonthlySummary = () => {
                 ) : (
                   <FileText size={18} />
                 )}
-                {downloadLoading ? "Exporting..." : "Export CSV"}
+                {downloadLoading ? "Exporting..." : "Export Monthly Attendance"}
               </button>
             </div>
           </div>
