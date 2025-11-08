@@ -16,7 +16,7 @@ const useStudentGradeStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get("/student/student-grade");
-      console.log("fetchGrades Response:", data);
+
       set({
         data: {
           quarter: data.quarter || "",

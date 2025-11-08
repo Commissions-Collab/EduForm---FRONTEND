@@ -39,7 +39,6 @@ const useClassManagementStore = create((set, get) => ({
       const { data } = await axiosInstance.get(
         `/admin/academic-years?page=${page}`
       );
-      console.log("Academic Years fetched:", data);
       set({ academicYears: data.data || {}, loading: false });
     } catch (err) {
       const message = handleError(err, "Failed to load academic years");
@@ -309,7 +308,6 @@ const useClassManagementStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.post("/admin/section", sectionData);
-      console.log("Section created:", data);
       toast.success("Section created successfully");
       // Refetch sections on page 1
       await get().fetchSections(1);
@@ -331,7 +329,6 @@ const useClassManagementStore = create((set, get) => ({
         `/admin/section/${id}`,
         sectionData
       );
-      console.log("Section updated:", data);
       toast.success("Section updated successfully");
       // Refetch sections
       await get().fetchSections(get().sections.current_page || 1);
@@ -350,7 +347,6 @@ const useClassManagementStore = create((set, get) => ({
     try {
       await fetchCsrfToken();
       const { data } = await axiosInstance.delete(`/admin/section/${id}`);
-      console.log("Section deleted:", data);
       toast.success("Section deleted successfully");
       // Refetch sections
       await get().fetchSections(get().sections.current_page || 1);

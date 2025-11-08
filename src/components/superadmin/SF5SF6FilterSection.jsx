@@ -15,15 +15,8 @@ const SF5SF6FilterSection = () => {
     setLocalFilters(globalFilters);
   }, [globalFilters]);
 
-  // Debug: Log filter options
-  useEffect(() => {
-    console.log("Filter Options:", filterOptions);
-    console.log("Local Filters:", localFilters);
-  }, [filterOptions, localFilters]);
-
   const handleAcademicYearChange = (value) => {
     const yearId = value ? parseInt(value, 10) : null;
-    console.log("Selected Academic Year:", yearId);
 
     setLocalFilters((prev) => ({
       ...prev,
@@ -34,7 +27,6 @@ const SF5SF6FilterSection = () => {
 
   const handleSectionChange = (value) => {
     const sectionId = value ? parseInt(value, 10) : null;
-    console.log("Selected Section:", sectionId);
 
     setLocalFilters((prev) => ({
       ...prev,
@@ -50,7 +42,6 @@ const SF5SF6FilterSection = () => {
   };
 
   const applyFilters = () => {
-    console.log("Applying filters:", localFilters);
     setGlobalFilters(localFilters);
     setIsExpanded(false);
   };
@@ -58,18 +49,12 @@ const SF5SF6FilterSection = () => {
   // Get sections for the selected academic year
   const getSectionsByYear = () => {
     if (!localFilters.academicYearId) {
-      console.log("No academic year selected");
       return [];
     }
-
-    console.log("Looking for sections for year:", localFilters.academicYearId);
-    console.log("Available years:", filterOptions.sections_by_year);
 
     const yearData = filterOptions.sections_by_year?.find(
       (y) => y.academic_year_id === localFilters.academicYearId
     );
-
-    console.log("Found year data:", yearData);
 
     if (!yearData || !yearData.year_levels) {
       return [];
@@ -82,8 +67,7 @@ const SF5SF6FilterSection = () => {
         sections.push(...level.sections);
       }
     });
-
-    console.log("Available sections:", sections);
+    
     return sections;
   };
 

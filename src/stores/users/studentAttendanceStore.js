@@ -39,7 +39,7 @@ const useStudentAttendanceStore = create((set, get) => ({
           params: { month },
         })
       );
-      console.log("fetchAttendance Response:", data);
+
       set({
         data: {
           attendance_rate: data.attendance_rate || 0,
@@ -93,7 +93,6 @@ const useStudentAttendanceStore = create((set, get) => ({
       const { data } = await retry(() =>
         axiosInstance.get("/student/student-attendance/filter")
       );
-      console.log("fetchMonthFilter Response:", data);
       set({
         months: data.months || [],
         monthsLoading: false,

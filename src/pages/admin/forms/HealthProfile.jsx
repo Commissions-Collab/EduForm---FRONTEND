@@ -68,10 +68,6 @@ const HealthProfile = () => {
     }
   }, [globalFilters, fetchBmiStudents]);
 
-  useEffect(() => {
-    console.log("BMI Students data:", bmiStudents); // Debug log
-  }, [bmiStudents]);
-
   const hasAllFilters =
     selectedAcademicYear && selectedQuarter && selectedSection;
   const hasData = bmiStudents?.length > 0;

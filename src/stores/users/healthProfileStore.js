@@ -11,7 +11,6 @@ const useHealthProfileStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get("/student/health-profile");
-      console.log("fetchBmiData Response:", data);
       // Normalize field names to match frontend expectations
       const normalizedData = data.data.map((record) => ({
         id: record.id,

@@ -7,6 +7,39 @@ import toast from "react-hot-toast";
 // Configuration constants
 const RECORDS_PER_PAGE = 10;
 
+/**
+ * Centralized error handler for this store.
+ * @param {any} err - The caught error
+ * @param {string} defaultMessage - Fallback message to show
+ * @param {function} set - zustand set function to update store state
+ * @returns {string} final message
+ */
+function handleError(err, defaultMessage = "An error occurred", set) {
+  // Try to extract a useful message from axios or thrown Error
+  const message =
+    err?.response?.data?.message || err?.message || defaultMessage;
+
+  try {
+    if (typeof set === "function") {
+      set({ loading: false, error: message });
+    }
+  } catch (e) {
+    // noop
+  }
+
+  console.error(defaultMessage, err);
+  try {
+    // show toast when available
+    if (typeof toast === "function") {
+      toast.error(message);
+    }
+  } catch (e) {
+    // noop
+  }
+
+  return message;
+}
+
 const useCertificatesStore = create((set, get) => ({
   attendanceCertificates: [],
   honorCertificates: [],
@@ -57,18 +90,24 @@ const useCertificatesStore = create((set, get) => ({
 
   previewCertificate: async (type, studentId, quarterId = null) => {
     try {
+      // Convert studentId to string and validate
+      const studentIdStr = String(studentId);
+
       if (
         typeof type !== "string" ||
         !type.trim() ||
-        typeof studentId !== "string" ||
-        !studentId.trim()
+        !studentIdStr ||
+        studentIdStr === "undefined" ||
+        studentIdStr === "null"
       ) {
         throw new Error("Invalid certificate type or student ID");
       }
 
-      const urlPath = `/teacher/certificate/preview/${type}/${studentId}/${
+      // Construct URL without force parameter
+      const urlPath = `/teacher/certificate/preview/${type}/${studentIdStr}/${
         quarterId || ""
       }`;
+
       const { data, status, headers } = await axiosInstance.get(urlPath, {
         responseType: "blob",
         timeout: 15000,
@@ -83,7 +122,7 @@ const useCertificatesStore = create((set, get) => ({
       window.open(url, "_blank");
 
       // Clean up
-      setTimeout(() => window.URL.revokeObjectURL(url), 1000); // Increased timeout for reliability
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (err) {
       const message = handleError(err, "Failed to preview certificate", set);
       throw new Error(message);
@@ -92,18 +131,24 @@ const useCertificatesStore = create((set, get) => ({
 
   downloadCertificate: async (type, studentId, quarterId = null) => {
     try {
+      // Convert studentId to string and validate
+      const studentIdStr = String(studentId);
+
       if (
         typeof type !== "string" ||
         !type.trim() ||
-        typeof studentId !== "string" ||
-        !studentId.trim()
+        !studentIdStr ||
+        studentIdStr === "undefined" ||
+        studentIdStr === "null"
       ) {
         throw new Error("Invalid certificate type or student ID");
       }
 
-      const urlPath = `/teacher/certificate/download/${type}/${studentId}/${
+      // Construct URL without force parameter
+      const urlPath = `/teacher/certificate/download/${type}/${studentIdStr}/${
         quarterId || ""
       }`;
+
       const { data, status, headers } = await axiosInstance.get(urlPath, {
         responseType: "blob",
         timeout: 15000,
@@ -117,7 +162,7 @@ const useCertificatesStore = create((set, get) => ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `certificate-${type}-${studentId}.pdf`;
+      link.download = `certificate-${type}-${studentIdStr}.pdf`;
       document.body.appendChild(link);
       link.click();
 
@@ -125,7 +170,7 @@ const useCertificatesStore = create((set, get) => ({
       setTimeout(() => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-      }, 1000); // Increased timeout for reliability
+      }, 1000);
 
       toast.success("Certificate downloaded successfully");
     } catch (err) {
@@ -145,8 +190,9 @@ const useCertificatesStore = create((set, get) => ({
         throw new Error("Missing required filters for printing certificates");
       }
 
+      // POST request without force parameter
       const { data, status, headers } = await axiosInstance.post(
-        "/teacher/certificate/print-all",
+        `/teacher/certificate/download-all`,
         {
           academic_year_id: filters.academicYearId,
           section_id: filters.sectionId,
@@ -155,7 +201,7 @@ const useCertificatesStore = create((set, get) => ({
         },
         {
           responseType: "blob",
-          timeout: 20000, // Increased timeout for bulk operation
+          timeout: 20000,
         }
       );
 
@@ -175,7 +221,7 @@ const useCertificatesStore = create((set, get) => ({
       setTimeout(() => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-      }, 1000); // Increased timeout for reliability
+      }, 1000);
 
       toast.success("All certificates downloaded successfully");
     } catch (err) {
@@ -201,11 +247,14 @@ const useCertificatesStore = create((set, get) => ({
 
   totalPages: (type) => {
     try {
-      if (type !== "attendance" && type !== "honor") {
+      if (type !== "attendance" && type !== "honor" && type !== "honors") {
         throw new Error("Invalid certificate type");
       }
+
+      const normalizedType = type === "honors" ? "honor" : type;
+
       const certificates =
-        type === "attendance"
+        normalizedType === "attendance"
           ? get().attendanceCertificates
           : get().honorCertificates;
       return Math.ceil(certificates.length / RECORDS_PER_PAGE);
@@ -220,11 +269,14 @@ const useCertificatesStore = create((set, get) => ({
 
   paginatedRecords: (type) => {
     try {
-      if (type !== "attendance" && type !== "honor") {
+      if (type !== "attendance" && type !== "honor" && type !== "honors") {
         throw new Error("Invalid certificate type");
       }
+
+      const normalizedType = type === "honors" ? "honor" : type;
+
       const certificates =
-        type === "attendance"
+        normalizedType === "attendance"
           ? get().attendanceCertificates
           : get().honorCertificates;
       return paginate(certificates, get().currentPage, RECORDS_PER_PAGE);

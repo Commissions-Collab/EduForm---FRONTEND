@@ -76,27 +76,11 @@ const usePromotionStore = create((set, get) => ({
         throw new Error(data?.message || "Invalid response from server");
       }
 
-      // Debug: Log the API response to see what we're getting
-      if (process.env.NODE_ENV !== "production") {
-        console.log("API Response:", data);
-      }
-
       // Check for warnings or readiness status
       const isAccessible = data?.accessible !== false;
       const hasStudents =
         Array.isArray(data?.students) && data.students.length > 0;
       const hasStats = data?.overall_statistics;
-
-      // Debug logging
-      if (process.env.NODE_ENV !== "production") {
-        console.log("Promotion Data Check:", {
-          isAccessible,
-          hasStudents,
-          hasStats,
-          studentsLength: data?.students?.length,
-          dataKeys: Object.keys(data),
-        });
-      }
 
       // If accessible is false OR no students/stats, show warning
       if (!isAccessible || (!hasStudents && !hasStats)) {
@@ -111,10 +95,6 @@ const usePromotionStore = create((set, get) => ({
           issueCount: null,
           affectedStudents: null,
         };
-
-        if (process.env.NODE_ENV !== "production") {
-          console.log("Setting promotion warning:", warningMessage);
-        }
 
         set({
           promotionWarning: warningMessage,

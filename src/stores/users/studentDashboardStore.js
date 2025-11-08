@@ -21,7 +21,6 @@ const useStudentDashboardStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await axiosInstance.get("/student/dashboard");
-      console.log("fetchDashboard Response:", data);
 
       set({
         data: {
