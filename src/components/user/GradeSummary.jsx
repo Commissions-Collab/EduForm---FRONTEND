@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Award } from "lucide-react";
 
 const GradeSummary = ({
-  quarter,
-  quarterAverage,
-  honorsEligibility,
-  loading,
+  quarter = "N/A",
+  quarterAverage = 0,
+  honorsEligibility = null,
+  loading = false,
 }) => {
   const [animatedAverage, setAnimatedAverage] = useState(0);
 
@@ -27,14 +27,16 @@ const GradeSummary = ({
           }
           setAnimatedAverage(current);
         }, duration / steps);
+        return () => clearInterval(interval);
       };
-      animate(0, quarterAverage);
+      animate(0, quarterAverage ?? 0);
     }
   }, [loading, quarterAverage]);
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 hover:shadow-md transition-all duration-200 animate-pop-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Current Quarter */}
         <div>
           <p className="text-sm font-medium text-blue-600 mb-1">
             Current Quarter
@@ -43,14 +45,18 @@ const GradeSummary = ({
             {loading ? "..." : quarter || "N/A"}
           </p>
         </div>
+
+        {/* Quarter Average */}
         <div>
           <p className="text-sm font-medium text-blue-600 mb-1">
             Quarter Average
           </p>
-          <p className="text-xl font-bold text-blue-900 animate-count-up">
-            {loading ? "..." : animatedAverage.toFixed(1)}
+          <p className="text-xl font-bold text-blue-900">
+            {loading ? "..." : (animatedAverage ?? 0).toFixed(1)}
           </p>
         </div>
+
+        {/* Honors Eligibility */}
         <div>
           <p className="text-sm font-medium text-blue-600 mb-1">
             Honors Eligibility
@@ -63,6 +69,8 @@ const GradeSummary = ({
             {loading ? "..." : honorsEligibility || "None"}
           </p>
         </div>
+
+        {/* Icon */}
         <div className="p-3 bg-blue-100 rounded-lg self-start sm:self-center">
           <Award className="w-6 h-6 text-blue-600 animate-pulse" />
         </div>

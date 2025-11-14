@@ -133,7 +133,6 @@ const BmiStudentTable = ({ students, loading, error }) => {
       toast.error("Student, height, and weight are required");
       return;
     }
-
     setIsSubmitting(true);
     try {
       await addStudentBmi({
@@ -148,10 +147,8 @@ const BmiStudentTable = ({ students, loading, error }) => {
         weight_kg: "",
         remarks: "",
       });
-      toast.success("BMI record added successfully!");
     } catch (error) {
       console.error("Error adding BMI:", error);
-      toast.error(error.message || "Failed to add BMI record");
     } finally {
       setIsSubmitting(false);
     }

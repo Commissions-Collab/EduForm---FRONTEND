@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   Clock,
   CircleAlert,
@@ -8,9 +7,15 @@ import {
   SquareCheck,
 } from "lucide-react";
 
-const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
+const AttendanceDailyStatus = ({
+  dailyStatus = [],
+  loading = false,
+  error = null,
+}) => {
+  const safeDailyStatus = Array.isArray(dailyStatus) ? dailyStatus : [];
+
   const getStatusStyle = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "present":
         return "bg-green-100 text-green-800 border-green-200 animate-sparkle";
       case "late":
@@ -25,7 +30,7 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "present":
         return <CircleCheck className="w-5 h-5 animate-pulse" />;
       case "late":
@@ -47,6 +52,7 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
           <Clock className="w-5 h-5 text-gray-600 animate-pulse" />
         </div>
       </div>
+
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -65,7 +71,7 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
             <p className="text-sm text-red-600 mt-1">{error}</p>
           </div>
         </div>
-      ) : dailyStatus.length === 0 ? (
+      ) : safeDailyStatus.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-8 animate-fade-in">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
             <Clock className="w-6 h-6 text-gray-400" />
@@ -76,9 +82,9 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {dailyStatus.map((record, index) => (
+          {safeDailyStatus.map((record, index) => (
             <div
-              key={record.date}
+              key={`${record.date}-${index}`}
               className={`rounded-lg p-4 border hover:shadow-md transition-all duration-200 animate-pop-in ${getStatusStyle(
                 record.status
               )}`}
@@ -87,25 +93,29 @@ const AttendanceDailyStatus = ({ dailyStatus, loading, error }) => {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">
-                    {record.date} ({record.weekday})
+                    {record.date || "N/A"} ({record.weekday || "N/A"})
                   </p>
                   <div className="p-2 rounded-lg bg-white bg-opacity-50">
                     {getStatusIcon(record.status)}
                   </div>
                 </div>
+
                 <p className="text-sm font-medium capitalize">
-                  {record.status}
+                  {record.status || "Unknown"}
                 </p>
+
                 {record.time_in && (
                   <p className="text-sm text-gray-600">
                     Time In: {record.time_in}
                   </p>
                 )}
+
                 {record.expected_time && (
                   <p className="text-sm text-gray-600">
                     Expected: {record.expected_time}
                   </p>
                 )}
+
                 {record.remarks && (
                   <p className="text-sm text-gray-600">
                     Remarks: {record.remarks}

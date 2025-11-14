@@ -20,6 +20,22 @@ const Dashboard = () => {
     }
   }, [error, clearError]);
 
+  // Safe data access with defaults
+  const totalAverage = data?.grades?.total_average ?? 0;
+  const subjects = Array.isArray(data?.grades?.subjects)
+    ? data.grades.subjects
+    : [];
+  const gradeChangePercent = data?.grade_change_percent ?? 0;
+  const attendanceRate = data?.attendance_rate?.present_percent ?? 0;
+  const recentAbsents = Array.isArray(data?.attendance_rate?.recent_absents)
+    ? data.attendance_rate.recent_absents
+    : [];
+  const borrowBook = data?.borrow_book ?? 0;
+  const bookDueThisWeek = data?.book_due_this_week ?? 0;
+  const notifications = Array.isArray(data?.notifications)
+    ? data.notifications
+    : [];
+
   return (
     <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen animate-fade-in">
       <div className="mb-8">
@@ -37,11 +53,11 @@ const Dashboard = () => {
         </div>
 
         <DashboardSummary
-          totalAverage={data.grades.total_average}
-          gradeChangePercent={data.grade_change_percent}
-          attendanceRate={data.attendance_rate.present_percent}
-          borrowBook={data.borrow_book}
-          bookDueThisWeek={data.book_due_this_week}
+          totalAverage={totalAverage}
+          gradeChangePercent={gradeChangePercent}
+          attendanceRate={attendanceRate}
+          borrowBook={borrowBook}
+          bookDueThisWeek={bookDueThisWeek}
           loading={loading}
         />
       </div>
@@ -51,19 +67,15 @@ const Dashboard = () => {
         style={{ animationDelay: "100ms" }}
       >
         <DashboardNotifications
-          notifications={data.notifications}
-          recentAbsents={data.attendance_rate.recent_absents}
+          notifications={notifications}
+          recentAbsents={recentAbsents}
           loading={loading}
           error={error}
         />
       </section>
 
       <section className="animate-slide-up" style={{ animationDelay: "200ms" }}>
-        <DashboardGrades
-          grades={data.grades.subjects}
-          loading={loading}
-          error={error}
-        />
+        <DashboardGrades grades={subjects} loading={loading} error={error} />
       </section>
     </main>
   );

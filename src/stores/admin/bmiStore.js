@@ -8,11 +8,13 @@ const useBmiStore = create((set, get) => ({
   loading: false,
   error: null,
 
-  fetchBmiStudents: async () => {
+  fetchBmiStudents: async (showToast = false) => {
     set({ loading: true, error: null });
 
     try {
       const filters = useFilterStore.getState().globalFilters;
+      console.log("Fetching BMI with filters:", filters);
+
       if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
         throw new Error("Missing required parameters for BMI data");
       }
@@ -30,11 +32,13 @@ const useBmiStore = create((set, get) => ({
         throw new Error(data?.message || "Invalid response from server");
       }
 
+      // Handle both wrapped and direct responses
       const students = Array.isArray(data.students)
         ? data.students
         : Array.isArray(data)
         ? data
         : [];
+
       set({ bmiStudents: students, loading: false });
     } catch (err) {
       handleError(err, "Could not load BMI data", set);
@@ -50,6 +54,7 @@ const useBmiStore = create((set, get) => ({
       }
 
       const filters = useFilterStore.getState().globalFilters;
+      console.log("Adding BMI with filters:", filters, "Data:", bmiData);
 
       if (!filters.academicYearId || !filters.quarterId) {
         throw new Error("Academic year and quarter are required");
@@ -78,13 +83,18 @@ const useBmiStore = create((set, get) => ({
         throw new Error(data?.message || "Invalid response from server");
       }
 
+      // Show success toast - SINGLE SOURCE
       toast.success("BMI record added successfully!");
-      await get().fetchBmiStudents();
+
+      // Refresh data without showing another toast
+      await get().fetchBmiStudents(false);
       set({ loading: false });
+
       return data;
     } catch (err) {
-      const message = handleError(err, "Failed to add BMI record", set);
-      throw new Error(message);
+      // Error handler shows toast
+      handleError(err, "Failed to add BMI record", set);
+      throw new Error(err?.message || "Failed to add BMI record");
     }
   },
 
@@ -100,6 +110,7 @@ const useBmiStore = create((set, get) => ({
       }
 
       const filters = useFilterStore.getState().globalFilters;
+      console.log("Updating BMI with filters:", filters, "Data:", bmiData);
 
       // Prepare payload aligned with backend expectations
       const payload = {
@@ -124,13 +135,18 @@ const useBmiStore = create((set, get) => ({
         throw new Error(data?.message || "Invalid response from server");
       }
 
+      // Show success toast - SINGLE SOURCE
       toast.success("BMI record updated successfully!");
-      await get().fetchBmiStudents();
+
+      // Refresh data without showing another toast
+      await get().fetchBmiStudents(false);
       set({ loading: false });
+
       return data;
     } catch (err) {
-      const message = handleError(err, "Failed to update BMI record", set);
-      throw new Error(message);
+      // Error handler shows toast
+      handleError(err, "Failed to update BMI record", set);
+      throw new Error(err?.message || "Failed to update BMI record");
     }
   },
 
@@ -152,13 +168,18 @@ const useBmiStore = create((set, get) => ({
         throw new Error(data?.message || "Invalid response from server");
       }
 
+      // Show success toast - SINGLE SOURCE
       toast.success("BMI record deleted successfully!");
-      await get().fetchBmiStudents();
+
+      // Refresh data without showing another toast
+      await get().fetchBmiStudents(false);
       set({ loading: false });
+
       return data;
     } catch (err) {
-      const message = handleError(err, "Failed to delete BMI record", set);
-      throw new Error(message);
+      // Error handler shows toast
+      handleError(err, "Failed to delete BMI record", set);
+      throw new Error(err?.message || "Failed to delete BMI record");
     }
   },
 
@@ -176,7 +197,10 @@ const useBmiStore = create((set, get) => ({
   },
 }));
 
-// Error handler helper
+/**
+ * Error handler helper
+ * Shows toast only once per error
+ */
 const handleError = (err, defaultMessage, set) => {
   const message =
     err?.response?.data?.message ||

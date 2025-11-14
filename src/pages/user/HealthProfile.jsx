@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-
 import { CircleAlert } from "lucide-react";
 import toast from "react-hot-toast";
 import useHealthProfileStore from "../../stores/users/healthProfileStore";
@@ -21,7 +20,10 @@ const HealthProfile = () => {
     }
   }, [error, clearError]);
 
-  if (error) {
+  // Safe data access with defaults
+  const bmiRecords = Array.isArray(data) ? data : [];
+
+  if (error && !loading) {
     return (
       <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen flex items-center justify-center animate-fade-in">
         <div className="flex flex-col items-center gap-3">
@@ -50,11 +52,11 @@ const HealthProfile = () => {
           </div>
         </div>
 
-        <BmiSummary data={data} loading={loading} />
+        <BmiSummary data={bmiRecords} loading={loading} />
       </div>
 
       <section className="animate-slide-up" style={{ animationDelay: "100ms" }}>
-        <BmiRecords data={data} loading={loading} error={error} />
+        <BmiRecords data={bmiRecords} loading={loading} error={error} />
       </section>
     </main>
   );

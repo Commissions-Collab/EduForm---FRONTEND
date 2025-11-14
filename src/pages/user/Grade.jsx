@@ -20,7 +20,13 @@ const Grades = () => {
     }
   }, [error, clearError]);
 
-  if (error) {
+  // Safe data access with defaults
+  const quarter = data?.quarter ?? "N/A";
+  const quarterAverage = data?.quarter_average ?? 0;
+  const honorsEligibility = data?.honors_eligibility ?? null;
+  const grades = Array.isArray(data?.grades) ? data.grades : [];
+
+  if (error && !loading) {
     return (
       <main className="bg-gray-50/50 p-4 lg:p-6 min-h-screen flex items-center justify-center animate-fade-in">
         <div className="flex flex-col items-center gap-3">
@@ -46,19 +52,19 @@ const Grades = () => {
         </div>
 
         <p className="text-sm text-gray-600 mb-4">
-          Showing grades for the current quarter only.
+          Showing grades for {quarter}.
         </p>
 
         <GradeSummary
-          quarter={data.quarter}
-          quarterAverage={data.quarter_average}
-          honorsEligibility={data.honors_eligibility}
+          quarter={quarter}
+          quarterAverage={quarterAverage}
+          honorsEligibility={honorsEligibility}
           loading={loading}
         />
       </div>
 
       <section className="animate-slide-up" style={{ animationDelay: "100ms" }}>
-        <GradeList grades={data.grades} loading={loading} error={error} />
+        <GradeList grades={grades} loading={loading} error={error} />
       </section>
     </main>
   );

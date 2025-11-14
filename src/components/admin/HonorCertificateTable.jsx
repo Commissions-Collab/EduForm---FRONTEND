@@ -7,6 +7,7 @@ import {
   Award,
   User,
   Calendar,
+  Lock,
 } from "lucide-react";
 import PaginationControls from "./Pagination";
 import useCertificatesStore from "../../stores/admin/certificateStore";

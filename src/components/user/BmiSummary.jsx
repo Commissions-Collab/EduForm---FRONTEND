@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Scale, Info } from "lucide-react";
-import { Tooltip } from "react-tooltip";
 
-const BmiSummary = ({ data, loading }) => {
-  const latestRecord = data.length > 0 ? data[data.length - 1] : null;
+const BmiSummary = ({ data = [], loading = false }) => {
+  const safeData = Array.isArray(data) ? data : [];
+  const latestRecord =
+    safeData.length > 0 ? safeData[safeData.length - 1] : null;
   const [animatedBmi, setAnimatedBmi] = useState(0);
 
   // Map quarter_id to quarter names
@@ -32,10 +33,11 @@ const BmiSummary = ({ data, loading }) => {
           }
           setAnimatedBmi(current);
         }, duration / steps);
+        return () => clearInterval(interval);
       };
       animate(0, latestRecord.bmi);
     }
-  }, [loading, latestRecord]);
+  }, [loading, latestRecord?.bmi]);
 
   const getCategoryStyle = (category) => {
     switch (category?.toLowerCase()) {
@@ -53,8 +55,8 @@ const BmiSummary = ({ data, loading }) => {
 
   const bmiInfo = (
     <div>
-      <p>BMI Categories:</p>
-      <ul className="list-disc pl-4">
+      <p className="font-semibold mb-2">BMI Categories:</p>
+      <ul className="list-disc pl-4 space-y-1 text-sm">
         <li>Underweight: &lt; 18.5</li>
         <li>Normal: 18.5–24.9</li>
         <li>Overweight: 25–29.9</li>
@@ -65,7 +67,7 @@ const BmiSummary = ({ data, loading }) => {
 
   return (
     <div
-      className=" bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 hover:shadow-md transition-all duration-200 animate-pop-in"
+      className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 hover:shadow-md transition-all duration-200 animate-pop-in"
       aria-live="polite"
     >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -93,18 +95,11 @@ const BmiSummary = ({ data, loading }) => {
                 </p>
                 <Info
                   className="w-4 h-4 text-blue-600 cursor-pointer"
-                  data-tooltip-id="bmi-info"
-                  aria-label="BMI category information"
-                />
-                <Tooltip
-                  id="bmi-info"
-                  content={bmiInfo}
-                  place="top"
-                  className="bg-blue-800 text-white rounded-md p-2 text-sm"
+                  title={bmiInfo}
                 />
               </div>
               <p
-                className={`text-2xl font-bold  ${getCategoryStyle(
+                className={`text-2xl font-bold ${getCategoryStyle(
                   latestRecord.category
                 )} transition-all duration-500`}
               >
@@ -128,6 +123,7 @@ const BmiSummary = ({ data, loading }) => {
                   : "N/A"}
               </p>
             </div>
+
             <div>
               <p className="text-sm font-semibold text-blue-600 mb-1">
                 Height / Weight
@@ -142,6 +138,7 @@ const BmiSummary = ({ data, loading }) => {
                 </p>
               )}
             </div>
+
             <div className="p-3 bg-blue-100 rounded-lg self-start sm:self-center">
               <Scale className="w-6 h-6 text-blue-600 animate-pulse" />
             </div>
