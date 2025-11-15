@@ -59,12 +59,26 @@ const useTextbooksStore = create((set, get) => ({
         throw new Error(data?.message || "Invalid response from server");
       }
 
-      const textbooks = Array.isArray(data?.books?.data || data?.data || data)
-        ? data.books?.data || data.data || data
-        : [];
+      // Support both paginated (books.data) and flat (books) responses
+      const raw = data?.books?.data ?? data?.books ?? data?.data ?? data;
+      const textbooks = Array.isArray(raw) ? raw : [];
+
+      // Normalize book fields so frontend components have consistent keys
+      const normalized = textbooks.map((b) => ({
+        // preserve original fields
+        ...b,
+        // normalize available quantity to `available` used in UI
+        available: b.available ?? b.available_quantity ?? b.availableQuantity ?? 0,
+        // ensure total_copies exists
+        total_copies: b.total_copies ?? b.totalCopies ?? 0,
+        // normalize overdue count alias
+        overdue_count: b.overdue_count ?? b.overdueCount ?? 0,
+        // normalize issued/issued_count if present
+        issued_count: b.issued_count ?? b.issuedCount ?? ((b.total_copies ?? b.totalCopies ?? 0) - (b.available ?? b.available_quantity ?? b.availableQuantity ?? 0)),
+      }));
 
       set({
-        textbooks,
+        textbooks: normalized,
         loading: false,
       });
     } catch (err) {

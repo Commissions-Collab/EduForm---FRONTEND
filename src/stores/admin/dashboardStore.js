@@ -138,7 +138,8 @@ const useDashboardStore = create((set, get) => ({
       return {
         reportsIssued: Number(data.report_cards) || 0,
         honorEligible: Number(data.honors_eligible) || 0,
-        gradesSubmitted: Number(data.grades_submitted_percentage) || 0,
+        // Clamp to 100 to avoid displaying >100%
+        gradesSubmitted: Math.min(100, Number(data.grades_submitted_percentage) || 0),
       };
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {

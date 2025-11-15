@@ -152,7 +152,7 @@ const useSF5SF6FormStore = create((set, get) => ({
           title: "Section Not Ready for Forms",
           content:
             err.response?.data?.message ||
-            "This section is not ready for SF5/SF6 generation.",
+            "This section is not ready for SF5 generation.",
         };
 
         set({
