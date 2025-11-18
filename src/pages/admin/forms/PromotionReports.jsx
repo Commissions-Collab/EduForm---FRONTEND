@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Clock,
   XCircle,
+  FileSpreadsheet,
 } from "lucide-react";
 import usePromotionStore from "../../../stores/admin/promotionStore";
 import useFilterStore from "../../../stores/admin/filterStore";
@@ -14,6 +15,7 @@ import useFilterStore from "../../../stores/admin/filterStore";
 const PromotionReport = () => {
   const {
     fetchPromotionData,
+    exportSF5Excel,
     isPromotionAccessible,
     promotionMessage,
     promotionWarning,
@@ -109,6 +111,29 @@ const PromotionReport = () => {
                 )}
               </div>
             </div>
+
+            {/* Export Button */}
+            {hasAllFilters && isPromotionAccessible && !promotionWarning && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={exportSF5Excel}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileSpreadsheet size={18} />
+                      <span>Export SF5 Excel</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

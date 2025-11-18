@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Search, Users } from "lucide-react";
+import { Search, Users, FileSpreadsheet } from "lucide-react";
 import toast from "react-hot-toast";
 import useEnrollmentStore from "../../stores/superAdmin/enrollmentStore";
 import EnrollmentTable from "../../components/superadmin/EnrollmentTable";
@@ -20,6 +20,8 @@ const Enrollment = () => {
     fetchSections,
     deleteEnrollment,
     clearError,
+    exportSF1Excel,
+    academicYears,
   } = useEnrollmentStore();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -125,6 +127,22 @@ const Enrollment = () => {
     modalSetter(false);
   };
 
+  const handleExportSF1Excel = async () => {
+    // Get current academic year or first available
+    const currentYear = academicYears.find((y) => y.is_current) || academicYears[0];
+    
+    if (!currentYear) {
+      toast.error("Please ensure academic years are loaded. Try refreshing the page.");
+      return;
+    }
+
+    try {
+      await exportSF1Excel(currentYear.id, null, null);
+    } catch (err) {
+      console.error("SF1 Export failed:", err);
+    }
+  };
+
   return (
     <main className="bg-gray-50/50 p-3 sm:p-4 lg:p-6 max-w-[1920px] mx-auto">
       <div className="mb-6 sm:mb-8">
@@ -139,7 +157,26 @@ const Enrollment = () => {
               </span>
             </div>
           </div>
-          <div className="relative w-full lg:w-80">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <button
+              onClick={handleExportSF1Excel}
+              disabled={loading || !academicYears || academicYears.length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              title="Export SF1 School Register Excel"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <FileSpreadsheet size={18} />
+                  <span>Export SF1 Excel</span>
+                </>
+              )}
+            </button>
+            <div className="relative w-full lg:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             </div>
@@ -150,6 +187,7 @@ const Enrollment = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+          </div>
           </div>
         </div>
 

@@ -12,6 +12,7 @@ import {
   BookOpen,
   FileText,
   Settings2,
+  FileSpreadsheet,
 } from "lucide-react";
 import useSuperAdminAttendanceStore from "../../stores/superAdmin/attendanceStore";
 import useFilterStore from "../../stores/superAdmin/superAdminFilterStore";
@@ -21,6 +22,7 @@ const AttendanceMonthlySummary = () => {
     fetchMonthlyAttendance,
     downloadQuarterlyAttendancePDF,
     exportMonthlyAttendanceCSV,
+    exportSF4Excel,
     monthlyAttendanceData,
     loading,
     error,
@@ -168,6 +170,26 @@ const AttendanceMonthlySummary = () => {
       await exportMonthlyAttendanceCSV();
     } catch (err) {
       console.error("Export failed:", err);
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
+
+  const handleExportSF4Excel = async () => {
+    if (!appliedFilters.academicYearId || !currentMonth.month || !currentMonth.year) {
+      alert("Please select Academic Year and Month from the filters");
+      return;
+    }
+
+    setDownloadLoading(true);
+    try {
+      await exportSF4Excel(
+        appliedFilters.academicYearId,
+        currentMonth.month,
+        currentMonth.year
+      );
+    } catch (err) {
+      console.error("SF4 Export failed:", err);
     } finally {
       setDownloadLoading(false);
     }
@@ -344,17 +366,24 @@ const AttendanceMonthlySummary = () => {
                 <Printer size={18} />
                 Print
               </button>
+
               <button
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 disabled:opacity-50"
-                onClick={handleExportCSV}
-                disabled={downloadLoading || loading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleExportSF4Excel}
+                disabled={downloadLoading || loading || !appliedFilters.academicYearId || !currentMonth.month || !currentMonth.year}
+                title="Export SF4 Monthly Summary Excel"
               >
                 {downloadLoading ? (
-                  <Loader className="w-4 h-4 animate-spin" />
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Exporting...</span>
+                  </>
                 ) : (
-                  <FileText size={18} />
+                  <>
+                    <FileSpreadsheet size={18} />
+                    <span>Export SF4 Excel</span>
+                  </>
                 )}
-                {downloadLoading ? "Exporting..." : "Export CSV"}
               </button>
             </div>
           </div>

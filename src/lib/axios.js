@@ -3,8 +3,8 @@ import { getItem, removeItem } from "./utils";
 import toast from "react-hot-toast";
 
 // Configuration constants aligned with backend
-const BASE_URL = "http://127.0.0.1:8000/api"; //http://127.0.0.1:8000/api https://api.acad-flow.com
-const SANCTUM_CSRF_URL = BASE_URL.replace("/api", "") + "/sanctum/csrf-cookie";
+const BASE_URL = "http://127.0.0.1:8000/api"; //http://127.0.0.1:8000/api "https://api.acad-flow.com/api"
+const SANCTUM_CSRF_URL = "https://api.acad-flow.com/sanctum/csrf-cookie";
 const SESSION_LIFETIME_MINUTES = 120; // Match backend SESSION_LIFETIME
 
 let csrfTokenFetched = false;
@@ -23,7 +23,6 @@ export const fetchCsrfToken = async () => {
   if (csrfTokenFetched) return;
   try {
     const response = await axios.get(SANCTUM_CSRF_URL, {
-      baseURL: BASE_URL.replace("/api", ""),
       withCredentials: true,
       timeout: 5000,
     });

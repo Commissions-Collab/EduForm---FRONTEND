@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
+import { downloadExcel } from "../../lib/utils";
 
 const handleError = (err, defaultMessage) => {
   const message = err?.response?.data?.message || defaultMessage;
@@ -281,6 +282,66 @@ const useEnrollmentStore = create((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  /**
+   * Export SF1 Excel - School Register
+   */
+  exportSF1Excel: async (academicYearId, sectionId = null, gradeLevel = null) => {
+    set({ loading: true, error: null });
+    try {
+      if (!academicYearId) {
+        throw new Error("Academic Year must be selected");
+      }
+
+      const params = {
+        academic_year_id: academicYearId,
+      };
+
+      if (sectionId) {
+        params.section_id = sectionId;
+      }
+
+      if (gradeLevel) {
+        params.grade_level = gradeLevel;
+      }
+
+      const response = await axiosInstance.get(
+        `/admin/enrollments/export-sf1-excel`,
+        {
+          responseType: "blob",
+          params: params,
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000,
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'SF1_School_Register.xlsx';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      downloadExcel(blob, fileName);
+      set({ loading: false });
+      toast.success("SF1 Excel file downloaded successfully");
+    } catch (err) {
+      const message = handleError(err, "SF1 Excel export failed");
+      set({ error: message, loading: false });
+      toast.error(message);
+    }
+  },
 
   reset: () =>
     set({

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { downloadPDF, getItem, setItem, removeItem } from "../../lib/utils";
+import { downloadPDF, downloadExcel, getItem, setItem, removeItem } from "../../lib/utils";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 import useFilterStore from "./filterStore";
 import toast from "react-hot-toast";
@@ -19,7 +19,7 @@ const handleError = (err, defaultMessage, set) => {
   return message;
 };
 
-const useAttendanceStore = create((set, get) => ({
+const useAttendanceStore = create((set) => ({
   scheduleAttendance: {},
   studentAttendance: {},
   attendancePDFBlob: null,
@@ -418,6 +418,68 @@ const useAttendanceStore = create((set, get) => ({
       toast.success("PDF downloaded successfully");
     } catch (err) {
       handleError(err, "PDF download failed", set);
+    }
+  },
+
+  exportSF2Excel: async (month = null) => {
+    set({ loading: true, error: null });
+
+    try {
+      const filters = useFilterStore.getState().globalFilters;
+      if (!filters.sectionId || !filters.academicYearId) {
+        throw new Error("Section and Academic Year must be selected");
+      }
+
+      // Use provided month or current month
+      const selectedMonth = month || (() => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const monthNum = String(today.getMonth() + 1).padStart(2, '0');
+        return `${year}-${monthNum}`;
+      })();
+
+      // Validate month format (YYYY-MM)
+      if (!/^\d{4}-\d{2}$/.test(selectedMonth)) {
+        throw new Error("Invalid month format. Use YYYY-MM (e.g., 2024-01)");
+      }
+
+      const response = await axiosInstance.get(
+        `/teacher/attendance/export-sf2-excel`,
+        {
+          responseType: "blob",
+          params: {
+            section_id: filters.sectionId,
+            academic_year_id: filters.academicYearId,
+            month: selectedMonth,
+          },
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000, // 30 seconds for Excel generation
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], { 
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+      });
+      
+      // Generate filename from month
+      const [year, monthNum] = selectedMonth.split('-');
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const monthName = monthNames[parseInt(monthNum) - 1];
+      const fileName = `SF2_Daily_Attendance_${monthName}_${year}.xlsx`;
+      
+      downloadExcel(blob, fileName);
+
+      set({ loading: false });
+      toast.success("SF2 Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF2 Excel export failed", set);
     }
   },
 

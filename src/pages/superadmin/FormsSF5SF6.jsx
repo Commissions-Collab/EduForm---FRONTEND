@@ -10,6 +10,7 @@ import {
   Settings2,
   BookOpen,
   ClipboardList,
+  FileSpreadsheet,
 } from "lucide-react";
 import useSF5SF6FormStore from "../../stores/superAdmin/sf5sf6FormStore";
 import useSF5SF6FilterStore from "../../stores/superAdmin/sf5sf6FilterStore";
@@ -22,6 +23,8 @@ const FormsSF5SF6 = () => {
     fetchFilterOptions,
     fetchFormStatistics,
     exportFormPDF,
+    exportSF5Excel,
+    exportSF6Excel,
     isFormAccessible,
     formMessage,
     formWarning,
@@ -74,6 +77,19 @@ const FormsSF5SF6 = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExportExcel = async () => {
+    if (!hasAllFilters) {
+      alert("Please select Academic Year, Section, and Form Type from the filters");
+      return;
+    }
+
+    if (isFormSF5) {
+      await exportSF5Excel(globalFilters.academicYearId, globalFilters.sectionId);
+    } else {
+      await exportSF6Excel(globalFilters.academicYearId, globalFilters.sectionId);
+    }
   };
 
   const getWarningIcon = (type) => {
@@ -169,7 +185,28 @@ const FormsSF5SF6 = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2"></div>
+              <div className="flex gap-2">
+                {hasAllFilters && isFormAccessible && (
+                  <button
+                    onClick={handleExportExcel}
+                    disabled={loading || !hasAllFilters || !isFormAccessible}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={`Export ${isFormSF5 ? 'SF5' : 'SF6'} as Excel`}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-4 h-4 text border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Exporting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileSpreadsheet size={18} />
+                        <span>Export {isFormSF5 ? 'SF5' : 'SF6'} Excel</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

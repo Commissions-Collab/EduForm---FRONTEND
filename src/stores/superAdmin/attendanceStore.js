@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { downloadPDF, getItem, setItem, removeItem } from "../../lib/utils";
+import { downloadPDF, downloadExcel, getItem, setItem, removeItem } from "../../lib/utils";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 import toast from "react-hot-toast";
 
@@ -158,6 +158,56 @@ const useSuperAdminAttendanceStore = create((set, get) => ({
       toast.success("CSV exported successfully");
     } catch (err) {
       handleError(err, "CSV export failed", set);
+    }
+  },
+
+  /**
+   * Export SF4 Excel - Monthly Learner's Movement and Attendance
+   */
+  exportSF4Excel: async (academicYearId, month, year) => {
+    set({ loading: true, error: null });
+    try {
+      if (!academicYearId || !month || !year) {
+        throw new Error("Academic Year, Month, and Year must be selected");
+      }
+
+      const response = await axiosInstance.get(
+        `/admin/monthly-attendance/export-sf4-excel`,
+        {
+          responseType: "blob",
+          params: {
+            academic_year_id: academicYearId,
+            month: month,
+            year: year,
+          },
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000,
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'SF4_Monthly_Summary.xlsx';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      downloadExcel(blob, fileName);
+      set({ loading: false });
+      toast.success("SF4 Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF4 Excel export failed", set);
     }
   },
 

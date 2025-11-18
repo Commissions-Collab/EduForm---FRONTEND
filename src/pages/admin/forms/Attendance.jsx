@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet } from "lucide-react";
 import { getItem, setItem } from "../../../lib/utils";
 import WeeklyScheduleView from "../../../components/admin/WeeklyScheduleView";
 import AttendanceTable from "../../../components/admin/AttendanceTable";
@@ -10,6 +10,7 @@ const DailyAttendance = () => {
   const {
     fetchScheduleAttendance,
     updateAllStudentsAttendance,
+    exportSF2Excel,
     scheduleAttendance,
     loading,
     error,
@@ -25,6 +26,12 @@ const DailyAttendance = () => {
     new Date().toISOString().split("T")[0]
   );
   const [showWeeklyView, setShowWeeklyView] = useState(true);
+  const [exportMonth, setExportMonth] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  });
 
   useEffect(() => {
     const savedScheduleId = getItem("selectedScheduleId", false);
@@ -48,6 +55,7 @@ const DailyAttendance = () => {
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchScheduleAttendance, academicYearId, quarterId, sectionId]);
 
   useEffect(() => {
@@ -156,6 +164,14 @@ const DailyAttendance = () => {
 
   const summary = getAttendanceSummary();
 
+  const handleExportSF2 = async () => {
+    if (!sectionId || !academicYearId) {
+      alert("Please select Section and Academic Year from the filters");
+      return;
+    }
+    await exportSF2Excel(exportMonth);
+  };
+
   return (
     <main className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
@@ -180,6 +196,43 @@ const DailyAttendance = () => {
           </div>
         </div>
 
+        {/* Export SF2 Section */}
+        <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+          {sectionId && academicYearId && (
+            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+              <div className="flex items-center gap-2">
+                <label htmlFor="export-month" className="text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                  Month:
+                </label>
+                <input
+                  id="export-month"
+                  type="month"
+                  value={exportMonth}
+                  onChange={(e) => setExportMonth(e.target.value)}
+                  className="px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <button
+                onClick={handleExportSF2}
+                disabled={loading || !sectionId || !academicYearId}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileSpreadsheet size={16} />
+                    <span>Export SF2 Excel</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Quick Actions */}
         {selectedSchedule && !showWeeklyView && summary && (
           <div className="w-full sm:w-auto">
@@ -197,11 +250,6 @@ const DailyAttendance = () => {
                 className="px-3 py-2 text-xs sm:text-sm bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50 transition-colors whitespace-nowrap"
               >
                 Mark All Absent ({summary.total})
-              </button>
-              <button
-                className="px-3 py-2 text-xs sm:text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors whitespace-nowrap"
-              >
-                Export Attendance
               </button>
             </div>
           </div>

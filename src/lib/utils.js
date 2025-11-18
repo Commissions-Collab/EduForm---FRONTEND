@@ -197,3 +197,40 @@ export const downloadPDF = (blob, filename) => {
     toast.error("Failed to download PDF. Please try again.");
   }
 };
+
+/**
+ * Downloads an Excel file blob
+ * @param {Blob} blob - Blob object to download
+ * @param {string} filename - Name of the file
+ * @returns {void}
+ */
+export const downloadExcel = (blob, filename) => {
+  try {
+    if (!(blob instanceof Blob)) {
+      throw new Error("Invalid blob object");
+    }
+    if (typeof filename !== "string" || !filename.trim()) {
+      throw new Error("Invalid or empty filename");
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 0);
+  } catch (error) {
+    console.error("Failed to download Excel:", {
+      error: error.message,
+      filename,
+    });
+    toast.error("Failed to download Excel file. Please try again.");
+  }
+};

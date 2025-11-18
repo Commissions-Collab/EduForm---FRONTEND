@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import useFilterStore from "./filterStore";
 import { axiosInstance } from "../../lib/axios";
-import { paginate } from "../../lib/utils";
+import { paginate, downloadExcel } from "../../lib/utils";
 import toast from "react-hot-toast";
 
 // Configuration constants
@@ -338,6 +338,47 @@ const usePromotionStore = create((set, get) => ({
         });
       }
       toast.error("Failed to reset promotion data");
+    }
+  },
+
+  exportSF5Excel: async () => {
+    set({ loading: true, error: null });
+
+    try {
+      const filters = useFilterStore.getState().globalFilters;
+      if (!filters.sectionId || !filters.academicYearId) {
+        throw new Error("Section and Academic Year must be selected");
+      }
+
+      const response = await axiosInstance.get(
+        `/teacher/promotion-reports/export-sf5-excel`,
+        {
+          responseType: "blob",
+          params: {
+            section_id: filters.sectionId,
+            academic_year_id: filters.academicYearId,
+          },
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000, // 30 seconds for Excel generation
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], { 
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+      });
+      
+      const fileName = `SF5_Promotion_Report.xlsx`;
+      
+      downloadExcel(blob, fileName);
+
+      set({ loading: false });
+      toast.success("SF5 Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF5 Excel export failed", set);
     }
   },
 }));

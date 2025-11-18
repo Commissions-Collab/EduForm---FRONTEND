@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import toast from "react-hot-toast";
 import { axiosInstance } from "../../lib/axios";
+import { downloadExcel } from "../../lib/utils";
 
 const handleError = (err, defaultMessage, set) => {
   let errorMessage = defaultMessage;
@@ -194,6 +195,100 @@ const useSF5SF6FormStore = create((set, get) => ({
     } catch (err) {
       handleError(err, "PDF export failed", set);
       return null;
+    }
+  },
+
+  // Export SF5 as Excel
+  exportSF5Excel: async (academicYearId, sectionId) => {
+    set({ loading: true, error: null });
+    try {
+      if (!academicYearId || !sectionId) {
+        throw new Error("Academic Year and Section must be selected");
+      }
+
+      const response = await axiosInstance.get(
+        `/admin/forms/sf5-sf6/export-sf5-excel`,
+        {
+          responseType: "blob",
+          params: {
+            section_id: sectionId,
+            academic_year_id: academicYearId,
+          },
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000,
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'SF5_Promotion_Report.xlsx';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      downloadExcel(blob, fileName);
+      set({ loading: false });
+      toast.success("SF5 Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF5 Excel export failed", set);
+    }
+  },
+
+  // Export SF6 as Excel
+  exportSF6Excel: async (academicYearId, sectionId) => {
+    set({ loading: true, error: null });
+    try {
+      if (!academicYearId || !sectionId) {
+        throw new Error("Academic Year and Section must be selected");
+      }
+
+      const response = await axiosInstance.get(
+        `/admin/forms/sf5-sf6/export-sf6-excel`,
+        {
+          responseType: "blob",
+          params: {
+            section_id: sectionId,
+            academic_year_id: academicYearId,
+          },
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000,
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'SF6_Learner_Progress.xlsx';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      downloadExcel(blob, fileName);
+      set({ loading: false });
+      toast.success("SF6 Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF6 Excel export failed", set);
     }
   },
 
