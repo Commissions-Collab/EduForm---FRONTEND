@@ -7,12 +7,13 @@ import {
   Clock,
   TriangleAlert,
   CircleCheck,
+  FileSpreadsheet,
 } from "lucide-react";
 import TextbookTable from "../../../components/admin/TextbookTable";
 import useTextbooksStore from "../../../stores/admin/textbookStore";
 
 const Textbook = () => {
-  const { fetchTextbooks, textbooks, loading } = useTextbooksStore();
+  const { fetchTextbooks, textbooks, loading, exportSF3Excel } = useTextbooksStore();
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -32,6 +33,14 @@ const Textbook = () => {
     textbooks?.reduce((sum, book) => sum + (book.overdue_count || 0), 0) || 0;
   const totalAvailable =
     textbooks?.reduce((sum, book) => sum + (book.available || 0), 0) || 0;
+
+  const handleExportSF3Excel = async () => {
+    try {
+      await exportSF3Excel();
+    } catch (err) {
+      console.error("SF3 Export failed:", err);
+    }
+  };
 
   const statsCards = [
     {
@@ -88,18 +97,38 @@ const Textbook = () => {
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative w-full lg:w-80">
-            <div className="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
-              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+          {/* Search Bar and Export Button */}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <button
+              onClick={handleExportSF3Excel}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              title="Export SF3 Textbook Inventory Excel"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <FileSpreadsheet size={18} />
+                  <span>Export SF3 Excel</span>
+                </>
+              )}
+            </button>
+            <div className="relative w-full sm:w-80">
+              <div className="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200"
+                placeholder="Search textbooks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="block w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200"
-              placeholder="Search textbooks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
           </div>
         </div>
 

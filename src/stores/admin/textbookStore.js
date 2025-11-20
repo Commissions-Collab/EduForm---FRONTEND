@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import useFilterStore from "./filterStore";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
-import { paginate } from "../../lib/utils";
+import { paginate, downloadExcel } from "../../lib/utils";
 import toast from "react-hot-toast";
 
 // Configuration constants
@@ -239,6 +239,47 @@ const useTextbooksStore = create((set, get) => ({
         });
       }
       toast.error("Failed to reset textbooks data");
+    }
+  },
+
+  /**
+   * Export SF3 Excel - Textbook Inventory Report
+   */
+  exportSF3Excel: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get(
+        `/teacher/book-management/export-sf3-excel`,
+        {
+          responseType: "blob",
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000,
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'SF3_Textbook_Inventory.xlsx';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      downloadExcel(blob, fileName);
+      set({ loading: false });
+      toast.success("SF3 Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF3 Excel export failed", set);
     }
   },
 }));

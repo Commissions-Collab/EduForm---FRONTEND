@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import useFilterStore from "./filterStore";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
+import { downloadExcel } from "../../lib/utils";
 import toast from "react-hot-toast";
 
 const useBmiStore = create((set, get) => ({
@@ -193,6 +194,58 @@ const useBmiStore = create((set, get) => ({
     } catch (error) {
       console.error("Failed to reset BMI store:", { error: error.message });
       toast.error("Failed to reset BMI data");
+    }
+  },
+
+  /**
+   * Export SF8 Excel - Learner's Basic Health and Nutrition Report
+   */
+  exportSF8Excel: async () => {
+    set({ loading: true, error: null });
+    try {
+      const filters = useFilterStore.getState().globalFilters;
+
+      if (!filters.sectionId || !filters.academicYearId || !filters.quarterId) {
+        throw new Error("Section, Academic Year, and Quarter must be selected");
+      }
+
+      const response = await axiosInstance.get(
+        `/teacher/student-bmi/export-sf8-excel`,
+        {
+          responseType: "blob",
+          params: {
+            section_id: filters.sectionId,
+            academic_year_id: filters.academicYearId,
+            quarter_id: filters.quarterId,
+          },
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 30000,
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'SF8_Health_Report.xlsx';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      downloadExcel(blob, fileName);
+      set({ loading: false });
+      toast.success("SF8 Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF8 Excel export failed", set);
     }
   },
 }));

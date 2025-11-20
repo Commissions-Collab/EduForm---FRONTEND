@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import GradesTable from "../../../components/admin/GradesTable";
 import useFilterStore from "../../../stores/admin/filterStore";
 import useGradesStore from "../../../stores/admin/gradeStore";
-import { Download } from "lucide-react";
+import { Download, FileSpreadsheet } from "lucide-react";
 
 const Grades = () => {
   const {
@@ -19,6 +19,7 @@ const Grades = () => {
     fetchGrades,
     loading: gradesLoading,
     error: gradesError,
+    exportSF9Excel,
   } = useGradesStore();
 
   // Get stats from current data
@@ -76,6 +77,19 @@ const Grades = () => {
   const hasData = students?.length > 0;
   const isLoading = filterLoading || gradesLoading;
 
+  const handleExportSF9Excel = async () => {
+    if (!hasAllFilters) {
+      alert("Please select Academic Year, Quarter, and Section from the filters");
+      return;
+    }
+
+    try {
+      await exportSF9Excel();
+    } catch (err) {
+      console.error("SF9 Export failed:", err);
+    }
+  };
+
   return (
     <div className="bg-gray-50">
       <main className="p-3 sm:p-4 lg:p-6">
@@ -99,11 +113,22 @@ const Grades = () => {
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
               <button
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50"
+                onClick={handleExportSF9Excel}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!hasAllFilters || !hasData || isLoading}
+                title="Export SF9 Academic Records Excel"
               >
-                <Download size={16} className="mr-2" />
-                Export Grades
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileSpreadsheet size={16} className="mr-2" />
+                    <span>Export SF9 Excel</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

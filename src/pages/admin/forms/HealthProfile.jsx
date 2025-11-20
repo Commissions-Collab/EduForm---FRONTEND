@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Activity } from "lucide-react";
+import { Activity, FileSpreadsheet } from "lucide-react";
 import { getItem } from "../../../lib/utils";
 import BmiStudentTable from "../../../components/admin/BmiStudentTable";
 import useBmiStore from "../../../stores/admin/bmiStore";
 import useFilterStore from "../../../stores/admin/filterStore";
 
 const HealthProfile = () => {
-  const { bmiStudents, loading, error, fetchBmiStudents } = useBmiStore();
+  const { bmiStudents, loading, error, fetchBmiStudents, exportSF8Excel } = useBmiStore();
   const { globalFilters } = useFilterStore();
 
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
@@ -72,6 +72,19 @@ const HealthProfile = () => {
     selectedAcademicYear && selectedQuarter && selectedSection;
   const hasData = bmiStudents?.length > 0;
 
+  const handleExportSF8Excel = async () => {
+    if (!hasAllFilters) {
+      alert("Please select Academic Year, Quarter, and Section from the filters");
+      return;
+    }
+
+    try {
+      await exportSF8Excel();
+    } catch (err) {
+      console.error("SF8 Export failed:", err);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <main className="p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
@@ -93,6 +106,26 @@ const HealthProfile = () => {
                 )}
               </div>
             </div>
+            {hasAllFilters && (
+              <button
+                onClick={handleExportSF8Excel}
+                disabled={loading || !hasAllFilters}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                title="Export SF8 Health Report Excel"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileSpreadsheet size={18} />
+                    <span>Export SF8 Excel</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           {/* No Filters Message */}
