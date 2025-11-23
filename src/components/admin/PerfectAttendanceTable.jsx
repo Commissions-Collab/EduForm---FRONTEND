@@ -5,7 +5,6 @@ import {
   Search,
   CalendarCheck,
   CalendarDays,
-  Lock,
   User,
   Award,
   Calendar,
@@ -26,7 +25,6 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
     previewCertificate,
     downloadCertificate,
     printAllCertificates,
-    quarterComplete, // <-- Get quarterComplete state
   } = useCertificatesStore();
 
   const { globalFilters } = useFilterStore();
@@ -64,10 +62,8 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
 
   // Mobile Card Component
   const MobileCertificateCard = ({ record }) => {
-    const isReady = record.can_generate;
-    const disabledTitle = !isReady
-      ? "Certificate is not ready (attendance incomplete or quarter not ended)"
-      : "";
+    // DEMO MODE: Always enabled
+    const isReady = true;
 
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -99,19 +95,17 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors text-blue-600 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors text-blue-600 bg-blue-50 hover:bg-blue-100"
             onClick={() => handlePreview(record.id)}
-            disabled={!isReady}
-            title={disabledTitle || "Preview certificate"}
+            title="Preview certificate"
           >
             <Eye className="w-4 h-4" />
             Preview
           </button>
           <button
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors text-indigo-600 bg-indigo-50 hover:bg-indigo-100 disabled:bg-gray-50 disabled:text-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
             onClick={() => handleDownload(record.id)}
-            disabled={!isReady}
-            title={disabledTitle || "Download certificate"}
+            title="Download certificate"
           >
             <Download className="w-4 h-4" />
             Download
@@ -138,11 +132,9 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
     </div>
   );
 
-  const downloadAllDisabled =
-    !quarterComplete || attendanceCertificates.length === 0;
-  const downloadAllTitle = !quarterComplete
-    ? "Cannot download all until the quarter is complete"
-    : attendanceCertificates.length === 0
+  // DEMO MODE: Always enable download all
+  const downloadAllDisabled = attendanceCertificates.length === 0;
+  const downloadAllTitle = attendanceCertificates.length === 0
     ? "No qualified students found to download"
     : "Download all qualified certificates";
 
@@ -318,10 +310,8 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {records.map((record, idx) => {
-                  const isReady = record.can_generate;
-                  const disabledTitle = !isReady
-                    ? "Certificate is not ready (attendance incomplete or quarter not ended)"
-                    : "";
+                  // DEMO MODE: Always enabled
+                  const isReady = true;
 
                   return (
                     <tr
@@ -338,17 +328,10 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
                             <h3 className="text-sm font-medium text-gray-900">
                               {record.student_name}
                             </h3>
-                            {!record.can_generate ? (
-                              <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                                <Lock className="w-3 h-3" />
-                                Cannot generate yet
-                              </p>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 mt-1">
-                                <CalendarCheck className="w-3 h-3" />
-                                Perfect Attendance
-                              </span>
-                            )}
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 mt-1">
+                              <CalendarCheck className="w-3 h-3" />
+                              Perfect Attendance
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -367,19 +350,17 @@ const PerfectAttendanceTable = ({ searchName, setSearchName }) => {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-blue-600 hover:text-blue-800 hover:bg-blue-50 disabled:text-gray-400 disabled:hover:bg-transparent disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                             onClick={() => handlePreview(record.id)}
-                            disabled={!isReady}
-                            title={disabledTitle || "Preview certificate"}
+                            title="Preview certificate"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             Preview
                           </button>
                           <button
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 disabled:text-gray-400 disabled:hover:bg-transparent disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
                             onClick={() => handleDownload(record.id)}
-                            disabled={!isReady}
-                            title={disabledTitle || "Download certificate"}
+                            title="Download certificate"
                           >
                             <Download className="w-3.5 h-3.5" />
                             Download

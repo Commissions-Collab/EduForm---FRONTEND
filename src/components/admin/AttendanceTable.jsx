@@ -1,67 +1,113 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { CircleCheck, CircleX, Clock, Square, Eye, Check } from "lucide-react";
+import {
+  CircleCheck,
+  CircleX,
+  Clock,
+  Square,
+  Eye,
+  Check,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import { getStatusButtonStyle } from "./ButtonStatus";
 import { reasons } from "../../constants";
 import PaginationControls from "./Pagination";
 import { useNavigate } from "react-router-dom";
 import useAttendanceStore from "../../stores/admin/attendanceStore";
 import useFilterStore from "../../stores/admin/filterStore";
+import toast from "react-hot-toast";
 
 const RECORDS_PER_PAGE = 10;
 
 const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
+  const navigate = useNavigate();
   const {
     scheduleAttendance,
     updateIndividualAttendance,
     updateBulkAttendance,
     fetchScheduleAttendance,
+    fetchTardinessStats,
     loading,
     error,
   } = useAttendanceStore();
-  const { globalFilters } = useFilterStore();
-  const navigate = useNavigate();
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const { globalFilters } = useFilterStore();
+
   const [localAttendanceState, setLocalAttendanceState] = useState({});
   const [selectedStudents, setSelectedStudents] = useState(new Set());
+  const [showBulkActions, setShowBulkActions] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("present");
   const [bulkReason, setBulkReason] = useState("");
-  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [tardinessWarnings, setTardinessWarnings] = useState({});
 
   const records = useMemo(() => {
-    const students = scheduleAttendance?.students || [];
-    return students.map((student) => ({
-      student_id: student.id,
-      name: student.name || `${student.first_name} ${student.last_name}`.trim(),
-      first_name: student.first_name,
-      last_name: student.last_name,
-      status:
-        localAttendanceState[student.id]?.status ||
-        student.attendance_status ||
-        "present",
-      reason:
-        localAttendanceState[student.id]?.reason ||
-        student.attendance_reason ||
-        "",
-    }));
-  }, [scheduleAttendance, localAttendanceState]);
+    return scheduleAttendance?.students || [];
+  }, [scheduleAttendance]);
 
-  const totalPages = Math.ceil(records.length / RECORDS_PER_PAGE);
-  const paginatedRecords = records.slice(
-    (currentPage - 1) * RECORDS_PER_PAGE,
-    currentPage * RECORDS_PER_PAGE
-  );
+  const hasRecords = records.length > 0;
 
-  const handleViewHistory = (studentId) => {
-    if (selectedSchedule?.id) {
-      navigate(
-        `/teacher/student/${studentId}/schedule/${selectedSchedule.id}/attendance-history`
-      );
+  // Initialize local state from server data
+  useEffect(() => {
+    if (records.length > 0) {
+      const initialState = {};
+      records.forEach((student) => {
+        initialState[student.id] = {
+          status: student.attendance?.status || "present",
+          reason: student.attendance?.remarks || "",
+        };
+      });
+      setLocalAttendanceState(initialState);
+    }
+  }, [records]);
+
+  // Check for tardiness warnings when component mounts or schedule changes
+  useEffect(() => {
+    if (selectedSchedule?.id && records.length > 0) {
+      records.forEach((student) => {
+        if (student.attendance?.status === "late") {
+          checkTardinessWarning(student.id);
+        }
+      });
+    }
+  }, [selectedSchedule, records]);
+
+  // Check for tardiness warnings when marking late
+  const checkTardinessWarning = async (studentId) => {
+    if (!selectedSchedule?.id || !globalFilters.academicYearId) return;
+
+    try {
+      const data = await fetchTardinessStats(studentId, selectedSchedule.id);
+
+      if (data?.tardiness_stats?.subjects) {
+        const subjectStats = data.tardiness_stats.subjects.find(
+          (s) => s.subject_id === selectedSchedule.subject?.id
+        );
+
+        if (subjectStats) {
+          setTardinessWarnings((prev) => ({
+            ...prev,
+            [studentId]: {
+              lateCount: subjectStats.late_count,
+              atRisk: subjectStats.at_risk,
+              remainingLates: subjectStats.remaining_lates,
+              willConvert: subjectStats.late_count >= 4, // Next late will be converted
+            },
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to check tardiness:", error);
     }
   };
 
   const setStatus = async (studentId, status) => {
     if (!selectedSchedule?.id) return;
+
+    // Check tardiness before applying
+    if (status === "late") {
+      await checkTardinessWarning(studentId);
+    }
 
     setLocalAttendanceState((prev) => ({
       ...prev,
@@ -73,7 +119,7 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
     }));
 
     try {
-      await updateIndividualAttendance({
+      const response = await updateIndividualAttendance({
         student_id: studentId,
         schedule_id: selectedSchedule.id,
         status,
@@ -84,12 +130,25 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
             : "",
       });
 
+      // Check for tardiness conversion warning
+      if (response?.tardiness_conversion) {
+        // Warning already shown by store, update local state
+        setLocalAttendanceState((prev) => ({
+          ...prev,
+          [studentId]: {
+            ...prev[studentId],
+            status: "absent", // Update to reflect conversion
+          },
+        }));
+      }
+
+      // Refresh attendance data
       if (
         globalFilters.sectionId &&
         globalFilters.academicYearId &&
         globalFilters.quarterId
       ) {
-        fetchScheduleAttendance({
+        await fetchScheduleAttendance({
           scheduleId: selectedSchedule.id,
           sectionId: globalFilters.sectionId,
           academicYearId: globalFilters.academicYearId,
@@ -97,19 +156,28 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
           date: selectedDate,
         });
       }
+
+      // Refresh tardiness warning after update
+      if (status === "late" || status === "absent") {
+        await checkTardinessWarning(studentId);
+      }
     } catch (error) {
       console.error("Failed to update status:", error);
+      // Revert local state on error
+      setLocalAttendanceState((prev) => ({
+        ...prev,
+        [studentId]: {
+          status:
+            records.find((r) => r.id === studentId)?.attendance?.status ||
+            "present",
+          reason:
+            records.find((r) => r.id === studentId)?.attendance?.remarks || "",
+        },
+      }));
     }
   };
 
-  useEffect(() => {
-    setLocalAttendanceState({});
-    setCurrentPage(1);
-  }, [scheduleAttendance]);
-
-  const setReason = async (studentId, reason) => {
-    if (!selectedSchedule?.id) return;
-
+  const setReason = (studentId, reason) => {
     setLocalAttendanceState((prev) => ({
       ...prev,
       [studentId]: {
@@ -117,44 +185,25 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
         reason,
       },
     }));
-
-    try {
-      const currentStatus =
-        localAttendanceState[studentId]?.status ||
-        records.find((r) => r.student_id === studentId)?.status ||
-        "present";
-
-      await updateIndividualAttendance({
-        student_id: studentId,
-        schedule_id: selectedSchedule.id,
-        status: currentStatus,
-        date: selectedDate,
-        reason,
-      });
-    } catch (error) {
-      console.error("Failed to update reason:", error);
-    }
   };
 
   const handleSelectStudent = (studentId) => {
-    const newSelected = new Set(selectedStudents);
-    if (newSelected.has(studentId)) {
-      newSelected.delete(studentId);
-    } else {
-      newSelected.add(studentId);
-    }
-    setSelectedStudents(newSelected);
-    setShowBulkActions(newSelected.size > 0);
+    setSelectedStudents((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(studentId)) {
+        newSet.delete(studentId);
+      } else {
+        newSet.add(studentId);
+      }
+      return newSet;
+    });
   };
 
   const handleSelectAll = () => {
-    if (selectedStudents.size === paginatedRecords.length) {
+    if (selectedStudents.size === records.length) {
       setSelectedStudents(new Set());
-      setShowBulkActions(false);
     } else {
-      const allIds = new Set(paginatedRecords.map((r) => r.student_id));
-      setSelectedStudents(allIds);
-      setShowBulkActions(true);
+      setSelectedStudents(new Set(records.map((s) => s.id)));
     }
   };
 
@@ -168,22 +217,35 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
         reason: bulkStatus === "absent" ? bulkReason : "",
       }));
 
-      await updateBulkAttendance({
+      const response = await updateBulkAttendance({
         schedule_id: selectedSchedule.id,
         attendance_date: selectedDate,
         attendances,
       });
 
+      // Check for tardiness conversions
+      if (
+        response?.tardiness_conversions &&
+        response.tardiness_conversions.length > 0
+      ) {
+        // Warning already shown by store
+        // Refresh tardiness warnings for affected students
+        response.tardiness_conversions.forEach((tc) => {
+          checkTardinessWarning(tc.student_id);
+        });
+      }
+
       setSelectedStudents(new Set());
       setShowBulkActions(false);
       setBulkReason("");
 
+      // Refresh attendance data
       if (
         globalFilters.sectionId &&
         globalFilters.academicYearId &&
         globalFilters.quarterId
       ) {
-        fetchScheduleAttendance({
+        await fetchScheduleAttendance({
           scheduleId: selectedSchedule.id,
           sectionId: globalFilters.sectionId,
           academicYearId: globalFilters.academicYearId,
@@ -196,26 +258,95 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
     }
   };
 
-  const hasRecords = paginatedRecords.length > 0;
+  const handleViewHistory = (studentId) => {
+    navigate(
+      `/teacher/attendance/history?student=${studentId}&schedule=${selectedSchedule.id}`
+    );
+  };
+
+  // Pagination
+  const totalPages = Math.ceil(records.length / RECORDS_PER_PAGE);
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * RECORDS_PER_PAGE;
+    const end = start + RECORDS_PER_PAGE;
+    return records.slice(start, end);
+  }, [records, currentPage]);
+
+  // Get current status from local state or fallback to server data
+  const getStudentStatus = (student) => {
+    return (
+      localAttendanceState[student.id]?.status ||
+      student.attendance?.status ||
+      "present"
+    );
+  };
+
+  const getStudentReason = (student) => {
+    return (
+      localAttendanceState[student.id]?.reason ||
+      student.attendance?.remarks ||
+      ""
+    );
+  };
+
+  // Render tardiness indicator
+  const renderTardinessIndicator = (studentId, status) => {
+    if (status !== "late") return null;
+
+    const warning = tardinessWarnings[studentId];
+    if (!warning) return null;
+
+    if (warning.willConvert) {
+      return (
+        <div className="flex items-center gap-1 text-red-600 text-xs mt-1 font-medium">
+          <AlertTriangle size={14} />
+          <span>
+            CRITICAL: {warning.lateCount} late(s) - Next late will be ABSENT!
+          </span>
+        </div>
+      );
+    }
+
+    if (warning.atRisk) {
+      return (
+        <div className="flex items-center gap-1 text-orange-600 text-xs mt-1">
+          <AlertTriangle size={12} />
+          <span>
+            {warning.lateCount} late(s) - {warning.remainingLates} more until
+            absent
+          </span>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   const SkeletonRows = () => (
     <>
-      {Array.from({ length: RECORDS_PER_PAGE }).map((_, idx) => (
-        <tr key={idx} className="animate-pulse">
-          <td className="px-2 sm:px-4 py-4">
-            <div className="w-5 h-5 bg-gray-200 rounded"></div>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <tr key={index}>
+          <td className="px-2 sm:px-4 py-3 sm:py-4">
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
           </td>
-          <td className="px-2 sm:px-4 py-4">
-            <div className="h-4 bg-gray-200 rounded w-32 sm:w-40"></div>
+          <td className="px-2 sm:px-4 py-3 sm:py-4">
+            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
           </td>
-          <td className="px-2 sm:px-4 py-4 text-center">
-            <div className="h-8 w-20 mx-auto bg-gray-200 rounded-full"></div>
+          <td className="px-2 sm:px-4 py-3 sm:py-4">
+            <div className="flex space-x-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-16 h-8 bg-gray-200 rounded animate-pulse"
+                ></div>
+              ))}
+            </div>
           </td>
-          <td className="px-2 sm:px-4 py-4 text-center hidden md:table-cell">
-            <div className="h-4 w-24 mx-auto bg-gray-200 rounded"></div>
+          <td className="px-2 sm:px-4 py-3 sm:py-4 hidden md:table-cell">
+            <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
           </td>
-          <td className="px-2 sm:px-4 py-4 text-center hidden lg:table-cell">
-            <div className="h-4 w-16 mx-auto bg-gray-200 rounded"></div>
+          <td className="px-2 sm:px-4 py-3 sm:py-4 hidden lg:table-cell">
+            <div className="w-16 h-8 bg-gray-200 rounded animate-pulse"></div>
           </td>
         </tr>
       ))}
@@ -224,24 +355,50 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
 
   return (
     <div className="space-y-4">
-      {/* Bulk Actions Bar */}
-      {showBulkActions && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <span className="text-xs sm:text-sm font-medium text-blue-900">
-                {selectedStudents.size} student
-                {selectedStudents.size !== 1 ? "s" : ""} selected
-              </span>
+      {/* Tardiness Policy Notice */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
+        <div className="flex items-start gap-2">
+          <AlertTriangle
+            size={16}
+            className="text-yellow-600 mt-0.5 flex-shrink-0"
+          />
+          <div className="text-xs sm:text-sm text-yellow-800">
+            <strong>Tardiness Policy:</strong> Students who are late 5 times for
+            the same subject will automatically be marked as{" "}
+            <strong>ABSENT</strong> on their 5th late.
+          </div>
+        </div>
+      </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="text-xs sm:text-sm text-blue-700">
-                  Status:
-                </label>
+      {/* Bulk Actions Bar */}
+      {selectedStudents.size > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedStudents.size} student(s) selected
+              </span>
+              <button
+                onClick={() => setSelectedStudents(new Set())}
+                className="text-blue-600 hover:text-blue-800 text-sm underline"
+              >
+                Clear
+              </button>
+            </div>
+
+            {!showBulkActions ? (
+              <button
+                onClick={() => setShowBulkActions(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors"
+              >
+                Update Selected
+              </button>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <select
                   value={bulkStatus}
                   onChange={(e) => setBulkStatus(e.target.value)}
-                  className="text-xs sm:text-sm border border-blue-300 rounded px-2 py-1"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="present">Present</option>
                   <option value="absent">Absent</option>
@@ -250,45 +407,38 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                 </select>
 
                 {bulkStatus === "absent" && (
-                  <>
-                    <label className="text-xs sm:text-sm text-blue-700">
-                      Reason:
-                    </label>
-                    <select
-                      value={bulkReason}
-                      onChange={(e) => setBulkReason(e.target.value)}
-                      className="text-xs sm:text-sm border border-blue-300 rounded px-2 py-1"
-                    >
-                      <option value="">Select Reason</option>
-                      {reasons.map((reason, idx) => (
-                        <option key={idx} value={reason}>
-                          {reason}
-                        </option>
-                      ))}
-                    </select>
-                  </>
+                  <select
+                    value={bulkReason}
+                    onChange={(e) => setBulkReason(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Reason</option>
+                    {reasons.map((reason, idx) => (
+                      <option key={idx} value={reason}>
+                        {reason}
+                      </option>
+                    ))}
+                  </select>
                 )}
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleBulkUpdate}
-                disabled={loading}
-                className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                Update Selected
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedStudents(new Set());
-                  setShowBulkActions(false);
-                }}
-                className="px-3 py-2 text-blue-600 text-xs sm:text-sm hover:text-blue-800 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
+                <button
+                  onClick={handleBulkUpdate}
+                  disabled={loading}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm transition-colors whitespace-nowrap"
+                >
+                  Apply
+                </button>
+                <button
+                  onClick={() => {
+                    setShowBulkActions(false);
+                    setBulkReason("");
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -301,28 +451,27 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
               <th className="px-2 sm:px-4 py-3 text-left">
                 <button
                   onClick={handleSelectAll}
-                  className="flex items-center space-x-1 sm:space-x-2 text-xs font-medium text-gray-500 uppercase hover:text-gray-700"
+                  className="text-gray-400 hover:text-blue-600"
                 >
-                  {selectedStudents.size === paginatedRecords.length &&
-                  paginatedRecords.length > 0 ? (
-                    <Check size={14} />
+                  {selectedStudents.size === records.length &&
+                  records.length > 0 ? (
+                    <Check size={16} className="text-blue-600" />
                   ) : (
-                    <Square size={14} />
+                    <Square size={16} />
                   )}
-                  <span className="hidden sm:inline">Select All</span>
                 </button>
               </th>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Student Name
               </th>
-              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                 Reason
               </th>
-              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
-                Actions
+              <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                Action
               </th>
             </tr>
           </thead>
@@ -346,38 +495,114 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                 </td>
               </tr>
             ) : (
-              paginatedRecords.map((student) => (
-                <tr
-                  key={student.student_id}
-                  className={
-                    selectedStudents.has(student.student_id)
-                      ? "bg-blue-50"
-                      : "hover:bg-gray-50"
-                  }
-                >
-                  <td className="px-2 sm:px-4 py-3 sm:py-4">
-                    <button
-                      onClick={() => handleSelectStudent(student.student_id)}
-                      className="text-gray-400 hover:text-blue-600"
-                    >
-                      {selectedStudents.has(student.student_id) ? (
-                        <Check size={16} className="text-blue-600" />
-                      ) : (
-                        <Square size={16} />
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 font-medium">
-                    <div className="flex flex-col">
-                      <span>{student.name}</span>
-                      {/* Mobile: Show reason below name if absent */}
-                      {student.status === "absent" && (
+              paginatedRecords.map((student) => {
+                const currentStatus = getStudentStatus(student);
+                const currentReason = getStudentReason(student);
+
+                return (
+                  <tr
+                    key={student.id}
+                    className={
+                      selectedStudents.has(student.id)
+                        ? "bg-blue-50"
+                        : "hover:bg-gray-50"
+                    }
+                  >
+                    <td className="px-2 sm:px-4 py-3 sm:py-4">
+                      <button
+                        onClick={() => handleSelectStudent(student.id)}
+                        className="text-gray-400 hover:text-blue-600"
+                      >
+                        {selectedStudents.has(student.id) ? (
+                          <Check size={16} className="text-blue-600" />
+                        ) : (
+                          <Square size={16} />
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 font-medium">
+                      <div className="flex flex-col">
+                        <span>{student.full_name || student.name}</span>
+
+                        {/* Tardiness indicator */}
+                        {renderTardinessIndicator(student.id, currentStatus)}
+
+                        {/* Mobile: Show reason below name if absent */}
+                        {currentStatus === "absent" && (
+                          <select
+                            value={currentReason}
+                            onChange={(e) =>
+                              setReason(student.id, e.target.value)
+                            }
+                            className="mt-2 w-full p-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 md:hidden"
+                          >
+                            <option value="">Select Reason</option>
+                            {reasons.map((reason, idx) => (
+                              <option key={idx} value={reason}>
+                                {reason}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {/* Mobile: Show history button */}
+                        <button
+                          onClick={() => handleViewHistory(student.id)}
+                          className="mt-2 inline-flex items-center text-blue-600 hover:text-blue-800 text-xs lg:hidden"
+                          title="View attendance history"
+                        >
+                          <Eye size={12} />
+                          <span className="ml-1">History</span>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 flex items-center justify-center">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setStatus(student.id, "present")}
+                          disabled={loading}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${
+                            currentStatus === "present"
+                              ? "bg-green-600 text-white shadow-md"
+                              : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                          }`}
+                          title="Present"
+                        >
+                          <CircleCheck size={18} />
+                        </button>
+                        <button
+                          onClick={() => setStatus(student.id, "absent")}
+                          disabled={loading}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${
+                            currentStatus === "absent"
+                              ? "bg-red-600 text-white shadow-md"
+                              : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                          }`}
+                          title="Absent"
+                        >
+                          <CircleX size={18} />
+                        </button>
+                        <button
+                          onClick={() => setStatus(student.id, "late")}
+                          disabled={loading}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${
+                            currentStatus === "late"
+                              ? "bg-yellow-600 text-white shadow-md"
+                              : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                          }`}
+                          title="Late"
+                        >
+                          <Clock size={18} />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 hidden md:table-cell text-center">
+                      {currentStatus === "absent" ? (
                         <select
-                          value={student.reason || ""}
+                          value={currentReason}
                           onChange={(e) =>
-                            setReason(student.student_id, e.target.value)
+                            setReason(student.id, e.target.value)
                           }
-                          className="mt-2 w-full p-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 md:hidden"
+                          className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Select Reason</option>
                           {reasons.map((reason, idx) => (
@@ -386,77 +611,22 @@ const AttendanceTable = ({ selectedDate, selectedSchedule }) => {
                             </option>
                           ))}
                         </select>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
                       )}
-                      {/* Mobile: Show history button */}
+                    </td>
+                    <td className="px-2 sm:px-4 py-3 sm:py-4 hidden lg:table-cell text-center">
                       <button
-                        onClick={() => handleViewHistory(student.student_id)}
-                        className="mt-2 inline-flex items-center text-blue-600 hover:text-blue-800 text-xs lg:hidden"
+                        onClick={() => handleViewHistory(student.id)}
+                        className="text-blue-600 hover:text-blue-800 text-sm underline"
                         title="View attendance history"
                       >
-                        <Eye size={12} />
-                        <span className="ml-1">History</span>
+                        History
                       </button>
-                    </div>
-                  </td>
-                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-sm">
-                    <div className="flex justify-center space-x-1 sm:space-x-2">
-                      {["present", "absent", "late"].map((status) => (
-                        <button
-                          key={status}
-                          onClick={() => setStatus(student.student_id, status)}
-                          className={`p-0.5 sm:p-1 rounded-full transition-all ${getStatusButtonStyle(
-                            student.status,
-                            status
-                          )}`}
-                          title={
-                            status.charAt(0).toUpperCase() + status.slice(1)
-                          }
-                        >
-                          {status === "present" && (
-                            <CircleCheck className="w-6 h-6 sm:w-8 sm:h-8" />
-                          )}
-                          {status === "absent" && (
-                            <CircleX className="w-6 h-6 sm:w-8 sm:h-8" />
-                          )}
-                          {status === "late" && (
-                            <Clock className="w-6 h-6 sm:w-8 sm:h-8" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-sm text-center hidden md:table-cell">
-                    {student.status === "absent" ? (
-                      <select
-                        value={student.reason || ""}
-                        onChange={(e) =>
-                          setReason(student.student_id, e.target.value)
-                        }
-                        className="w-32 lg:w-36 p-1 border border-gray-300 rounded text-xs sm:text-sm focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select Reason</option>
-                        {reasons.map((reason, idx) => (
-                          <option key={idx} value={reason}>
-                            {reason}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-sm text-center hidden lg:table-cell">
-                    <button
-                      onClick={() => handleViewHistory(student.student_id)}
-                      className="inline-flex items-center px-2 sm:px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors text-xs sm:text-sm"
-                      title="View attendance history"
-                    >
-                      <Eye size={12} />
-                      <span className="ml-1">History</span>
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

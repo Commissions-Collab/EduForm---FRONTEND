@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import HonorsCertificateTable from "../../components/admin/HonorCertificateTable";
 import PerfectAttendanceTable from "../../components/admin/PerfectAttendanceTable";
-import { BadgeAlert, CalendarX } from "lucide-react";
+import { BadgeAlert } from "lucide-react";
 import useCertificatesStore from "../../stores/admin/certificateStore";
 import useFilterStore from "../../stores/admin/filterStore";
 
 const Certificates = () => {
-  const { fetchCertificateData, loading, error, quarterComplete } =
+  const { fetchCertificateData, loading, error } =
     useCertificatesStore();
   const { globalFilters, initializeGlobalFilters, fetchGlobalFilterOptions } =
     useFilterStore();
@@ -67,24 +67,7 @@ const Certificates = () => {
         </div>
       )}
 
-      {/* Quarter Status Alert */}
-      {hasAllFilters && !loading && !quarterComplete && (
-        <div className="mb-4 sm:mb-6 rounded-lg sm:rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-4 sm:p-6 shadow-sm">
-          <div className="flex items-start gap-3 sm:gap-4">
-            <CalendarX className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0" />
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-amber-800 mb-1 sm:mb-2">
-                Quarter In Progress
-              </h3>
-              <p className="text-xs sm:text-sm text-amber-700 leading-relaxed">
-                The selected quarter has not ended yet. Certificate generation
-                will be enabled once the quarter end date has passed and all
-                required data is complete.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* DEMO MODE: Quarter Status Alert removed */}
 
       {/* Error */}
       {error && (

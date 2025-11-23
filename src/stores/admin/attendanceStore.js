@@ -1,11 +1,14 @@
 import { create } from "zustand";
-import { downloadPDF, downloadExcel, getItem, setItem, removeItem } from "../../lib/utils";
+import {
+  downloadPDF,
+  downloadExcel,
+  getItem,
+  setItem,
+  removeItem,
+} from "../../lib/utils";
 import { axiosInstance, fetchCsrfToken } from "../../lib/axios";
 import useFilterStore from "./filterStore";
 import toast from "react-hot-toast";
-
-// Configuration constants
-const RECORDS_PER_PAGE = 10;
 
 const handleError = (err, defaultMessage, set) => {
   const message = err?.response?.data?.message || defaultMessage;
@@ -19,11 +22,11 @@ const handleError = (err, defaultMessage, set) => {
   return message;
 };
 
-const useAttendanceStore = create((set) => ({
+const useAttendanceStore = create((set, get) => ({
   scheduleAttendance: {},
   studentAttendance: {},
   attendancePDFBlob: null,
-  weeklySchedule: null,
+  monthlySchedule: null,
   monthlyAttendanceData: null,
   studentId: getItem("studentId", false, sessionStorage) || null,
   scheduleId: getItem("scheduleId", false, sessionStorage) || null,
@@ -56,43 +59,50 @@ const useAttendanceStore = create((set) => ({
     }
   },
 
-  fetchWeeklySchedule: async (
+  fetchMonthlySchedule: async (
     sectionId,
     academicYearId,
     quarterId,
-    weekStart = null
+    monthStart = null
   ) => {
-    set({ loading: true, error: null });
+    // Clear old schedule data before fetching new
+    set({ loading: true, error: null, monthlySchedule: null });
 
     try {
       if (!sectionId || !academicYearId || !quarterId) {
         throw new Error(
-          "Missing required filters for fetching weekly schedule"
+          "Missing required filters for fetching monthly schedule"
         );
       }
 
-      if (weekStart && !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
-        throw new Error("Invalid week start date format");
+      if (monthStart && !/^\d{4}-\d{2}-\d{2}$/.test(monthStart)) {
+        throw new Error("Invalid month start date format");
       }
 
       const params = new URLSearchParams();
       params.append("section_id", sectionId);
       params.append("academic_year_id", academicYearId);
       params.append("quarter_id", quarterId);
-      if (weekStart) params.append("week_start", weekStart);
+      if (monthStart) params.append("month_start", monthStart);
 
       const { data, status } = await axiosInstance.get(
-        `/teacher/schedule/weekly?${params.toString()}`,
+        `/teacher/schedule/monthly?${params.toString()}`,
         { timeout: 10000 }
       );
+
+      console.log("Monthly Schedule API Response:", data);
 
       if (status !== 200 || !data?.success) {
         throw new Error(data?.message || "Invalid response from server");
       }
 
-      set({ weeklySchedule: data.data, loading: false });
+      // IMPORTANT: Store ONLY the schedule object, not the entire data
+      console.log("Setting monthlySchedule to:", data.data.schedule);
+      set({ monthlySchedule: data.data.schedule, loading: false });
+      return data.data.schedule;
     } catch (err) {
-      handleError(err, "Failed to fetch weekly schedule", set);
+      handleError(err, "Failed to fetch monthly schedule", set);
+      return null;
     }
   },
 
@@ -124,8 +134,10 @@ const useAttendanceStore = create((set) => ({
       }
 
       set({ scheduleAttendance: data?.data || {}, loading: false });
+      return data?.data;
     } catch (err) {
       handleError(err, "Unable to fetch schedule attendance", set);
+      return null;
     }
   },
 
@@ -147,8 +159,10 @@ const useAttendanceStore = create((set) => ({
       }
 
       set({ scheduleAttendance: data?.data || {}, loading: false });
+      return data?.data;
     } catch (err) {
       handleError(err, "Unable to fetch students for schedule", set);
+      return null;
     }
   },
 
@@ -186,7 +200,16 @@ const useAttendanceStore = create((set) => ({
       }
 
       set({ loading: false });
-      toast.success("Attendance updated successfully");
+
+      if (data.tardiness_conversion) {
+        toast.error(data.warning, {
+          duration: 6000,
+          icon: "⚠️",
+        });
+      } else {
+        toast.success("Attendance updated successfully");
+      }
+
       return data;
     } catch (err) {
       handleError(err, "Update failed", set);
@@ -232,7 +255,21 @@ const useAttendanceStore = create((set) => ({
       }
 
       set({ loading: false });
-      toast.success("Bulk attendance updated successfully");
+
+      if (data.tardiness_conversions && data.tardiness_conversions.length > 0) {
+        const warningMessage =
+          data.warning +
+          "\n" +
+          data.tardiness_conversions.map((tc) => tc.message).join("\n");
+
+        toast.error(warningMessage, {
+          duration: 8000,
+          icon: "⚠️",
+        });
+      } else {
+        toast.success("Bulk attendance updated successfully");
+      }
+
       return data;
     } catch (err) {
       handleError(err, "Bulk update failed", set);
@@ -273,10 +310,62 @@ const useAttendanceStore = create((set) => ({
       }
 
       set({ loading: false });
-      toast.success("Attendance for all students updated successfully");
+
+      if (data.tardiness_conversions && data.tardiness_conversions.length > 0) {
+        const studentList = data.tardiness_conversions
+          .map((tc) => tc.student_name)
+          .join(", ");
+
+        toast.error(`${data.warning}\nAffected students: ${studentList}`, {
+          duration: 10000,
+          icon: "⚠️",
+        });
+      } else {
+        toast.success("Attendance for all students updated successfully");
+      }
+
       return data;
     } catch (err) {
       handleError(err, "Update for all students failed", set);
+      return null;
+    }
+  },
+
+  fetchTardinessStats: async (studentId, scheduleId) => {
+    try {
+      if (!studentId) {
+        console.warn("Student ID is required for tardiness stats");
+        return null;
+      }
+
+      const filters = useFilterStore.getState().globalFilters;
+
+      if (!filters?.academicYearId || !filters?.quarterId) {
+        console.warn("Missing required filters for tardiness stats");
+        return null;
+      }
+
+      const params = new URLSearchParams({
+        academic_year_id: filters.academicYearId,
+        quarter_id: filters.quarterId,
+      });
+
+      if (scheduleId) {
+        params.append("schedule_id", scheduleId);
+      }
+
+      const { data, status } = await axiosInstance.get(
+        `/teacher/student/${studentId}/tardiness-stats?${params.toString()}`,
+        { timeout: 10000 }
+      );
+
+      if (status !== 200) {
+        throw new Error(data?.message || "Invalid response from server");
+      }
+
+      return data.data;
+    } catch (err) {
+      console.error("Failed to fetch tardiness statistics:", err);
       return null;
     }
   },
@@ -302,8 +391,10 @@ const useAttendanceStore = create((set) => ({
       }
 
       set({ scheduleAttendance: data?.data || {}, loading: false });
+      return data?.data;
     } catch (err) {
       handleError(err, "Unable to fetch attendance history", set);
+      return null;
     }
   },
 
@@ -379,8 +470,10 @@ const useAttendanceStore = create((set) => ({
       };
 
       set({ studentAttendance: transformedData, loading: false });
+      return transformedData;
     } catch (err) {
       handleError(err, "Unable to fetch student attendance history", set);
+      return null;
     }
   },
 
@@ -430,15 +523,15 @@ const useAttendanceStore = create((set) => ({
         throw new Error("Section and Academic Year must be selected");
       }
 
-      // Use provided month or current month
-      const selectedMonth = month || (() => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const monthNum = String(today.getMonth() + 1).padStart(2, '0');
-        return `${year}-${monthNum}`;
-      })();
+      const selectedMonth =
+        month ||
+        (() => {
+          const today = new Date();
+          const year = today.getFullYear();
+          const monthNum = String(today.getMonth() + 1).padStart(2, "0");
+          return `${year}-${monthNum}`;
+        })();
 
-      // Validate month format (YYYY-MM)
       if (!/^\d{4}-\d{2}$/.test(selectedMonth)) {
         throw new Error("Invalid month format. Use YYYY-MM (e.g., 2024-01)");
       }
@@ -452,8 +545,11 @@ const useAttendanceStore = create((set) => ({
             academic_year_id: filters.academicYearId,
             month: selectedMonth,
           },
-          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
-          timeout: 30000, // 30 seconds for Excel generation
+          headers: {
+            Accept:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          },
+          timeout: 30000,
         }
       );
 
@@ -461,19 +557,28 @@ const useAttendanceStore = create((set) => ({
         throw new Error("Invalid Excel response from server");
       }
 
-      const blob = new Blob([response.data], { 
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-      
-      // Generate filename from month
-      const [year, monthNum] = selectedMonth.split('-');
+
+      const [year, monthNum] = selectedMonth.split("-");
       const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
       ];
       const monthName = monthNames[parseInt(monthNum) - 1];
       const fileName = `SF2_Daily_Attendance_${monthName}_${year}.xlsx`;
-      
+
       downloadExcel(blob, fileName);
 
       set({ loading: false });
@@ -491,7 +596,7 @@ const useAttendanceStore = create((set) => ({
         scheduleAttendance: {},
         studentAttendance: {},
         attendancePDFBlob: null,
-        weeklySchedule: null,
+        monthlySchedule: null,
         monthlyAttendanceData: null,
         studentId: null,
         scheduleId: null,
@@ -507,15 +612,12 @@ const useAttendanceStore = create((set) => ({
   },
 }));
 
-// Centralized unauthorized event handler
 const handleUnauthorized = () => {
   useAttendanceStore.getState().resetAttendanceStore();
 };
 
-// Register event listener with proper cleanup
 window.addEventListener("unauthorized", handleUnauthorized);
 
-// Cleanup on module unload (for hot-reloading scenarios)
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     window.removeEventListener("unauthorized", handleUnauthorized);

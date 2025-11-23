@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Calendar, GraduationCap, Eye, Menu, Layers } from "lucide-react";
+import { Calendar, GraduationCap, Eye, Menu, Layers, CalendarDays } from "lucide-react";
 import Pagination from "./Pagination";
 
 const ClassManagementTable = ({
@@ -13,7 +13,7 @@ const ClassManagementTable = ({
   onEdit,
   onDelete,
   onManageQuarters,
-  onToggleActive, // New prop for subject toggle
+  onToggleActive,
   currentPage,
   onPageChange,
 }) => {
@@ -122,6 +122,12 @@ const ClassManagementTable = ({
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       End Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="w-4 h-4" />
+                        School Days
+                      </div>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Current
@@ -235,6 +241,16 @@ const ClassManagementTable = ({
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {new Date(item.end_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-semibold text-indigo-700">
+                            {item.school_days_count || 0} days
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            of {item.total_days || 0} total
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         <span

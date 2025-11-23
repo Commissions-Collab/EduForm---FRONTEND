@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, FileSpreadsheet } from "lucide-react";
 import { getItem, setItem } from "../../../lib/utils";
-import WeeklyScheduleView from "../../../components/admin/WeeklyScheduleView";
+import MonthlyScheduleView from "../../../components/admin/MonthlyScheduleView"; // Changed from WeeklyScheduleView
 import AttendanceTable from "../../../components/admin/AttendanceTable";
 import useAttendanceStore from "../../../stores/admin/attendanceStore";
 import useFilterStore from "../../../stores/admin/filterStore";
@@ -25,7 +25,7 @@ const DailyAttendance = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [showWeeklyView, setShowWeeklyView] = useState(true);
+  const [showMonthlyView, setShowMonthlyView] = useState(true); // Changed from showWeeklyView
   const [exportMonth, setExportMonth] = useState(() => {
     const today = new Date();
     const year = today.getFullYear();
@@ -51,7 +51,7 @@ const DailyAttendance = () => {
       }).then((data) => {
         if (data?.schedule) {
           setSelectedSchedule(data.schedule);
-          setShowWeeklyView(false);
+          setShowMonthlyView(false);
         }
       });
     }
@@ -88,7 +88,7 @@ const DailyAttendance = () => {
     if (date) {
       setSelectedDate(date);
     }
-    setShowWeeklyView(false);
+    setShowMonthlyView(false);
 
     setItem("selectedScheduleId", schedule.id);
     setItem("selectedDate", date || selectedDate);
@@ -144,8 +144,8 @@ const DailyAttendance = () => {
     }
   };
 
-  const handleBackToWeekly = () => {
-    setShowWeeklyView(true);
+  const handleBackToMonthly = () => { // Changed from handleBackToWeekly
+    setShowMonthlyView(true);
     setSelectedSchedule(null);
   };
 
@@ -234,7 +234,7 @@ const DailyAttendance = () => {
         </div>
 
         {/* Quick Actions */}
-        {selectedSchedule && !showWeeklyView && summary && (
+        {selectedSchedule && !showMonthlyView && summary && (
           <div className="w-full sm:w-auto">
             <div className="flex flex-col sm:flex-row gap-2">
               <button
@@ -256,20 +256,20 @@ const DailyAttendance = () => {
         )}
       </div>
 
-      {/* Weekly Schedule View */}
-      {showWeeklyView && (
-        <WeeklyScheduleView onScheduleClick={handleScheduleSelect} />
+      {/* Monthly Schedule View */}
+      {showMonthlyView && (
+        <MonthlyScheduleView onScheduleClick={handleScheduleSelect} />
       )}
 
       {/* Selected Schedule Info */}
-      {selectedSchedule && !showWeeklyView && (
+      {selectedSchedule && !showMonthlyView && (
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <button
-              onClick={handleBackToWeekly}
+              onClick={handleBackToMonthly}
               className="text-blue-600 flex gap-2 items-center underline hover:text-blue-800 text-sm sm:text-base font-medium"
             >
-              <ArrowLeft size={18} /> Weekly Schedule
+              <ArrowLeft size={18} /> Monthly Schedule
             </button>
 
             {/* Date Selector */}
@@ -334,27 +334,27 @@ const DailyAttendance = () => {
       )}
 
       {/* Attendance Table */}
-      {selectedSchedule && !showWeeklyView ? (
+      {selectedSchedule && !showMonthlyView ? (
         <AttendanceTable
           key={refreshKey}
           selectedDate={selectedDate}
           selectedSchedule={selectedSchedule}
         />
       ) : (
-        !showWeeklyView && (
+        !showMonthlyView && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
             <p className="text-gray-600 font-medium text-sm sm:text-base">
               Please select a schedule to view students
             </p>
             <p className="text-gray-500 text-xs sm:text-sm mt-1">
-              Choose a class from your weekly schedule to start taking
+              Choose a class from your monthly schedule to start taking
               attendance.
             </p>
             <button
-              onClick={() => setShowWeeklyView(true)}
+              onClick={() => setShowMonthlyView(true)}
               className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              View Weekly Schedule
+              View Monthly Schedule
             </button>
           </div>
         )
