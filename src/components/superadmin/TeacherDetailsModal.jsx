@@ -41,7 +41,7 @@ const TeacherDetailsModal = ({ isOpen, onClose, teacherId }) => {
           </div>
         ) : teacher ? (
           <div className="space-y-5 max-h-[60vh] overflow-y-auto px-1">
-            {/* 🧾 Basic Info */}
+            {/* Basic Info */}
             <div>
               <h3 className="text-base font-semibold text-gray-800 mb-2">
                 Basic Information
@@ -84,7 +84,7 @@ const TeacherDetailsModal = ({ isOpen, onClose, teacherId }) => {
               </div>
             </div>
 
-            {/* 🧑‍🏫 Advisory */}
+            {/* Advisory */}
             <div className="pt-4 border-t border-gray-200">
               <h3 className="text-base font-semibold text-gray-800 mb-2">
                 Advisory Section
@@ -109,14 +109,21 @@ const TeacherDetailsModal = ({ isOpen, onClose, teacherId }) => {
               )}
             </div>
 
-            {/* 📚 Subjects */}
+            {/* Subjects */}
             <div className="pt-4 border-t border-gray-200">
               <h3 className="text-base font-semibold text-gray-800 mb-2">
                 Assigned Subjects
               </h3>
               {teacher.teacher_subjects?.length > 0 ? (
                 <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                  {teacher.teacher_subjects.map((ts, i) => (
+                  {Array.from(
+                    new Map(
+                      teacher.teacher_subjects.map((ts) => [
+                        `${ts.subject?.id}-${ts.section?.id}-${ts.academic_year?.id}`,
+                        ts,
+                      ])
+                    ).values()
+                  ).map((ts, i) => (
                     <li key={i}>
                       <span className="font-medium">{ts.subject?.name}</span>{" "}
                       <span className="text-gray-500">
@@ -133,14 +140,21 @@ const TeacherDetailsModal = ({ isOpen, onClose, teacherId }) => {
               )}
             </div>
 
-            {/* 🗓 Schedule */}
+            {/* Schedule */}
             <div className="pt-4 border-t border-gray-200">
               <h3 className="text-base font-semibold text-gray-800 mb-2">
                 Schedule
               </h3>
               {teacher.schedules?.length > 0 ? (
                 <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                  {teacher.schedules.map((sched, i) => (
+                  {Array.from(
+                    new Map(
+                      teacher.schedules.map((sched) => [
+                        `${sched.section?.name}-${sched.day_of_week}-${sched.start_time}-${sched.end_time}`,
+                        sched,
+                      ])
+                    ).values()
+                  ).map((sched, i) => (
                     <li key={i}>
                       <span className="font-medium">
                         {sched.section?.name || "N/A"}
