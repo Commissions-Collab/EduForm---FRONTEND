@@ -553,6 +553,13 @@ const useAttendanceStore = create((set, get) => ({
         }
       );
 
+      // Check if response is actually an error (JSON error returned as blob)
+      if (response.data instanceof Blob && response.data.type === "application/json") {
+        const errorText = await response.data.text();
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.message || errorData.error || "Failed to export SF2 Excel");
+      }
+
       if (response.status !== 200) {
         throw new Error("Invalid Excel response from server");
       }
@@ -584,6 +591,19 @@ const useAttendanceStore = create((set, get) => ({
       set({ loading: false });
       toast.success("SF2 Excel file downloaded successfully");
     } catch (err) {
+      // Handle blob error responses
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const errorText = await err.response.data.text();
+          const errorData = JSON.parse(errorText);
+          const errorMessage = errorData.message || errorData.error || "SF2 Excel export failed";
+          set({ error: errorMessage, loading: false });
+          toast.error(errorMessage);
+          return;
+        } catch (parseError) {
+          // If parsing fails, fall through to default error handling
+        }
+      }
       handleError(err, "SF2 Excel export failed", set);
     }
   },

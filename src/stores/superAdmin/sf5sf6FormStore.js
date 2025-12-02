@@ -292,6 +292,53 @@ const useSF5SF6FormStore = create((set, get) => ({
     }
   },
 
+  // Export SF6 as Excel for Overall Academic Year (all sections, all year levels)
+  exportSF6ExcelOverall: async (academicYearId) => {
+    set({ loading: true, error: null });
+    try {
+      if (!academicYearId) {
+        throw new Error("Academic Year must be selected");
+      }
+
+      const response = await axiosInstance.get(
+        `/admin/forms/sf5-sf6/export-sf6-excel`,
+        {
+          responseType: "blob",
+          params: {
+            academic_year_id: academicYearId,
+            // No section_id or year_level_id - this triggers overall academic year export
+          },
+          headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+          timeout: 60000, // Longer timeout for larger exports
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Invalid Excel response from server");
+      }
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'SF6_Learner_Progress_Overall.xlsx';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (fileNameMatch && fileNameMatch[1]) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      downloadExcel(blob, fileName);
+      set({ loading: false });
+      toast.success("SF6 Overall Academic Year Excel file downloaded successfully");
+    } catch (err) {
+      handleError(err, "SF6 Overall Academic Year Excel export failed", set);
+    }
+  },
+
   // Set current page
   setCurrentPage: (page) => {
     try {

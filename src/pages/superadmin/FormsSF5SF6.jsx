@@ -25,6 +25,7 @@ const FormsSF5SF6 = () => {
     exportFormPDF,
     exportSF5Excel,
     exportSF6Excel,
+    exportSF6ExcelOverall,
     isFormAccessible,
     formMessage,
     formWarning,
@@ -89,6 +90,18 @@ const FormsSF5SF6 = () => {
       await exportSF5Excel(globalFilters.academicYearId, globalFilters.sectionId);
     } else {
       await exportSF6Excel(globalFilters.academicYearId, globalFilters.sectionId);
+    }
+  };
+
+  const handleExportExcelOverall = async () => {
+    if (!globalFilters.academicYearId) {
+      alert("Please select Academic Year from the filters");
+      return;
+    }
+
+    if (!isFormSF5) {
+      // Only SF6 supports overall academic year export
+      await exportSF6ExcelOverall(globalFilters.academicYearId);
     }
   };
 
@@ -202,6 +215,26 @@ const FormsSF5SF6 = () => {
                       <>
                         <FileSpreadsheet size={18} />
                         <span>Export {isFormSF5 ? 'SF5' : 'SF6'} Excel</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                {!isFormSF5 && globalFilters.academicYearId && (
+                  <button
+                    onClick={handleExportExcelOverall}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Export SF6 for Overall Academic Year (All Sections, All Year Levels)"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-4 h-4 text border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Exporting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileSpreadsheet size={18} />
+                        <span>Export All SF6</span>
                       </>
                     )}
                   </button>
